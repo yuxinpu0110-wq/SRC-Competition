@@ -1,0 +1,8 @@
+{
+  "profile": "goalie", "team": "yellow", "side": "right",
+  "attackers": [0, 1], "goalie": 2,
+  "shoot_skill": "targeted", "enable_pass": false,
+  "task_dispatch": "direct",
+  "field_length": 9000, "field_width": 6000, "goal_width": 1000,
+  "defense_depth": 1000, "defense_width": 2000, "power_cap": 7400
+}

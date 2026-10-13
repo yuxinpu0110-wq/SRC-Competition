@@ -1,0 +1,9 @@
+ZBin/PythonScripts/.venv/
+**/__pycache__/
+logs/
+runtime-*.ini
+heartbeat-*.txt
+benchmark-*.json
+desktop-test.png
+client-inspect.png
+match-selected.json

@@ -1,0 +1,20 @@
+{
+  "profile": "qualifier",
+  "team": "blue",
+  "side": "left",
+  "attackers": [0, 1],
+  "goalie": 2,
+  "shoot_skill": "targeted",
+  "task_dispatch": "direct",
+  "enable_pass": false,
+  "pass_shot_threshold": 150,
+  "pass_score_gain": 90,
+  "advance_before_shoot": true,
+  "shoot_from_x": 2650,
+  "field_length": 9000,
+  "field_width": 6000,
+  "goal_width": 1000,
+  "defense_depth": 1000,
+  "defense_width": 2000,
+  "power_cap": 7400
+}
