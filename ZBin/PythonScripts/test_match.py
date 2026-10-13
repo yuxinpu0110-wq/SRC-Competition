@@ -140,6 +140,159 @@ class GeometryTests(unittest.TestCase):
             sender.close()
 
 
+class ShotGateTests(unittest.TestCase):
+    """纯几何/计时测试；不调用 C++、不把出球请求当成物理进球。"""
+    def setUp(self):
+        from shot_accuracy import ShotGate
+        self.gate = ShotGate()
+        self.c = load_config(ROOT/'match.json')
+        self.ball, self.robot, self.target = Point(2700,0), Point(2605,0), Point(4500,0)
+
+    def sample(self, now, robot=None, heading=0, ball=None):
+        robot, ball = robot or self.robot, ball or self.ball
+        self.gate.observe(now,robot,heading,ball)
+        return self.gate.allow(now,robot,heading,ball,self.target,self.c)
+
+    def test_first_sample_cannot_kick(self):
+        self.assertFalse(self.sample(0)[0])
+
+    def test_stationary_contact_requires_settling(self):
+        self.sample(0)
+        self.assertEqual(self.sample(.02),(False,'SETTLE'))
+        self.assertEqual(self.sample(.12),(True,'READY'))
+
+    def test_old_angle_tolerance_rejected(self):
+        self.sample(0,heading=.07)
+        self.assertFalse(self.sample(.02,heading=.07)[0])
+
+    def test_off_center_contact_rejected(self):
+        self.assertEqual(self.sample(0,robot=Point(2605,18)),(False,'CONTACT'))
+
+    def test_ball_not_at_kicker_rejected(self):
+        self.assertEqual(self.sample(0,robot=Point(2550,0)),(False,'CONTACT'))
+
+    def test_moving_robot_rejected(self):
+        self.sample(0,robot=Point(2585,0))
+        self.assertEqual(self.sample(.02),(False,'MOVING'))
+
+    def test_rotating_robot_rejected(self):
+        self.sample(0,heading=-.01)
+        self.assertEqual(self.sample(.02),(False,'MOVING'))
+
+    def test_moving_ball_rejected(self):
+        self.sample(0,ball=Point(2690,0))
+        self.assertEqual(self.sample(.02),(False,'MOVING'))
+
+    def test_heading_ray_outside_goal_rejected(self):
+        self.ball,self.robot,self.target = Point(2700,430),Point(2605,430),Point(4500,430)
+        self.assertEqual(self.sample(0),(False,'OUTSIDE_GOAL'))
+
+    def test_nonfinite_heading_rejected(self):
+        self.assertEqual(self.sample(0,heading=float('nan')),(False,'INVALID_OBSERVATION'))
+
+    def test_gap_requires_new_stable_window(self):
+        self.sample(0); self.sample(.02); self.sample(.12)
+        self.assertEqual(self.sample(1),(False,'MOVING'))
+        self.assertEqual(self.sample(1.02),(False,'SETTLE'))
+
+    def test_shot_cooldown(self):
+        self.sample(0); self.sample(.02); self.sample(.12)
+        self.gate.fired(.12)
+        self.assertEqual(self.sample(.14),(False,'SETTLE'))
+        self.assertEqual(self.sample(.24),(False,'COOLDOWN'))
+        self.assertTrue(self.sample(.43)[0])
+
+    def test_direction_change_restarts_settling(self):
+        self.sample(0); self.sample(.02); self.sample(.12)
+        self.target = Point(4400,0)
+        self.assertEqual(self.sample(.14),(False,'SETTLE'))
+
+    def test_pass_can_face_away_from_opponent_goal(self):
+        robot,target = Point(2795,0),Point(1500,0)
+        self.gate.observe(0,robot,math.pi,self.ball)
+        self.gate.observe(.02,robot,math.pi,self.ball)
+        self.gate.allow(.02,robot,math.pi,self.ball,target,self.c,shooting=False)
+        self.gate.observe(.12,robot,math.pi,self.ball)
+        self.assertTrue(self.gate.allow(.12,robot,math.pi,self.ball,target,self.c,shooting=False)[0])
+
+    def test_opponent_config_follows_scene(self):
+        from match_launcher import opponent_config
+        c = opponent_config(dict(self.c,team='yellow',side='right',goalie=7),{})
+        self.assertEqual((c['team'],c['side'],c['goalie'],c['profile']),('blue','left',7,'goalie'))
+
+    def test_precision_config_checked(self):
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory() as directory:
+            path = Path(directory)/'invalid.json'
+            path.write_text(json.dumps(dict(self.c,shoot_control='typo')),encoding='utf-8')
+            with self.assertRaises(ValueError): load_config(path)
+
+    def test_probe_decodes_both_team_packets(self):
+        from simulation_probe import robot_detections
+        from sim_tools import field
+        robot = field(2,3)+field(3,100.,5)+field(4,-20.,5)+field(5,.5,5)
+        frame = field(4,2)+field(6,robot,2)
+        packet = field(1,frame,2)
+        self.assertEqual(list(robot_detections(packet,'yellow',3)),[(2,(100.,-20.,.5))])
+        self.assertEqual(list(robot_detections(packet,'blue',3)),[])
+
+    def test_probe_rejects_truncated_packet(self):
+        from simulation_probe import fields
+        with self.assertRaises(ValueError): list(fields(b'\x0a\x05x'))
+
+    def test_cancelled_probe_stops_without_driving(self):
+        import threading
+        from simulation_probe import drive_pulse
+        event = threading.Event(); event.set()
+        with patch('simulation_probe.velocity') as moving, patch('simulation_probe.stop_robots') as stopped:
+            drive_pulse('blue',0,1,event)
+        moving.assert_not_called()
+        self.assertEqual(stopped.call_count,3)
+
+    def test_panel_stops_only_owned_goalie_pid(self):
+        from match_launcher import App
+        from unittest.mock import MagicMock
+        app = App.__new__(App)
+        process = MagicMock(pid=12345)
+        process.poll.return_value = None
+        app.opponent_process = process
+        app.opponent_c = {'team':'yellow','goalie':2}
+        app.opponent_output = MagicMock()
+        app.opponent_status = MagicMock()
+        with patch('match_launcher.subprocess.run') as run, patch('match_launcher.stop_robots') as stopped:
+            app.stop_opponent()
+        self.assertEqual(run.call_args.args[0],['taskkill','/PID','12345','/T','/F'])
+        self.assertEqual(stopped.call_count,3)
+        self.assertIsNone(app.opponent_process)
+
+    def test_panel_detects_goalie_crash(self):
+        from match_launcher import App
+        from unittest.mock import MagicMock
+        app = App.__new__(App)
+        app.opponent_process = MagicMock()
+        app.opponent_process.poll.return_value = 1
+        app.stop_opponent = MagicMock()
+        app.opponent_status = MagicMock()
+        app.poll_opponent()
+        app.stop_opponent.assert_called_once()
+        self.assertIn('退出',app.opponent_status.set.call_args.args[0])
+
+    def test_panel_reads_last_complete_telemetry(self):
+        from match_launcher import latest_complete_row
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory() as directory:
+            path = Path(directory)/'rows.jsonl'
+            path.write_bytes(b'{"frame":1}\n{"frame":2}\n{"fra')
+            self.assertEqual(latest_complete_row(path),{'frame':2})
+
+    def test_complete_frame_config_requires_bool(self):
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory() as directory:
+            path = Path(directory)/'invalid.json'
+            path.write_text(json.dumps(dict(self.c,complete_frame='false')),encoding='utf-8')
+            with self.assertRaises(ValueError): load_config(path)
+
+
 class NativePoint:
     def __init__(self,x=0,y=0):
         self._x,self._y = x,y
@@ -208,7 +361,7 @@ class OfficialPlayTests(unittest.TestCase):
 
     def setUp(self):
         self.c = dict(load_config(ROOT/'match.json'),enable_pass=True,advance_before_shoot=False,
-                      pass_shot_threshold=230,pass_score_gain=60)
+                      pass_shot_threshold=230,pass_score_gain=60,shoot_control='legacy')
         self.play = self.NormalPlay(self.c)
         self.ball = Point(2700,0)
         self.players = {0:Point(2460,0),1:Point(2200,-1400)}
@@ -256,6 +409,19 @@ class OfficialPlayTests(unittest.TestCase):
         self.assertTrue(all(isinstance(s,State) for s in self.play.states.values()))
         self.assertEqual(len(self.play.states),10)
         self.assertTrue(Path(sys.modules[StateMachine.__module__].__file__).name == 'StateMachine.py')
+
+    def test_precision_skill_waits_and_then_requests_kick(self):
+        self.play = self.NormalPlay(dict(self.c,shoot_control='precision',enable_pass=False))
+        self.opponents = []
+        self.players[0] = Point(2605,0)
+        self.tick(0)
+        self.tick(.02)
+        self.assertFalse(any(c[0]=='kick' for c in self.calls))
+        self.assertEqual(self.play.phase,'WAIT_SETTLE')
+        rush = [c for c in self.calls if c[0]=='RushTo' and c[1]==0][0]
+        self.assertEqual(rush[2],2605)  # 停在球后95mm，而不是继续挤向球后65mm。
+        self.tick(.12)
+        self.assertTrue(any(c[0]=='kick' and c[1]==0 for c in self.calls))
 
     def test_tasks_use_official_task_and_fixed_ids(self):
         self.tick(0,'HALT')

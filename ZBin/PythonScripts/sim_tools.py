@@ -47,7 +47,7 @@ def stop_robots(team, ids):
     send(field(1, commands, 2))
 
 
-def reset_scene(ball=(0, 0), attackers=(0, 1), goalie=2, team='blue', side='left'):
+def reset_scene(ball=(0, 0), attackers=(0, 1), goalie=2, team='blue', side='left', attacker_poses=None):
     """Replace practice scene: TWO attacking robots + ONE opposite goalkeeper."""
     sign = 1 if side == 'left' else -1
     b = field(1, ball[0], 1)+field(2, ball[1], 1)+field(3, 0.0, 1)+field(4, 0.0, 1)
@@ -59,6 +59,9 @@ def reset_scene(ball=(0, 0), attackers=(0, 1), goalie=2, team='blue', side='left
             x, y, direction = -4.0, 2.7, 0.0
             if ours and n in attackers:
                 x, y = (-1.0, -0.7) if n == attackers[0] else (-1.5, 1.2)
+                if attacker_poses and n in attacker_poses:
+                    # 仅供练习的接触射门诊断；坐标单位米，朝向单位度。
+                    x, y, direction = attacker_poses[n]
             elif not ours and n == goalie:
                 x, y, direction = 4.2, 0.0, 180.0
             robot = (field(1, sign*x, 1)+field(2, sign*y, 1)+field(3, direction+(180 if sign < 0 else 0), 1)

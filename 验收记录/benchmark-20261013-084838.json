@@ -1,0 +1,159 @@
+{
+  "description": "Local practice, three fixed ball starts. Not official score/win rate.",
+  "goalie_mode": "official",
+  "shoot_control": "precision",
+  "complete": true,
+  "started_at": "2026-10-13 08:47:36",
+  "config": {
+    "profile": "qualifier",
+    "team": "blue",
+    "side": "left",
+    "attackers": [
+      0,
+      1
+    ],
+    "goalie": 2,
+    "shoot_skill": "targeted",
+    "task_dispatch": "state_machine",
+    "enable_pass": false,
+    "pass_shot_threshold": 150,
+    "pass_score_gain": 90,
+    "advance_before_shoot": true,
+    "shoot_from_x": 2650,
+    "field_length": 9000,
+    "field_width": 6000,
+    "goal_width": 1000,
+    "defense_depth": 1000,
+    "defense_width": 2000,
+    "power_cap": 7400,
+    "shoot_control": "precision"
+  },
+  "source_sha256": {
+    "run_match.py": "b10a35de8a52b6e80a8095a9d9ee488a83417b7b0f50d2f41a9f9830fabb6be9",
+    "match_tactics.py": "b6f6de5a103ffc274c373d2be1f8f4da48726321ae21044f01a769dc1d3167e6",
+    "Play/Normal/Normalplay.py": "159a893a5edd46c6076d1bc5cf8fe375db7ed22a549ef48020e01756eeaf4534",
+    "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "0a9e08d13ae2ae5b36c6a5d80fee106d936fafcbaac1a02610a59c92b6260125",
+    "shot_accuracy.py": "4198ccc10b979f8f3160a79a57c955b52c31e9a87afedaa40dd4dc1f101c2190",
+    "sim_tools.py": "467983d105bbf4efe7627b17d2e650e550b57b9eaf32dabaee5e19e962ffb8fb",
+    "benchmark_match.py": "663f8b2e266cf3bc3cabb7b984ac1134cda8725df3376ad588633769824c897e"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "skill": "targeted",
+      "ball_start_m": [
+        0,
+        0
+      ],
+      "seconds": 18.0,
+      "goal_crossing": false,
+      "valid": true,
+      "pass_attempts": 0,
+      "pass_completed_proximity": 0,
+      "pass_aborted": 0,
+      "last_ball_mm": [
+        0.0,
+        0.10000000149011612
+      ],
+      "last_phase": "ALIGN",
+      "last_shot_gate": {
+        "0": {
+          "reason": "NO_SAMPLE"
+        },
+        "1": {
+          "reason": "NO_SAMPLE"
+        }
+      },
+      "samples": 388,
+      "goalie_samples": 158,
+      "goalie_max_displacement_mm": 10.571777360339723,
+      "moving_goalie_observed": false
+    },
+    {
+      "trial": 2,
+      "skill": "targeted",
+      "ball_start_m": [
+        0.8,
+        1.0
+      ],
+      "seconds": 18.0,
+      "goal_crossing": false,
+      "valid": true,
+      "pass_attempts": 0,
+      "pass_completed_proximity": 0,
+      "pass_aborted": 0,
+      "last_ball_mm": [
+        800.0,
+        1000.0
+      ],
+      "last_phase": "ALIGN",
+      "last_shot_gate": {
+        "0": {
+          "reason": "NO_SAMPLE"
+        },
+        "1": {
+          "reason": "NO_SAMPLE"
+        }
+      },
+      "samples": 402,
+      "goalie_samples": 157,
+      "goalie_max_displacement_mm": 12.858006093174724,
+      "moving_goalie_observed": false
+    },
+    {
+      "trial": 3,
+      "skill": "targeted",
+      "ball_start_m": [
+        0.8,
+        -1.0
+      ],
+      "seconds": 18.0,
+      "goal_crossing": false,
+      "valid": true,
+      "pass_attempts": 0,
+      "pass_completed_proximity": 0,
+      "pass_aborted": 0,
+      "last_ball_mm": [
+        800.0,
+        -1000.0
+      ],
+      "last_phase": "ALIGN",
+      "last_shot_gate": {
+        "0": {
+          "reason": "NO_SAMPLE"
+        },
+        "1": {
+          "reason": "NO_SAMPLE"
+        }
+      },
+      "samples": 411,
+      "goalie_samples": 157,
+      "goalie_max_displacement_mm": 11.472714760639318,
+      "moving_goalie_observed": false
+    }
+  ],
+  "goalie_config": {
+    "profile": "goalie",
+    "team": "yellow",
+    "side": "right",
+    "attackers": [
+      0,
+      1
+    ],
+    "goalie": 2,
+    "shoot_skill": "targeted",
+    "enable_pass": false,
+    "task_dispatch": "state_machine",
+    "field_length": 9000,
+    "field_width": 6000,
+    "goal_width": 1000,
+    "defense_depth": 1000,
+    "defense_width": 2000,
+    "power_cap": 7400
+  },
+  "goalie_console": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\benchmark-goalie-1791852456669555500-console.txt",
+  "attacker_consoles": [
+    "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\benchmark-targeted-1791852458686405300-console.txt"
+  ],
+  "finished_at": "2026-10-13 08:48:38"
+}

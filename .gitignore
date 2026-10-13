@@ -7,3 +7,6 @@ benchmark-*.json
 desktop-test.png
 client-inspect.png
 match-selected.json
+opponent-selected.json
+!验收记录/
+!验收记录/*.json

@@ -32,7 +32,9 @@ def load_config(path):
         raise ValueError('Invalid shoot_skill / power_cap')
     if c.get('task_dispatch', 'state_machine') != 'state_machine':
         raise ValueError('Only official state_machine dispatch is supported; remove old direct setting')
-    for name in ('enable_pass', 'advance_before_shoot', 'enable_dss', 'qt_application'):
+    if c.get('shoot_control', 'legacy') not in ('legacy', 'precision'):
+        raise ValueError('shoot_control must be legacy or precision')
+    for name in ('enable_pass', 'advance_before_shoot', 'enable_dss', 'qt_application', 'complete_frame'):
         if name in c and type(c[name]) is not bool:
             raise ValueError(name+' must be true or false (not a string)')
     for name, low, high in [('pass_setup_timeout', .5, 10), ('pass_flight_timeout', .5, 6), ('pass_kick_timeout', .3, 3),
@@ -115,6 +117,7 @@ def main():
     log_dir.mkdir(exist_ok=True)
     log_path = log_dir/(time.strftime('%Y%m%d-%H%M%S')+f"-{c['team']}.jsonl")
     frames, last_label, last_log, armed = 0, None, 0.0, False
+    ready_frames = 0
     def xy(point):
         return Point(point.x(), point.y())
     print('[MATCH] READY. Official NormalPlay states. HALT -> STOP GAME -> FORCE START.', flush=True)
@@ -124,7 +127,7 @@ def main():
                 runner.preDecision()
                 # 上一帧 Task/技能对象在 native preDecision 后才释放；不宣称能根治崩溃。
                 play.retained_tasks.clear()
-                if frames == 0:
+                if frames == 0 and not c.get('complete_frame', True):
                     ready = 0
                     while ready < 20:
                         ready = ready+1 if any(Player.isValid(n) for n in ids) else 0
@@ -140,6 +143,12 @@ def main():
                     armed = True
                 if not armed:
                     mode = 'WAIT_INITIAL_STOP'
+                if c.get('complete_frame', True):
+                    # 官方要求 pre/post 配对：预热期间也规划 Stop 并完成后半帧。
+                    # 旧实现连续 preDecision 预热、HALT 时跳过 post，保留开关供对照。
+                    ready_frames = ready_frames+1 if any(Player.isValid(n) for n in ids) else 0
+                    if ready_frames < 20:
+                        mode = 'WAIT_VISION_STABLE'
                 ball, valid_ball = xy(Ball.pos()), Ball.valid()
                 # players 含受控门将位置，供 STOP 退球；选主攻时只看配置里的 attackers。
                 visible = {n for n in ids if Player.isValid(n)}
@@ -148,9 +157,9 @@ def main():
                 play.update_frame(now, ball, players, opponents, visible, mode, valid_ball)
                 play.planTasks()  # 唯一调度入口：官方 State.run → Task.run → Skill。
                 Global.isPlaySwitched = False
-                if play.motion_ids:
+                if play.motion_ids or c.get('complete_frame', True):
                     runner.postDecision()
-                # HALT/无动作时不进入原生运动规划；只给本机受控车发零速度。
+                # 完成 native 后半帧后，再给无运动任务的受控车追加本机零速度保护。
                 idle = [n for n in ids if n not in play.motion_ids]
                 if idle:
                     stop_robots(c['team'], idle)
@@ -167,6 +176,8 @@ def main():
                            'pass_aborted':play.pass_aborted, 'pass_reason':play.pass_reason,
                            'referee':message, 'ball':[ball.x, ball.y], 'ball_valid':valid_ball,
                            'striker':play.tactics.striker, 'our_goals':vision.getOurGoal(), 'their_goals':vision.getTheirGoal(),
+                           'shoot_control':c.get('shoot_control', 'legacy'),
+                           'shot_gate':{str(n):g.diagnostics for n,g in play.shot_gates.items()},
                            'angles':{str(n):Player.direction(n) for n in visible},
                            'robots':{str(n):[players[n].x, players[n].y] for n in visible}}
                     log.write(json.dumps(row)+'\n')

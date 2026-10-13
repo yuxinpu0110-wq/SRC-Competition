@@ -39,7 +39,8 @@ def MoveTo(target, ball, *, slow=False, receive=False, enable_dss=True):
 
 
 def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
-                 enable_dss=True, on_kick=None, report_phase=None):
+                 enable_dss=True, on_kick=None, report_phase=None, gate=None, now=0,
+                 shooting=True):
     """绕后→对齐→接触；carry 不踢，can_kick=False 只瞄准。
 
     自定义接触/发球条件，实际轨迹交给官方 RushTo。
@@ -61,7 +62,9 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
         # sin/cos + atan2 把角度差折回 [-π, π]，避免 179° 与 -179° 被算差358°。
         # aligned 要求：站在球后、横向偏差<35mm、朝向偏差<0.08rad（约4.6°）。
         aligned, close = along > 0 and lateral < 35 and err < .08, distance(robot, ball) < 150
-        offset = 65 if aligned else 240
+        # precision 模式对齐后停在约95mm：官方车前沿76mm + 球半径21.5mm。
+        # 旧65mm目标会要求车身继续挤球。带球仍向前推进，不在这里停车。
+        offset = (95 if gate is not None and not carry else 65) if aligned else 240
         # 未对齐先去球后240mm绕好位置；对齐后靠到65mm，准备接触球。
         dest = geometry.legal(Point(ball.x-offset*ux, ball.y-offset*uy))
         if carry and aligned and close:
@@ -69,17 +72,28 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
             dest = geometry.legal(Point(ball.x+160*ux, ball.y+160*uy))
         point = C.CGeoPoint(dest.x, dest.y)
         flags = (0x08000000 if enable_dss else 0) | 0x200 | (0 if aligned else 0x10)
-        skill = Skill.RushTo(point, angle=angle, maxAcc=1800, flag=flags, needDribble=aligned)
+        skill = Skill.RushTo(point, angle=angle, maxAcc=900 if gate is not None and aligned else 1800,
+                             flag=flags, needDribble=aligned)
         resources.extend((point, skill))
         skill[0](executor)
-        if aligned and close and not carry and can_kick:
+        allowed, reason = True, ''
+        if gate is not None and carry:
+            gate.stable_since = None
+        if gate is not None and not carry:
+            allowed, reason = gate.allow(now, robot, Player.direction(executor), ball, target,
+                                         geometry.c, shooting=shooting)
+        if aligned and close and not carry and can_kick and allowed:
             # “状态允许踢”还不够：车也必须真正靠近并对准。
             kickStatus.setKick(executor, power)
+            if gate is not None:
+                gate.fired(now)
             if on_kick is not None:
                 on_kick(executor, ball)
         phase = ('CARRY' if carry and aligned and close else
-                 'KICK' if aligned and close and can_kick else
+                 'KICK' if aligned and close and can_kick and allowed else
                  'HOLD_BALL' if aligned and close else 'CONTACT' if aligned else 'ALIGN')
+        if gate is not None and aligned and close and not carry and can_kick and not allowed:
+            phase = 'WAIT_'+reason
         if report_phase is not None:
             # 只更新日志动作标签，不改变战术状态；不要在这里切换 State。
             report_phase(phase)

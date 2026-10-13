@@ -16,7 +16,7 @@ from sim_tools import PracticeReferee, reset_scene, stop_robots
 
 
 def kill_child(p):
-    if p.poll() is None:
+    if p is not None and p.poll() is None:
         subprocess.run(['taskkill', '/PID', str(p.pid), '/T', '/F'], capture_output=True)
         p.wait(timeout=5)
 
@@ -46,6 +46,14 @@ def main():
     parser.add_argument('--dss', choices=('on', 'off'), help='Diagnostic native DSS A/B; default unchanged')
     parser.add_argument('--dispatch', choices=('state_machine',), help='Only official state_machine dispatch is supported')
     parser.add_argument('--qt-app', action='store_true', help='Diagnostic explicit Qt application in both controllers')
+    parser.add_argument('--shoot-control', choices=('legacy', 'precision'), default='legacy',
+                        help='Same-scene A/B of old/new targeted contact control')
+    parser.add_argument('--goalie', choices=('official', 'stationary'), default='official',
+                        help='stationary isolates aiming; never count it as a moving-goalie test')
+    parser.add_argument('--starts', choices=('approach','contact'), default='approach',
+                        help='contact pre-aligns the striker near ball: aiming-only diagnostic, NOT full attack')
+    parser.add_argument('--frame-cycle', choices=('paired','legacy'), default='paired',
+                        help='paired always completes pre/post; legacy reproduces old skipped idle postDecision')
     args = parser.parse_args()
     if args.repeats < 1 or args.seconds <= 0:
         parser.error('repeats and seconds must be positive')
@@ -55,6 +63,8 @@ def main():
         raise RuntimeError('Benchmark requires ONE connected Client and ONE simulator')
     (ROOT/'logs').mkdir(exist_ok=True)
     c = load_config(ROOT/'match.json')
+    c['shoot_control'] = args.shoot_control
+    c['complete_frame'] = args.frame_cycle == 'paired'
     if args.passing:
         c['enable_pass'] = args.passing == 'on'
     if args.dss:
@@ -65,28 +75,32 @@ def main():
         c['qt_application'] = True
     if c['team'] != 'blue' or c['side'] != 'left' or c['profile'] != 'qualifier':
         raise ValueError('This reproducible benchmark requires blue / left / qualifier')
-    report = {'description': 'Local practice, three fixed ball starts, official Goalie2022 skill. Not official score/win rate.',
+    report = {'description': 'Local practice, three fixed ball starts. Not official score/win rate.',
+              'goalie_mode': args.goalie, 'shoot_control': args.shoot_control,
+              'start_mode': args.starts,
               'complete': False, 'started_at': time.strftime('%Y-%m-%d %H:%M:%S'), 'config': c,
               'source_sha256': {name: hashlib.sha256((ZBIN/'PythonScripts'/name).read_bytes()).hexdigest()
                                 for name in ['run_match.py', 'match_tactics.py', 'Play/Normal/Normalplay.py',
-                                             'RoleMatch_LuaStyle/Skills/CompetitionSkills.py', 'sim_tools.py', 'benchmark_match.py']}, 'trials': []}
+                                             'RoleMatch_LuaStyle/Skills/CompetitionSkills.py', 'shot_accuracy.py',
+                                             'sim_tools.py', 'benchmark_match.py']}, 'trials': []}
     report_path = ROOT/'logs'/'benchmark-report.json'
     report_path.write_text(json.dumps(report, indent=2), encoding='utf-8')
     practice = PracticeReferee()
     referee = practice.set
     referee(0)
     goalie_path = ROOT/'opponent.json'
-    if args.dispatch or args.qt_app:
+    if args.dispatch or args.qt_app or args.frame_cycle:
         goalie_config = load_config(goalie_path)
+        goalie_config['complete_frame'] = args.frame_cycle == 'paired'
         if args.dispatch:
             goalie_config['task_dispatch'] = args.dispatch
         if args.qt_app:
             goalie_config['qt_application'] = True
         goalie_path = ROOT/'benchmark-goalie.json'
         goalie_path.write_text(json.dumps(goalie_config, indent=2), encoding='utf-8')
-    goalie, goalie_log = launch(goalie_path, 'goalie')
+    goalie, goalie_log = launch(goalie_path, 'goalie') if args.goalie == 'official' else (None, None)
     report['goalie_config'] = load_config(goalie_path)
-    report['goalie_console'] = goalie_log.name
+    report['goalie_console'] = goalie_log.name if goalie_log else None
     try:
         time.sleep(2)
         for skill in args.skills:
@@ -97,18 +111,26 @@ def main():
             report.setdefault('attacker_consoles', []).append(output.name)
             try:
                 time.sleep(2)
-                if p.poll() is not None or goalie.poll() is not None:
-                    raise RuntimeError(f'A strategy failed (attack={p.poll()}, goalie={goalie.poll()}); inspect logs/benchmark-*-console.txt')
+                if p.poll() is not None or (goalie is not None and goalie.poll() is not None):
+                    raise RuntimeError('A strategy failed; inspect logs/benchmark-*-console.txt')
                 logs = sorted((ROOT/'logs').glob('*-blue.jsonl'), key=lambda p:p.stat().st_mtime)
                 if not logs:
                     raise RuntimeError('No telemetry: connect Client Vision first')
                 telemetry = logs[-1]
                 yellow_logs = sorted((ROOT/'logs').glob('*-yellow.jsonl'), key=lambda p:p.stat().st_mtime)
-                goalie_telemetry = yellow_logs[-1] if yellow_logs else None
-                for trial, ball in enumerate([(0, 0), (0.8, 1.0), (0.8, -1.0)] * args.repeats):
+                goalie_telemetry = yellow_logs[-1] if yellow_logs and goalie is not None else None
+                starts = [(0,0),(.8,1),(.8,-1)] if args.starts == 'approach' else [(2.8,0),(2.8,.8),(2.8,-.8)]
+                for trial, ball in enumerate(starts * args.repeats):
                     referee(0)
                     time.sleep(.25)
-                    reset_scene(ball=ball, attackers=c['attackers'], goalie=c['goalie'])
+                    poses = None
+                    if args.starts == 'contact':
+                        from match_tactics import Point, Tactics
+                        aim,_ = Tactics(c).shot(Point(ball[0]*1000,ball[1]*1000),[Point(4200,0)])
+                        angle = math.atan2(aim.y-ball[1]*1000,aim.x-ball[0]*1000)
+                        poses = {c['attackers'][0]:(ball[0]-.095*math.cos(angle),ball[1]-.095*math.sin(angle),math.degrees(angle)),
+                                 c['attackers'][1]:(1.5,1.5,0)}
+                    reset_scene(ball=ball, attackers=c['attackers'], goalie=c['goalie'],attacker_poses=poses)
                     time.sleep(.6)
                     referee(1)
                     time.sleep(.25)
@@ -119,6 +141,9 @@ def main():
                     start = time.monotonic()
                     trial_wall_time = time.time()
                     result = {'trial': trial+1, 'skill': skill, 'ball_start_m': ball, 'seconds': args.seconds, 'goal_crossing': False}
+                    # 试验开始即保存；即便中途崩溃，也要留下一次无效尝试，不能悄悄消失。
+                    result['valid'] = False
+                    report['trials'].append(result)
                     prev = None
                     samples = 0
                     last_sample_at = time.monotonic()
@@ -127,8 +152,12 @@ def main():
                     with telemetry.open(encoding='utf-8') as stream:
                         stream.seek(offset)
                         while time.monotonic()-start < args.seconds:
-                            if p.poll() is not None or goalie.poll() is not None:
+                            if p.poll() is not None or (goalie is not None and goalie.poll() is not None):
                                 raise RuntimeError('Strategy process exited during trial')
+                            if goalie is not None:
+                                heartbeat = ROOT/'heartbeat-yellow.txt'
+                                if not heartbeat.exists() or time.time()-heartbeat.stat().st_mtime > 2.5:
+                                    raise RuntimeError('Goalkeeper heartbeat stalled; moving-goalie trial INVALID')
                             line_offset = stream.tell()
                             line = stream.readline()
                             if not line or not line.endswith('\n'):
@@ -153,7 +182,7 @@ def main():
                                 if number in initial_robots:
                                     old = initial_robots[number]
                                     max_robot_drift = max(max_robot_drift, math.hypot(pos[0]-old[0], pos[1]-old[1]))
-                            if time.monotonic()-start > 6 and max_robot_drift < 20:
+                            if args.starts == 'approach' and time.monotonic()-start > 6 and max_robot_drift < 20:
                                 raise RuntimeError('Vision arrives but robots do not move: check Client simulation command forwarding. Trial INVALID.')
                             if not row['ball_valid']:
                                 continue
@@ -167,6 +196,7 @@ def main():
                             prev = (x,y)
                             result['last_ball_mm'] = [x,y]
                             result['last_phase'] = row['phase']
+                            result['last_shot_gate'] = row.get('shot_gate', {})
                     referee(0)
                     result['samples'] = samples
                     if goalie_telemetry:
@@ -177,9 +207,10 @@ def main():
                                 poses.append(pose)
                         result['goalie_samples'] = len(poses)
                         result['goalie_max_displacement_mm'] = max((math.dist(poses[0], q) for q in poses), default=0)
+                        result['moving_goalie_observed'] = len(poses) >= 10 and result['goalie_max_displacement_mm'] > 20
                     if samples < 10:
                         raise RuntimeError('Insufficient telemetry: trial is INVALID, not a failed shot')
-                    report['trials'].append(result)
+                    result['valid'] = True
                     (ROOT/'logs'/'benchmark-report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
                     print(json.dumps(result), flush=True)
             finally:
@@ -196,7 +227,8 @@ def main():
     finally:
         referee(0)
         kill_child(goalie)
-        goalie_log.close()
+        if goalie_log is not None:
+            goalie_log.close()
         stop_robots('yellow', [c['goalie']])
         practice.close()
     report['complete'] = True

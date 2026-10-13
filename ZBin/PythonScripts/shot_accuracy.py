@@ -1,0 +1,92 @@
+"""精确出球的纯 Python 安全门：先站稳、贴正球，再允许发球。
+
+这不是物理球路预测器；heading 延长线只用于拒绝明显会偏出门框的请求。
+每辆车持有一个 ShotGate，不能每帧重新创建，否则无法积累稳定时间。
+"""
+import math
+from match_tactics import distance
+
+
+def angle_difference(a, b):
+    return math.atan2(math.sin(a-b), math.cos(a-b))
+
+
+class ShotGate:
+    def __init__(self):
+        self.previous = None
+        self.speed = self.spin = self.ball_speed = math.inf
+        self.stable_since = None
+        self.previous_target = None
+        self.last_kick = -math.inf
+        self.diagnostics = {'reason': 'NO_SAMPLE'}
+
+    def observe(self, now, robot, heading, ball):
+        """由相邻视觉帧估算速度；断帧后重新站稳，不沿用之前的稳定计时。"""
+        if not all(math.isfinite(v) for v in (now, robot.x, robot.y, heading, ball.x, ball.y)):
+            self.previous = None
+            self.speed = self.spin = self.ball_speed = math.inf
+            self.stable_since = None
+            return
+        old = self.previous
+        self.previous = (now, robot, heading, ball)
+        if old is None or not 0.001 <= now-old[0] <= .25:
+            self.speed = self.spin = self.ball_speed = math.inf
+            self.stable_since = None
+            return
+        dt = now-old[0]
+        self.speed = distance(robot, old[1])/dt
+        self.spin = abs(angle_difference(heading, old[2]))/dt
+        self.ball_speed = distance(ball, old[3])/dt
+
+    def allow(self, now, robot, heading, ball, target, config, *, shooting=True):
+        """返回 (是否允许踢, 原因)。阈值是待仿真验证的初始值，不是成功率保证。"""
+        if not all(math.isfinite(v) for v in (now, robot.x, robot.y, heading, ball.x, ball.y, target.x, target.y)):
+            self.stable_since = None
+            self.diagnostics = {'reason': 'INVALID_OBSERVATION'}
+            return False, 'INVALID_OBSERVATION'
+        desired = math.atan2(target.y-ball.y, target.x-ball.x)
+        error = abs(angle_difference(heading, desired))
+        # 在车头方向上计算球的位置：真正出球方向跟车头有关，不只跟目标点有关。
+        dx, dy = ball.x-robot.x, ball.y-robot.y
+        forward = dx*math.cos(heading)+dy*math.sin(heading)
+        lateral = abs(-dx*math.sin(heading)+dy*math.cos(heading))
+        predicted_y = None
+        reason = 'READY'
+        if not 75 <= forward <= 130 or lateral > 10:
+            reason = 'CONTACT'
+        elif error > .018:
+            reason = 'AIM'
+        elif self.speed > 220 or self.spin > .18 or self.ball_speed > 350:
+            reason = 'MOVING'
+        if shooting:
+            goal_x = config['field_length']/2
+            if math.cos(heading) <= .05 or ball.x >= goal_x:
+                reason = 'AWAY_FROM_GOAL'
+            else:
+                predicted_y = ball.y+(goal_x-ball.x)*math.tan(heading)
+                # 留出球半径及误差余量，拒绝朝门柱外侧打的指令。
+                if abs(predicted_y) > config['goal_width']/2-85:
+                    reason = 'OUTSIDE_GOAL'
+        if self.previous_target is not None and distance(target, self.previous_target) > 40:
+            self.stable_since = None
+        self.previous_target = target
+        if reason != 'READY':
+            self.stable_since = None
+        else:
+            if self.stable_since is None:
+                self.stable_since = now
+            if now-self.stable_since < .08:
+                reason = 'SETTLE'
+            elif now-self.last_kick < .3:
+                reason = 'COOLDOWN'
+        # 不把 inf 写到 JSON 里，缺少速度样本时用 None 表示。
+        self.diagnostics = dict(reason=reason, heading_error_rad=error, lateral_mm=lateral,
+            forward_mm=forward, predicted_goal_y_mm=predicted_y,
+            speed_mm_s=self.speed if math.isfinite(self.speed) else None,
+            spin_rad_s=self.spin if math.isfinite(self.spin) else None,
+            ball_speed_mm_s=self.ball_speed if math.isfinite(self.ball_speed) else None)
+        return reason == 'READY', reason
+
+    def fired(self, now):
+        self.last_kick = now
+        self.stable_since = None

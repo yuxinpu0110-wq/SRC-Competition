@@ -24,6 +24,8 @@ from RoleMatch_LuaStyle.Skills import Skill
 from RoleMatch_LuaStyle.Skills import CompetitionSkills
 from WorldModel.PowerCalculator import evalPower, P
 from match_tactics import Point, Tactics, distance, clearance, finite
+from shot_accuracy import ShotGate
+from Vision import Player
 
 
 @dataclass
@@ -218,6 +220,8 @@ class NormalPlay(StateMachine):
         self.pass_reason = ''
         self.retained_tasks = []
         self.motion_ids = set()
+        # 稳定计时必须跨帧保存；每辆车独立，避免换主攻后复用另一辆车的计时。
+        self.shot_gates = {number: ShotGate() for number in self.ids}
         self.phase = self.strategy_phase = self.executed_state = 'Hold'
 
     @property
@@ -270,6 +274,16 @@ class NormalPlay(StateMachine):
         for state in self.states.values():
             state.play = self
         f = self.frame
+        if self.c.get('shoot_control', 'legacy') == 'precision':
+            for number, gate in self.shot_gates.items():
+                if number in f.visible:
+                    gate.observe(f.now, f.players[number], Player.direction(number), f.ball)
+                else:
+                    # 失去视觉后下次看到车时必须重新积累稳定样本。
+                    gate.previous = None
+                    gate.stable_since = None
+                if not self.can_attack:
+                    gate.stable_since = None
         self.motion_ids = set()
         # 传球途中锁住主攻权；球只是靠近接球车还不够，必须由完成条件交接。
         self.choice = self.tactics.choose(f.now, f.ball, f.players, f.opponents, self.last_pass,
@@ -403,7 +417,9 @@ class NormalPlay(StateMachine):
                     skill = CompetitionSkills.TargetedKick(target, f.ball, power, self.tactics,
                         carry=action == 'carry', can_kick=action != 'aim', enable_dss=self.c.get('enable_dss', True),
                         on_kick=self.note_kick if action == 'pass' else None,
-                        report_phase=lambda phase: setattr(self, 'phase', phase))
+                        report_phase=lambda phase: setattr(self, 'phase', phase),
+                        gate=self.shot_gates[number] if self.c.get('shoot_control', 'legacy') == 'precision' else None,
+                        now=f.now, shooting=action != 'pass')
                 self.motion_ids.add(number)
             task = Task(skill, fixedNumber=number, description=action)
             # fixedNumber：明确指定谁做这个任务，官方角色分配会跳过它。

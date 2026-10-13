@@ -61,7 +61,9 @@ def main():
                 skill[0](0)
                 runner.postDecision()
             if frame % 30 == 0:
-                print(f'[NATIVE_SMOKE] frame={frame} valid={Player.isValid(0)}', flush=True)
+                pos = Player.Pos(0)
+                print(f'[NATIVE_SMOKE] frame={frame} valid={Player.isValid(0)} '
+                      f'position_mm=({pos.x():.1f},{pos.y():.1f}) heading={Player.direction(0):.4f}', flush=True)
     finally:
         referee(0)
         for _ in range(3):
