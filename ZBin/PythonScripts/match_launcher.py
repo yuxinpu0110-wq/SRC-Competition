@@ -16,7 +16,8 @@ def opponent_config(main, template):
     """练习门将必须在对面；颜色/方向/车号跟随当前练习场景，不硬编码黄队。"""
     return dict(template, profile='goalie', team='yellow' if main['team'] == 'blue' else 'blue',
                 side='right' if main['side'] == 'left' else 'left', goalie=main['goalie'],
-                attackers=list(main['attackers']))
+                attackers=list(main['attackers']),ruleset=main['ruleset'],goalie_skill='Goalie',
+                shoot_control='precision',advance_before_shoot=False,power_cap=main['power_cap'])
 
 
 def latest_complete_row(path):
@@ -52,25 +53,24 @@ class App:
         self.opponent_telemetry = None
         window.title('SRC 比赛策略 · 本机仿真')
         window.geometry('720x830')
-        tk.Label(window, text='比赛策略控制台（独立 Competition 环境）', font=('Microsoft YaHei', 16)).pack(pady=12)
+        tk.Label(window, text='比赛策略控制台（V1.0规则修正·不带球）', font=('Microsoft YaHei', 16)).pack(pady=12)
         tk.Label(window, text='默认：初赛 2 攻，蓝队 0 / 1 号；原练习目录不受影响。\n先关闭旧 Client / grSim / demo / Medusa，避免端口和控制权冲突。', justify='left').pack()
         self.pass_enabled = tk.BooleanVar(value=load_config(self.config_path).get('enable_pass', False))
         tk.Checkbutton(window, text='实验传球（重新启动策略后生效，尚未完成移动门将验收）',
                        variable=self.pass_enabled).pack(pady=4)
         self.feint_enabled = tk.BooleanVar(value=load_config(self.config_path).get('enable_feint', False))
-        tk.Checkbutton(window, text='佯射后传球（需同时开启传球；候选功能，重启生效）',
+        tk.Checkbutton(window, text='静止佯射后释放/绕后传球（需开启传球；重启生效）',
                        variable=self.feint_enabled).pack(pady=4)
-        self.shoot_control = tk.StringVar(value=load_config(self.config_path).get('shoot_control', 'legacy'))
+        self.shoot_control = tk.StringVar(value=load_config(self.config_path).get('shoot_control', 'precision'))
         row = tk.Frame(window)
         row.pack()
         tk.Label(row, text='出球控制（重启策略生效）：').pack(side='left')
-        tk.Radiobutton(row, text='旧出球逻辑 legacy', variable=self.shoot_control, value='legacy').pack(side='left')
-        tk.Radiobutton(row, text='新版 precision（待验收）', variable=self.shoot_control, value='precision').pack(side='left')
+        tk.Label(row,text='precision固定；禁用旧带球/legacy旁路').pack(side='left')
         for text, callback in [
             ('1. 打开 Client（在其中启动 Simulator）', self.open_gui),
             ('2. 启动策略（不会自动 Force Start）', self.start),
             ('本机练习：重置为 2 攻 + 1 门将（需另启动门将）', self.reset),
-            ('本机练习：启动对面官方移动门将', self.start_opponent),
+            ('本机练习：启动更强官方 Goalie 门将', self.start_opponent),
             ('本机练习：停止对面门将', self.stop_opponent),
             ('本机练习：STOP GAME', lambda: self.practice_ref(1)),
             ('本机练习：FORCE START', lambda: self.practice_ref(3)),

@@ -1,6 +1,6 @@
 """比赛候选策略：官方 State → Task → Skill 结构。
 
-阅读顺序：Advance/Shoot → PassSetup → PassKick → PassFlight → Receive。
+阅读顺序：Shoot → PassSetup → PassKick → PassFlight → Receive。不再存在带球Advance。
 给刚接触框架的同学：
   Play = 总教练，保存本场观察和战术；State = 当前阶段，例如“准备传球”。
   Task = 给某辆车的任务单；Skill = 执行任务的动作，例如 RushTo（跑到某点）。
@@ -27,6 +27,7 @@ from match_tactics import Point, Tactics, distance, clearance, finite
 from shot_accuracy import ShotGate
 from Vision import Player
 from ball_control import BallControl, wrap
+from competition_rules import ContactGuard, RestartGuard, retreat_target
 
 
 @dataclass
@@ -42,6 +43,7 @@ class Frame:
     visible: set
     mode: str
     ball_valid: bool
+    referee: str = ''
 
 
 @dataclass
@@ -102,19 +104,10 @@ class Prepare(MatchState):
         return self.play.normal_state() if self.play.can_attack else ''
 
 
-class Advance(MatchState):
-    """带到进攻区域；没有足够的推进距离时才交给 Shoot。"""
-    def getTasks(self):
-        return self.play.attacking_tasks(carry=True)
-
-    def transFunction(self):
-        return self.play.attack_transition()
-
-
 class Shoot(MatchState):
     """瞄准选出的门内空隙射门；准备传球时本帧只瞄准、不抢先射门。"""
     def getTasks(self):
-        return self.play.attacking_tasks(carry=False)
+        return self.play.attacking_tasks()
 
     def transFunction(self):
         return self.play.attack_transition()
@@ -168,7 +161,7 @@ class FakeShot(MatchState):
     """
     def getTasks(self):
         p, s = self.play, self.play.session
-        return p.tasks({s.sender: ('aim', s.fake_aim),
+        return p.tasks({s.sender: ('stop', None),
                         s.receiver: ('receive', p.receiver_position())}, goalie=True)
 
     def transFunction(self):
@@ -234,7 +227,7 @@ class Goalkeeping(MatchState):
         return self.play.normal_state()
 
 
-@declare_state_machine(Hold, Prepare, Advance, Shoot, WaitOutsideDefense,
+@declare_state_machine(Hold, Prepare, Shoot, WaitOutsideDefense,
                        PassSetup, FakeShot, PassKick, PassFlight, Receive, Goalkeeping)
 class NormalPlay(StateMachine):
     """唯一的战术状态机；runner 每帧只更新观察并调用 planTasks()。"""
@@ -258,6 +251,9 @@ class NormalPlay(StateMachine):
         self.ball_controls = {number: BallControl() for number in self.ids}
         self.kick_events = []  # 请求日志，不冒充实际出球/进球；保留最近32次。
         self.ball_sample, self.ball_speed = None, math.inf
+        self.contact_guard = ContactGuard(config.get('contact_budget_mm',300))
+        self.restart_guard = RestartGuard()
+        self.infrared = {}
         self.phase = self.strategy_phase = self.executed_state = 'Hold'
 
     @property
@@ -271,9 +267,9 @@ class NormalPlay(StateMachine):
     def can_attack(self):
         # @property 让它像属性一样读：if self.can_attack，不用加括号。
         # 开赛许可和球的位置都要有效；“能进攻”不代表每一帧都要踢球。
-        return self.frame.mode in ('PLAY', 'OUR_RESTART') and self.frame.ball_valid and finite(self.frame.ball)
+        return self.frame.mode in ('PLAY', 'OUR_RESTART', 'OUR_INDIRECT') and self.frame.ball_valid and finite(self.frame.ball)
 
-    def update_frame(self, now, ball, players, opponents, visible, mode, ball_valid):
+    def update_frame(self, now, ball, players, opponents, visible, mode, ball_valid, referee=''):
         # 丢弃 NaN/无穷大坐标，避免把无效位置传入 C++ 运动规划。
         old = self.ball_sample
         if not ball_valid or not finite(ball):
@@ -285,7 +281,7 @@ class NormalPlay(StateMachine):
             self.ball_sample = (now,ball)
         clean_players = {n:p for n,p in players.items() if finite(p)}
         self.frame = Frame(now, ball, clean_players, [p for p in opponents if finite(p)],
-                           set(visible) & set(clean_players), mode, ball_valid)
+                           set(visible) & set(clean_players), mode, ball_valid, referee)
 
     def normal_state(self):
         """普通情况下应该进入哪个状态？只返回名字，不在这里执行任务。"""
@@ -297,7 +293,7 @@ class NormalPlay(StateMachine):
             return 'Goalkeeping' if self.c['profile'] == 'full' else 'Hold'
         if self.choice.phase == 'WAIT_OUTSIDE_DEFENSE':
             return 'WaitOutsideDefense'
-        return 'Advance' if self.choice.phase == 'ADVANCE' else 'Shoot'
+        return 'Shoot'
 
     def cancel_pass(self, reason):
         # 中断后记录冷却时刻，避免下一帧又马上发起同一条失败的传球。
@@ -318,7 +314,20 @@ class NormalPlay(StateMachine):
         for state in self.states.values():
             state.play = self
         f = self.frame
-        if self.c.get('shoot_control', 'legacy') == 'precision':
+        # 近球累计路径保护与重启二次触球保护在生成任务之前运行。
+        self.infrared = {n:getattr(Player,'infraredCount',lambda _:0)(n) for n in f.visible}
+        if f.mode in ('STOP','PREPARE','DEFEND_RESTART','WAIT_START'):
+            self.restart_guard.reset()
+            self.contact_guard.episodes.clear()  # 裁判新死球；重新摆球不计活球连续控制。
+        elif f.mode in ('OUR_RESTART','OUR_INDIRECT'):
+            self.restart_guard.begin(f.referee or ('OurIndirectKick' if f.mode == 'OUR_INDIRECT' else 'OurKickOff'))
+        if self.can_attack:
+            for n in self.c['attackers']:
+                if n in f.visible:
+                    self.contact_guard.observe(n,f.now,f.players[n],f.ball)
+            near_ids = {n for n in f.visible if distance(f.players[n],f.ball) < 125}
+            self.restart_guard.observe(f.ball,self.infrared,near_ids)
+        if self.c.get('shoot_control', 'precision') == 'precision':
             for number, gate in self.shot_gates.items():
                 if number in f.visible:
                     gate.observe(f.now, f.players[number], Player.direction(number), f.ball)
@@ -332,10 +341,14 @@ class NormalPlay(StateMachine):
         # 传球途中锁住主攻权；球只是靠近接球车还不够，必须由完成条件交接。
         self.choice = self.tactics.choose(f.now, f.ball, f.players, f.opponents, self.last_pass,
                                           freeze_striker=self.session is not None)
+        if self.restart_guard.requires_pass and self.session is None:
+            # 间接任意球只能先传给队友；无合法接应点则保守等待。
+            self.choice.pass_target = (self.tactics.receiving_point(f.ball,f.opponents)
+                                       if self.choice.other is not None else None)
         forced, reason = None, ''
         if not f.ball_valid or not finite(f.ball):
             forced, reason = 'Hold', 'NO_BALL'
-        elif f.mode not in ('PLAY', 'OUR_RESTART'):
+        elif f.mode not in ('PLAY', 'OUR_RESTART', 'OUR_INDIRECT'):
             forced = 'Prepare' if f.mode in ('STOP', 'PREPARE', 'DEFEND_RESTART') else 'Hold'
             reason = f.mode
         elif self.choice.phase in ('BALL_OUT', 'WAIT_OUTSIDE_DEFENSE'):
@@ -352,6 +365,8 @@ class NormalPlay(StateMachine):
             state = self.current_state.state_name
             if s.sender not in f.players or s.receiver not in f.players:
                 reason = 'ROBOT_LOST'
+            elif self.contact_guard.blocked(s.sender) or self.contact_guard.blocked(s.receiver):
+                reason = 'CONTACT_BUDGET'
             elif state in ('PassSetup', 'FakeShot', 'PassKick') and clearance(f.ball, s.target, f.opponents) < 180:
                 reason = 'LANE_BLOCKED'
             elif state == 'PassSetup' and f.now-s.started > self.c.get('pass_setup_timeout', 5.0):
@@ -404,6 +419,7 @@ class NormalPlay(StateMachine):
 
     def record_kick(self, number, ball, target, power, passing):
         """精确记录请求当帧方向，后续用球轨迹验证，而不是看截图猜补偿角。"""
+        self.restart_guard.requested(number,ball,self.infrared)
         self.kick_events.append(dict(now=self.frame.now, frame_ball=[ball.x, ball.y],
             target=[target.x, target.y], robot=number, heading=Player.direction(number),
             power=power, passing=passing))
@@ -459,7 +475,7 @@ class NormalPlay(StateMachine):
         s.receive_since = None
         return False
 
-    def attacking_tasks(self, carry):
+    def attacking_tasks(self):
         # d 是 AttackChoice：striker=主攻车号，other=另一辆进攻车号。
         # 这两个身份可以互换；A/B 角色标签则绑定配置中的车号，不代表永久主攻。
         d = self.choice
@@ -467,11 +483,8 @@ class NormalPlay(StateMachine):
         if d.other is not None:
             actions[d.other] = ('move', d.support)
         if d.striker is not None:
-            if carry and d.carry_target is not None:
-                actions[d.striker] = ('carry', d.carry_target)
-            else:
-                # 状态转换要到下一帧：准备转入传球或 Shoot 时，本帧不能误踢球。
-                actions[d.striker] = ('aim' if carry or d.pass_target is not None or d.phase == 'ADVANCE' else 'shoot', d.aim)
+            # 无带球推进；原地球远时也只射/传。间接球未有他车触球不能直接射。
+            actions[d.striker] = ('aim' if d.pass_target is not None or self.restart_guard.requires_pass else 'shoot', d.aim)
         return self.tasks(actions, goalie=True)
 
     def receiving_tasks(self, chase):
@@ -487,9 +500,9 @@ class NormalPlay(StateMachine):
     def tasks(self, actions, goalie=False):
         """把简易任务单转成官方 Task，集中处理车号、门将、技能和停车。
 
-        actions 示例：{0: ('carry', Point(2650, 0)), 1: ('move', Point(0, 1100))}。
-        move=普通走位，retreat=慢速退让，receive=接应并吸球，
-        carry=带球不踢，aim=对准不踢，shoot=射门，pass=传球。
+        actions 示例：{0: ('shoot', Point(4500, 0)), 1: ('move', Point(0, 1100))}。
+        move/receive=无球走位与接应，retreat=退离球，aim=对准不踢，shoot/pass=射/传。
+        carry被明确拒绝；所有进攻移动关闭吸球。
         未列出的有效受控车默认 Stop；goalie=True 时门将改用官方守门技能。
         本函数只创建任务，不执行；执行由官方 State.run → Task.run 完成。
         """
@@ -500,8 +513,19 @@ class NormalPlay(StateMachine):
             role = 'G' if number == self.c['goalie'] else 'A' if number == self.c['attackers'][0] else 'B'
             # A/B/G 是框架任务字典的角色名，不是模拟器显示的真实数字车号。
             action, target = actions.get(number, ('stop', None))
+            if action == 'carry':
+                raise ValueError('Carrying is forbidden in this competition candidate')
+            if self.can_attack and number in self.c['attackers'] and self.tactics.in_defense(f.players[number]):
+                target,action = self.tactics.legal(f.players[number]),'move'
+                self.phase = 'RULE_DEFENSE_RELEASE'
+            if self.can_attack and number in self.c['attackers'] and (
+                    self.contact_guard.blocked(number) or self.restart_guard.blocked(number)):
+                target = retreat_target(f.players[number],f.ball,self.tactics)
+                action = 'move' if target is not None else 'stop'
+                self.phase = 'RULE_RELEASE'
             if goalie and number == self.c['goalie'] and self.c['profile'] != 'qualifier':
-                skill = Skill.Goalie2022('normal')
+                # 赛事方指定更强的官方接口；签名不同，不传入'normal'字符串。
+                skill = Skill.Goalie()
                 self.motion_ids.add(number)
             elif action == 'stop':
                 skill = Skill.Stop()
@@ -517,14 +541,11 @@ class NormalPlay(StateMachine):
                 ball_point, target_point = C.CGeoPoint(f.ball.x, f.ball.y), C.CGeoPoint(target.x, target.y)
                 power = evalPower(ball_point, target_point, P.NORMAL if action == 'pass' else P.HIGH)
                 # 使用统一力度映射，不能把这个参数直接当作物理球速。
-                if action == 'shoot' and self.c['shoot_skill'] == 'baseline':
-                    skill = Skill.NormalShoot(power)
-                else:
-                    skill = CompetitionSkills.TargetedKick(target, f.ball, power, self.tactics,
-                        carry=action == 'carry', can_kick=action != 'aim', enable_dss=self.c.get('enable_dss', True),
+                skill = CompetitionSkills.TargetedKick(target, f.ball, power, self.tactics,
+                        can_kick=action != 'aim', enable_dss=self.c.get('enable_dss', True),
                         on_kick=lambda n, b, t=target, power=power, passing=action == 'pass': self.record_kick(n, b, t, power, passing),
                         report_phase=lambda phase: setattr(self, 'phase', phase),
-                        gate=self.shot_gates[number] if self.c.get('shoot_control', 'legacy') == 'precision' else None,
+                        gate=self.shot_gates[number],
                         now=f.now, shooting=action != 'pass', control=self.ball_controls[number])
                 self.motion_ids.add(number)
             task = Task(skill, fixedNumber=number, description=action)

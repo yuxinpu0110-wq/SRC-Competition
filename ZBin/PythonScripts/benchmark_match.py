@@ -1,7 +1,8 @@
 """Repeatable LOCAL simulation smoke benchmark; never an official win-rate measurement.
 
 Requires one connected Client + one grSim. Stops only the child strategy it starts.
-Starts an official Goalie2022 via run_match --config opponent.json. Resets the scene.
+Starts official Goalie (NOT Goalie2022) via run_match --config opponent.json.
+Logs no-carry guards and filtered SDK ball speed; none replaces the official referee.
 """
 import argparse
 import hashlib
@@ -59,14 +60,14 @@ def main():
     parser.add_argument('--seconds', type=float, default=20)
     parser.add_argument('--contact-distance',type=float, help='Diagnostic target contact distance in mm (75..110)')
     parser.add_argument('--contact-trim',action='store_true',help='Bounded lateral contact correction diagnostic')
-    parser.add_argument('--skills', nargs='+', choices=['targeted', 'baseline'], default=['targeted', 'baseline'])
+    parser.add_argument('--skills', nargs='+', choices=['targeted'], default=['targeted'])
     parser.add_argument('--repeats', type=int, default=1)
     parser.add_argument('--passing', choices=('on', 'off'), help='Explicit passing A/B; otherwise uses match.json')
     parser.add_argument('--feint', choices=('on', 'off'), default='off', help='Requires --passing on; candidate feature')
     parser.add_argument('--dss', choices=('on', 'off'), help='Diagnostic native DSS A/B; default unchanged')
     parser.add_argument('--dispatch', choices=('state_machine',), help='Only official state_machine dispatch is supported')
     parser.add_argument('--qt-app', action='store_true', help='Diagnostic explicit Qt application in both controllers')
-    parser.add_argument('--shoot-control', choices=('legacy', 'precision'), default='legacy',
+    parser.add_argument('--shoot-control', choices=('precision',), default='precision',
                         help='Same-scene A/B of old/new targeted contact control')
     parser.add_argument('--goalie', choices=('official', 'stationary'), default='official',
                         help='stationary isolates aiming; never count it as a moving-goalie test')
@@ -107,12 +108,13 @@ def main():
         raise ValueError('This reproducible benchmark requires blue / left / qualifier')
     report = {'description': 'Local practice, three fixed ball starts. Not official score/win rate.',
               'goalie_mode': args.goalie, 'shoot_control': args.shoot_control,
+              'goalie_skill':'Goalie', 'ruleset':c['ruleset'],
               'start_mode': args.starts,
               'complete': False, 'started_at': time.strftime('%Y-%m-%d %H:%M:%S'), 'config': c,
               'source_sha256': {name: hashlib.sha256((ZBIN/'PythonScripts'/name).read_bytes()).hexdigest()
                                 for name in ['run_match.py', 'match_tactics.py', 'Play/Normal/Normalplay.py',
                                              'RoleMatch_LuaStyle/Skills/CompetitionSkills.py', 'shot_accuracy.py',
-                                             'ball_control.py', 'sim_tools.py', 'benchmark_match.py']}, 'trials': []}
+                                             'ball_control.py', 'competition_rules.py', 'sim_tools.py', 'benchmark_match.py']}, 'trials': []}
     report_path = ROOT/'logs'/'benchmark-report.json'
     report_path.write_text(json.dumps(report, indent=2), encoding='utf-8')
     practice = PracticeReferee()
@@ -177,14 +179,22 @@ def main():
                         if p.poll() is not None:
                             result['attacker_exit_code'] = p.returncode
                             raise RuntimeError('Strategy exited during reset preflight')
+                        if goalie is not None and goalie.poll() is not None:
+                            result['goalie_exit_code'] = goalie.returncode
+                            raise RuntimeError('Goalkeeper exited during reset preflight; trial INVALID. Inspect goalie console.')
                         last = latest_complete_row(telemetry)
-                        if last and time.time()-last['time'] < .3 and not scene_error(last,ball,expected_poses):
+                        goalie_start = latest_complete_row(goalie_telemetry) if goalie_telemetry else None
+                        goalie_ready = (goalie is None or (goalie_start and time.time()-goalie_start['time'] < .3
+                            and not scene_error(goalie_start,(-ball[0],-ball[1]),{c['goalie']:(-4.2,0,0)},150)))
+                        if last and time.time()-last['time'] < .3 and not scene_error(last,ball,expected_poses) and goalie_ready:
                             break
                         time.sleep(.05)
                     else:
-                        result.update(reset_error=scene_error(last,ball,expected_poses), observed_start=last)
+                        result.update(reset_error=scene_error(last,ball,expected_poses) or 'GOALIE_START_NOT_CONFIRMED',
+                                      observed_start=last,observed_goalie_start=goalie_start)
                         raise RuntimeError('Reset not confirmed by vision: '+result['reset_error']+'. Trial INVALID.')
                     result['verified_start'] = dict(ball=last['ball'],robots=last['robots'],angles=last['angles'])
+                    result['verified_goalie_start'] = goalie_start
                     previous_rows = list(complete_rows(telemetry))
                     baseline_counts = previous_rows[-1] if previous_rows else {}
                     offset = telemetry.stat().st_size
@@ -197,6 +207,9 @@ def main():
                     last_sample_at = time.monotonic()
                     initial_robots = None
                     max_robot_drift = 0
+                    speed_samples = []
+                    max_near_ball_path = 0
+                    rule_releases = 0
                     with telemetry.open(encoding='utf-8') as stream:
                         stream.seek(offset)
                         while time.monotonic()-start < args.seconds:
@@ -220,6 +233,12 @@ def main():
                             except json.JSONDecodeError:
                                 continue
                             x, y = row['ball']
+                            speed = row.get('ball_speed_sdk_mm_s')
+                            if speed is not None and math.isfinite(speed):
+                                speed_samples.append(speed)
+                            for guard in row.get('contact_guard',{}).values():
+                                max_near_ball_path = max(max_near_ball_path,guard['robot_path_mm'],guard['ball_path_mm'])
+                            rule_releases += row['phase'].startswith('RULE_')
                             if row['mode'] in ('HALT','STOP') and time.monotonic()-start > .5:
                                 raise RuntimeError('Unexpected HALT/STOP during FORCE START trial: another referee sender may be active. Trial INVALID.')
                             last_sample_at = time.monotonic()
@@ -250,6 +269,10 @@ def main():
                             result['last_shot_gate'] = row.get('shot_gate', {})
                     referee(0)
                     result['samples'] = samples
+                    result.update(max_ball_speed_sdk_mm_s=max(speed_samples,default=None),
+                                  sdk_speed_over_limit=any(v > 6500 for v in speed_samples),
+                                  max_near_ball_path_mm=max_near_ball_path,rule_release_samples=rule_releases,
+                                  rule_compliance_verified=False)
                     if goalie_telemetry:
                         poses = []
                         for row in complete_rows(goalie_telemetry):

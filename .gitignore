@@ -6,6 +6,7 @@ heartbeat-*.txt
 benchmark-*.json
 desktop-test.png
 client-inspect.png
+tmp/
 match-selected.json
 opponent-selected.json
 !验收记录/

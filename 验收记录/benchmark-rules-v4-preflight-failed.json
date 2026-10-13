@@ -1,0 +1,170 @@
+{
+  "description": "Local practice, three fixed ball starts. Not official score/win rate.",
+  "goalie_mode": "official",
+  "shoot_control": "precision",
+  "goalie_skill": "Goalie",
+  "ruleset": "src2026-v1-no-carry",
+  "start_mode": "approach",
+  "complete": false,
+  "started_at": "2026-10-13 13:18:07",
+  "config": {
+    "profile": "qualifier",
+    "ruleset": "src2026-v1-no-carry",
+    "goalie_skill": "Goalie",
+    "contact_budget_mm": 300,
+    "team": "blue",
+    "side": "left",
+    "attackers": [
+      0,
+      1
+    ],
+    "goalie": 2,
+    "shoot_skill": "targeted",
+    "shoot_control": "precision",
+    "task_dispatch": "state_machine",
+    "complete_frame": true,
+    "enable_pass": true,
+    "enable_feint": false,
+    "goal_margin": 160,
+    "contact_distance": 85,
+    "contact_forward_max": 105,
+    "contact_trim": false,
+    "pass_shot_threshold": 230,
+    "pass_score_gain": 60,
+    "advance_before_shoot": false,
+    "field_length": 9000,
+    "field_width": 6000,
+    "goal_width": 1000,
+    "defense_depth": 1000,
+    "defense_width": 2000,
+    "power_cap": 6000
+  },
+  "source_sha256": {
+    "run_match.py": "4fce8441febdb524a73d34da9b11fce82781333f32a10947ee3716baa1ed1b96",
+    "match_tactics.py": "393bc13c2af2221a79feb7abf5d42e531c96a11d33617195c2a22af0d44a389c",
+    "Play/Normal/Normalplay.py": "73c474aca7d036c83f8581678c959e615d8bc3f279ea3aff54e997be7fd18d70",
+    "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "d3c8246306a7b21d2b2bd0777aa7dfe786930319cb52f632718bc6b11bbced71",
+    "shot_accuracy.py": "44d77afe8f992fc3c3bb745fc265d4ac38b44226303e28da34c2979e4ae4b6cf",
+    "ball_control.py": "a208ae69d1027d5b35be2e56959c97f59a4a0a8fe60271ff0a49f4d61de8e16b",
+    "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+    "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+    "benchmark_match.py": "03faa070b3169ce3fcd5e0fd25e60abe761eff9fd1708c74908af8d511872ead"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "skill": "targeted",
+      "ball_start_m": [
+        0,
+        0
+      ],
+      "seconds": 25.0,
+      "goal_crossing": false,
+      "valid": false,
+      "reset_error": "GOALIE_START_NOT_CONFIRMED",
+      "observed_start": {
+        "time": 1791868696.6951702,
+        "frame": 398,
+        "mode": "HALT",
+        "phase": "HALT",
+        "state": "Hold",
+        "next_state": "Hold",
+        "strategy_phase": "HALT",
+        "pass_state": null,
+        "pass_attempts": 0,
+        "pass_completed": 0,
+        "pass_aborted": 0,
+        "pass_reason": "",
+        "referee": "GameHalt",
+        "ball": [
+          0.0,
+          0.10000000149011612
+        ],
+        "ball_valid": true,
+        "striker": 0,
+        "our_goals": 0,
+        "their_goals": 0,
+        "shoot_control": "precision",
+        "ruleset": "src2026-v1-no-carry",
+        "goalie_skill": "Goalie",
+        "contact_guard": {},
+        "restart_guard": {
+          "kind": null,
+          "kicker": null,
+          "ball_moved_50mm": false,
+          "other_touch_confirmed": false
+        },
+        "ball_speed_sdk_mm_s": 0.0,
+        "monotonic": 54701.4039606,
+        "kick_events": [],
+        "aim": [
+          4500.0,
+          -340.0
+        ],
+        "shot_gate": {
+          "0": {
+            "reason": "NO_SAMPLE"
+          },
+          "1": {
+            "reason": "NO_SAMPLE"
+          }
+        },
+        "angles": {
+          "0": -1.083931555623252e-11,
+          "1": -7.911925455073021e-12
+        },
+        "opponents": [
+          [
+            4199.97607421875,
+            1.746536804070331e-10
+          ]
+        ],
+        "robots": {
+          "0": [
+            -999.9761962890625,
+            -700.0
+          ],
+          "1": [
+            -1499.9761962890625,
+            1200.0
+          ]
+        }
+      },
+      "observed_goalie_start": null
+    }
+  ],
+  "goalie_config": {
+    "profile": "goalie",
+    "team": "yellow",
+    "side": "right",
+    "ruleset": "src2026-v1-no-carry",
+    "goalie_skill": "Goalie",
+    "shoot_control": "precision",
+    "advance_before_shoot": false,
+    "attackers": [
+      0,
+      1
+    ],
+    "goalie": 2,
+    "shoot_skill": "targeted",
+    "enable_pass": false,
+    "task_dispatch": "state_machine",
+    "complete_frame": true,
+    "field_length": 9000,
+    "field_width": 6000,
+    "goal_width": 1000,
+    "defense_depth": 1000,
+    "defense_width": 2000,
+    "power_cap": 6000
+  },
+  "goalie_console": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\benchmark-goalie-1791868687153918900-console.txt",
+  "attacker_consoles": [
+    "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\benchmark-targeted-1791868689172726400-console.txt"
+  ],
+  "attacker_telemetries": [
+    "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\20261013-131810-blue.jsonl"
+  ],
+  "goalie_telemetry": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\20261013-131808-yellow.jsonl",
+  "error": "Reset not confirmed by vision: GOALIE_START_NOT_CONFIRMED. Trial INVALID.",
+  "finished_at": "2026-10-13 13:18:17"
+}

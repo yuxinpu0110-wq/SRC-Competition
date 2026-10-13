@@ -1,5 +1,8 @@
 {
   "profile": "qualifier",
+  "ruleset": "src2026-v1-no-carry",
+  "goalie_skill": "Goalie",
+  "contact_budget_mm": 300,
   "team": "blue",
   "side": "left",
   "attackers": [0, 1],
@@ -16,12 +19,11 @@
   "contact_trim": false,
   "pass_shot_threshold": 230,
   "pass_score_gain": 60,
-  "advance_before_shoot": true,
-  "shoot_from_x": 2650,
+  "advance_before_shoot": false,
   "field_length": 9000,
   "field_width": 6000,
   "goal_width": 1000,
   "defense_depth": 1000,
   "defense_width": 2000,
-  "power_cap": 7400
+  "power_cap": 6000
 }

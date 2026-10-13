@@ -28,12 +28,17 @@ def load_config(path):
     ids = c['attackers']+[c['goalie']]
     if len(c['attackers']) != 2 or len(set(ids)) != 3 or any(type(n) is not int or not 0 <= n < 16 for n in ids):
         raise ValueError('Use two different attacker IDs and a different goalie ID (0..15)')
-    if c['shoot_skill'] not in ('targeted', 'baseline') or not 1000 <= c['power_cap'] <= 12700:
+    if c['shoot_skill'] != 'targeted' or not 1000 <= c['power_cap'] <= 6000:
         raise ValueError('Invalid shoot_skill / power_cap')
     if c.get('task_dispatch', 'state_machine') != 'state_machine':
         raise ValueError('Only official state_machine dispatch is supported; remove old direct setting')
-    if c.get('shoot_control', 'legacy') not in ('legacy', 'precision'):
-        raise ValueError('shoot_control must be legacy or precision')
+    if c.get('shoot_control', 'precision') != 'precision':
+        raise ValueError('Ruleset requires precision; use the old Git version for legacy comparisons')
+    from competition_rules import RULESET
+    if c.get('ruleset') != RULESET or c.get('advance_before_shoot',False):
+        raise ValueError('Use ruleset src2026-v1-no-carry and disable advance_before_shoot')
+    if c.get('goalie_skill','Goalie') != 'Goalie':
+        raise ValueError('This ruleset tests the official Goalie skill, not Goalie2022')
     for name in ('enable_pass', 'enable_feint', 'contact_trim', 'advance_before_shoot', 'enable_dss', 'qt_application', 'complete_frame'):
         if name in c and type(c[name]) is not bool:
             raise ValueError(name+' must be true or false (not a string)')
@@ -42,6 +47,8 @@ def load_config(path):
                             ('contact_distance',75,110), ('contact_forward_max',90,130)]:
         if name in c and (type(c[name]) not in (int, float) or not math.isfinite(c[name]) or not low <= c[name] <= high):
             raise ValueError('Invalid pass parameter: '+name)
+    if type(c.get('contact_budget_mm',300)) not in (int,float) or not 50 <= c.get('contact_budget_mm',300) <= 400:
+        raise ValueError('contact_budget_mm must be 50..400, below the 1m rule limit')
     if 'goal_margin' in c and (type(c['goal_margin']) not in (int, float)
             or not math.isfinite(c['goal_margin']) or not 85 <= c['goal_margin'] < c['goal_width']/2):
         raise ValueError('goal_margin must be >=85 and smaller than half goal_width')
@@ -59,6 +66,7 @@ def main():
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--frames', type=int, default=0)
     args = parser.parse_args()
+    args.config = str(Path(args.config).resolve())
     if args.frames < 0:
         parser.error('frames must be non-negative')
     c = load_config(args.config)
@@ -160,7 +168,7 @@ def main():
                 visible = {n for n in ids if Player.isValid(n)}
                 players = {n:xy(Player.Pos(n)) for n in visible}
                 opponents = [xy(Enemy.pos(n)) for n in range(16) if Enemy.valid(n)]
-                play.update_frame(now, ball, players, opponents, visible, mode, valid_ball)
+                play.update_frame(now, ball, players, opponents, visible, mode, valid_ball, referee=message)
                 play.planTasks()  # 唯一调度入口：官方 State.run → Task.run → Skill。
                 Global.isPlaySwitched = False
                 if play.motion_ids or c.get('complete_frame', True):
@@ -182,7 +190,11 @@ def main():
                            'pass_aborted':play.pass_aborted, 'pass_reason':play.pass_reason,
                            'referee':message, 'ball':[ball.x, ball.y], 'ball_valid':valid_ball,
                            'striker':play.tactics.striker, 'our_goals':vision.getOurGoal(), 'their_goals':vision.getTheirGoal(),
-                           'shoot_control':c.get('shoot_control', 'legacy'),
+                           'shoot_control':c.get('shoot_control', 'precision'),
+                           'ruleset':c['ruleset'], 'goalie_skill':'Goalie',
+                           'contact_guard':play.contact_guard.diagnostics(),
+                           'restart_guard':play.restart_guard.diagnostics(),
+                           'ball_speed_sdk_mm_s':Ball.velMod(),
                            'monotonic':now, 'kick_events':list(play.kick_events),
                            'aim':[play.choice.aim.x, play.choice.aim.y] if play.choice.aim is not None else None,
                            'shot_gate':{str(n):g.diagnostics for n,g in play.shot_gates.items()},

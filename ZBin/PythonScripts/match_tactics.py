@@ -46,7 +46,6 @@ class AttackChoice:
     other: int | None = None          # 另一辆可见进攻车号。
     aim: Point | None = None          # 射门目标（门线上）。
     support: Point | None = None      # 队友普通接应位置。
-    carry_target: Point | None = None # 带球推进目标。
     pass_target: Point | None = None  # 值得尝试传球时才设置，否则为 None。
 
 
@@ -58,7 +57,6 @@ class Tactics:
         self.changed = -100.0
         self.target = None
         self.target_time = -100.0
-        self.advancing = False
 
     def legal(self, p):
         """将进攻车目标限制在场内/禁区外；不保证整段轨迹或所有规则合法。"""
@@ -97,9 +95,11 @@ class Tactics:
 
     def receiving_point(self, ball, opponents):
         """侧翼候选点必须有传球净空，避免把队友派入禁区。"""
-        candidates = [self.legal(Point(ball.x+dx, ball.y+dy))
-                      for dx in (250, 650) for dy in (-1500, -1100, 1100, 1500)]
-        candidates = [p for p in candidates if 850 < distance(ball, p) < 2400
+        # 不带球时依靠真实前传推进；不把队友只派到球侧后方。
+        front = self.c['field_length']/2-self.c['defense_depth']-300
+        candidates = [self.legal(Point(min(front,ball.x+dx), ball.y+dy))
+                      for dx in (650, 1600, 2200) for dy in (-1500, -1100, 1100, 1500)]
+        candidates = [p for p in candidates if 850 < distance(ball, p) < 3000
                       and clearance(ball, p, opponents) > 200]
         return max(candidates, key=lambda p: self.shot(p, opponents)[1]-distance(ball, p)*0.02) if candidates else None
 
@@ -139,20 +139,13 @@ class Tactics:
         if status:
             return choice
         own_score = self.shot(ball, opponents)[1]
-        if (offer is not None and ball.x > 1500 and now-last_pass > 6
+        if (offer is not None and now-last_pass > 6
                 and distance(players[self.striker], ball) < 280
                 and own_score < self.c.get('pass_shot_threshold', 230)
                 and self.shot(offer, opponents)[1] > own_score+self.c.get('pass_score_gain', 60)):
             choice.pass_target = offer
             # 此处只是提出传球建议，NormalPlay 才决定切到 PassSetup。
-        shoot_x = self.c.get('shoot_from_x', 2650)
-        if ball.x < shoot_x-300:
-            self.advancing = True
-        elif ball.x >= shoot_x:
-            self.advancing = False
-        if self.c.get('advance_before_shoot', False) and self.advancing:
-            choice.phase = 'ADVANCE'
-            choice.carry_target = self.legal(Point(self.c.get('shoot_from_x', 2650), ball.y*.45))
+        # 不再建议ADVANCE：推进靠真正出球给前方队友，而不是携球跑动。
         return choice
 
 
@@ -166,7 +159,7 @@ def referee_mode(message, game_on, can_kick):
     if message in ('TheirKickOff', 'TheirDirectKick', 'TheirIndirectKick'):
         return 'DEFEND_RESTART'
     if message == 'OurIndirectKick':
-        return 'PREPARE'  # 普通实验传球不等于已实现间接任意球规则。
+        return 'OUR_INDIRECT' if can_kick else 'PREPARE'
     if message in ('OurKickOff', 'OurDirectKick'):
         return 'OUR_RESTART' if can_kick else 'PREPARE'
     if message not in ('', 'NormalPlay'):

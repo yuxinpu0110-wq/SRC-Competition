@@ -39,7 +39,7 @@ class GeometryTests(unittest.TestCase):
         for message, on, kick, expected in [('GameHalt',True,True,'HALT'), ('GameStop',True,True,'STOP'),
                 ('',False,False,'WAIT_START'), ('',True,True,'PLAY'), ('unexpected',True,True,'UNKNOWN_REF'),
                 ('OurKickOff',False,False,'PREPARE'), ('OurKickOff',False,True,'OUR_RESTART'),
-                ('OurIndirectKick',True,True,'PREPARE'), ('OurPenaltyKick',True,True,'HALT')]:
+                ('OurIndirectKick',True,True,'OUR_INDIRECT'), ('OurPenaltyKick',True,True,'HALT')]:
             with self.subTest(message=message):
                 self.assertEqual(referee_mode(message,on,kick), expected)
 
@@ -81,10 +81,10 @@ class GeometryTests(unittest.TestCase):
     def test_defense_wait(self):
         self.assertEqual(self.p.choose(0,Point(4200,0),{0:Point(2500,0)},[]).phase,'WAIT_OUTSIDE_DEFENSE')
 
-    def test_advance_target_legal(self):
+    def test_no_advance_target_exists(self):
         choice = self.p.choose(0,Point(0,0),{0:Point(-300,0)},[])
-        self.assertEqual(choice.phase,'ADVANCE')
-        self.assertFalse(self.p.in_defense(choice.carry_target))
+        self.assertEqual(choice.phase,'ATTACK')
+        self.assertFalse(hasattr(choice,'carry_target'))
 
     def test_pass_disabled(self):
         self.assertIsNone(self.p.choose(0,Point(2700,0),{0:Point(2460,0),1:Point(2200,-1400)},[Point(3400,0)]).pass_target)
@@ -330,6 +330,8 @@ def fake_sdk():
     player = types.SimpleNamespace(Pos=lambda n:NativePoint(positions[n].x,positions[n].y),
         direction=lambda n:angles.get(n,0), getAllValidNumbers=lambda:list(positions),
         ourPlayer=lambda n:types.SimpleNamespace(Pos=lambda:NativePoint(positions[n].x,positions[n].y)))
+    player._infrared = {}
+    player.infraredCount = lambda n:player._infrared.get(n,0)
     vision = module('Vision',Player=player,ball=lambda:types.SimpleNamespace(Pos=lambda:NativePoint()))
     kick = types.SimpleNamespace(clearAll=lambda:None,setKick=lambda n,p:calls.append(('kick',n,p)))
     world = module('WorldModel',kickStatus=kick,worldModel=types.SimpleNamespace(SPlayFSMSwitchClearAll=lambda *a:None))
@@ -340,7 +342,7 @@ def fake_sdk():
             point = args[0] if args and isinstance(args[0],NativePoint) else NativePoint()
             return lambda n:calls.append((name,n,point.x(),point.y(),kwargs)), lambda n:point
         return create
-    for name in ('RushTo','Stop','NormalShoot','Goalie2022'):
+    for name in ('RushTo','Stop','NormalShoot','Goalie2022','Goalie'):
         setattr(skill,name,factory(name))
     def no_auto_match(*a):
         raise AssertionError('Fixed-number Tasks must not fall through to automatic matching')
@@ -368,23 +370,24 @@ class OfficialPlayTests(unittest.TestCase):
 
     def setUp(self):
         self.c = dict(load_config(ROOT/'match.json'),enable_pass=True,advance_before_shoot=False,
-                      pass_shot_threshold=230,pass_score_gain=60,shoot_control='legacy')
+                      pass_shot_threshold=230,pass_score_gain=60,shoot_control='precision')
         self.play = self.NormalPlay(self.c)
         self.ball = Point(2700,0)
         self.players = {0:Point(2460,0),1:Point(2200,-1400)}
         self.opponents = [Point(3400,0)]
         self.positions.clear()
         self.angles.clear()
+        self.modules['Vision'].Player._infrared.clear()
         self.modules['Global'].isPlaySwitched = False
 
-    def tick(self,now,mode='PLAY',ball=None,players=None,valid=True):
+    def tick(self,now,mode='PLAY',ball=None,players=None,valid=True,referee=''):
         if ball is not None: self.ball = ball
         if players is not None: self.players = players
         self.positions.clear()
         self.positions.update(self.players)
         self.calls.clear()
         self.play.retained_tasks.clear()
-        self.play.update_frame(now,self.ball,self.players,self.opponents,set(self.players),mode,valid)
+        self.play.update_frame(now,self.ball,self.players,self.opponents,set(self.players),mode,valid,referee=referee)
         self.play.planTasks()
         return self.play.current_state.state_name
 
@@ -398,6 +401,7 @@ class OfficialPlayTests(unittest.TestCase):
         s = self.setup_pass()
         self.prepare_receiver()
         self.prepare_sender()
+        self.tick(.05)  # 移动样本不能算站稳；之后再积累稳定窗口。
         self.assertEqual(self.tick(.2),'PassKick')
         self.tick(.3)
         return s
@@ -405,7 +409,7 @@ class OfficialPlayTests(unittest.TestCase):
     def prepare_sender(self):
         s = self.play.session
         angle = math.atan2(s.target.y-self.ball.y,s.target.x-self.ball.x)
-        self.players[s.sender] = Point(self.ball.x-65*math.cos(angle),self.ball.y-65*math.sin(angle))
+        self.players[s.sender] = Point(self.ball.x-95*math.cos(angle),self.ball.y-95*math.sin(angle))
         self.angles[s.sender] = angle
 
     def prepare_receiver(self):
@@ -423,7 +427,8 @@ class OfficialPlayTests(unittest.TestCase):
         from RoleMatch_LuaStyle import State,StateMachine
         self.assertTrue(issubclass(self.NormalPlay,StateMachine))
         self.assertTrue(all(isinstance(s,State) for s in self.play.states.values()))
-        self.assertEqual(len(self.play.states),11)
+        self.assertEqual(len(self.play.states),10)
+        self.assertNotIn('Advance',self.play.states)
         self.assertTrue(Path(sys.modules[StateMachine.__module__].__file__).name == 'StateMachine.py')
 
     def test_precision_skill_waits_and_then_requests_kick(self):
@@ -537,14 +542,14 @@ class OfficialPlayTests(unittest.TestCase):
         self.assertEqual({t.fixedNumber for t in self.play.states['Hold'].tasks.values()},{1})
         self.assertFalse(self.play.motion_ids)
 
-    def test_shoot_does_not_kick_when_ball_returns_to_advance_area(self):
+    def test_no_advance_even_with_old_programmatic_flag(self):
         self.play = self.NormalPlay(dict(self.c,enable_pass=False,advance_before_shoot=True))
         self.opponents = []
         self.tick(0,players={0:Point(2635,0),1:Point(2000,1200)})
         self.assertEqual(self.play.current_state.state_name,'Shoot')
         self.angles[0] = 0
         self.tick(.1,ball=Point(0,0),players={0:Point(-65,0),1:Point(-1500,1200)})
-        self.assertEqual(self.play.current_state.state_name,'Advance')
+        self.assertEqual(self.play.current_state.state_name,'Shoot')
         self.assertFalse(any(c[0]=='kick' for c in self.calls))
 
     def test_stop_retreats_but_does_not_kick(self):
@@ -618,7 +623,8 @@ class OfficialPlayTests(unittest.TestCase):
         self.tick(0,players={2:Point(-4200,0)})
         self.tick(.1)
         self.assertEqual(self.play.executed_state,'Goalkeeping')
-        self.assertTrue(any(c[0]=='Goalie2022' and c[1]==2 for c in self.calls))
+        self.assertTrue(any(c[0]=='Goalie' and c[1]==2 for c in self.calls))
+        self.assertFalse(any(c[0]=='Goalie2022' for c in self.calls))
         self.assertEqual(self.play.motion_ids,{2})
 
     def test_qualifier_never_controls_goalie(self):
@@ -674,11 +680,10 @@ class OfficialPlayTests(unittest.TestCase):
         self.assertEqual(self.tick(.2),'PassSetup')
         self.assertFalse(any(c[0]=='kick' for c in self.calls))
 
-    def test_receiver_does_not_turn_when_ball_crosses_target(self):
+    def test_receiver_stops_when_ball_crosses_target(self):
         s = self.launched()
-        self.tick(.6,ball=Point(s.target.x+80,s.target.y+80))
-        rush = [c for c in self.calls if c[0]=='RushTo' and c[1]==s.receiver][0]
-        self.assertAlmostEqual(rush[4]['angle'],self.angles[s.receiver])
+        self.tick(.6,ball=self.players[s.receiver])
+        self.assertTrue(any(c[0]=='Stop' and c[1]==s.receiver for c in self.calls))
 
     def test_ball_passing_behind_receiver_is_not_completion(self):
         s = self.launched()
@@ -699,6 +704,57 @@ class OfficialPlayTests(unittest.TestCase):
         self.tick(.1)
         self.assertTrue(any(c[0]=='Stop' and c[1]==0 for c in self.calls))
 
+    def test_no_attack_skill_enables_dribbler(self):
+        self.setup_pass()
+        self.tick(.1)
+        rushes = [c for c in self.calls if c[0]=='RushTo']
+        self.assertTrue(rushes)
+        self.assertTrue(all(c[4]['needDribble'] is False for c in rushes))
+
+    def test_carry_action_is_rejected_at_task_boundary(self):
+        self.tick(0)
+        with self.assertRaises(ValueError):
+            self.play.tasks({0:('carry',Point(3000,0))})
+
+    def test_contact_budget_forces_release_before_one_metre(self):
+        self.play = self.NormalPlay(dict(self.c,enable_pass=False))
+        self.opponents = []
+        for i in range(7):
+            self.tick(i*.02,ball=Point(95+i*50,0),players={0:Point(i*50,0),1:Point(-1000,1500)})
+        self.assertTrue(self.play.contact_guard.blocked(0))
+        self.assertEqual(self.play.phase,'RULE_RELEASE')
+        self.assertFalse(any(c[0]=='kick' for c in self.calls))
+        self.tick(.15,'HALT')
+        self.assertFalse(self.play.motion_ids)
+
+    def test_robot_partly_in_defense_cannot_kick(self):
+        self.play = self.NormalPlay(dict(self.c,enable_pass=False))
+        self.tick(0,ball=Point(3300,0),players={0:Point(3450,0),1:Point(2000,1500)})
+        self.tick(.1)
+        self.assertEqual(self.play.phase,'RULE_DEFENSE_RELEASE')
+        self.assertFalse(any(c[0]=='kick' for c in self.calls))
+
+    def test_restart_kicker_cannot_touch_again_after_request(self):
+        self.play = self.NormalPlay(dict(self.c,enable_pass=False))
+        self.opponents = []
+        self.players[0] = Point(2605,0)
+        for t in (0,.02,.12):
+            self.tick(t,'OUR_RESTART',referee='OurKickOff')
+        self.assertEqual(self.play.restart_guard.kicker,0)
+        self.tick(.14)
+        self.assertTrue(self.play.restart_guard.blocked(0))
+        self.assertFalse(any(c[0]=='kick' for c in self.calls))
+        self.tick(.16,'HALT')
+        self.assertTrue(self.play.restart_guard.blocked(0))
+
+    def test_indirect_restart_does_not_shoot_when_no_receiver(self):
+        self.play = self.NormalPlay(dict(self.c,enable_pass=False))
+        self.opponents = []
+        for t in (0,.02,.12,.3):
+            self.tick(t,'OUR_INDIRECT',ball=Point(2700,0),players={0:Point(2605,0)},referee='OurIndirectKick')
+        self.assertTrue(self.play.restart_guard.requires_pass)
+        self.assertFalse(any(c[0]=='kick' for c in self.calls))
+
 
 class BallControlTests(unittest.TestCase):
     def setUp(self):
@@ -706,20 +762,19 @@ class BallControlTests(unittest.TestCase):
         self.control = BallControl()
         self.robot, self.ball, self.target = Point(0,0),Point(95,0),Point(3000,0)
 
-    def plan(self,now,ball=None,target=None,heading=0,carry=True):
+    def plan(self,now,ball=None,target=None,heading=0,carry=False):
         return self.control.plan(now,self.robot,heading,ball or self.ball,target or self.target,carry=carry)
 
-    def test_carry_uses_long_lookahead(self):
-        dest,angle,aligned,held,phase = self.plan(0)
-        self.assertEqual(dest,Point(650,0))
-        self.assertEqual(phase,'CARRY')
+    def test_carry_is_rejected(self):
+        with self.assertRaises(ValueError):
+            self.plan(0,carry=True)
 
-    def test_small_lateral_noise_does_not_send_robot_behind_ball(self):
+    def test_off_axis_contact_releases_before_realigning(self):
         self.plan(0)
         dest,_,_,held,phase = self.plan(.02,ball=Point(95,40))
-        self.assertTrue(held)
-        self.assertEqual(phase,'CARRY')
-        self.assertGreater(dest.x,600)
+        self.assertFalse(held)
+        self.assertEqual(phase,'RELEASE_ALIGN')
+        self.assertAlmostEqual(distance(dest,Point(95,40)),320)
 
     def test_lost_ball_releases_contact(self):
         self.plan(0)
@@ -729,18 +784,18 @@ class BallControlTests(unittest.TestCase):
         self.plan(0)
         self.assertFalse(self.plan(1,ball=Point(95,60))[3])
 
-    def test_carry_turn_rate_limited(self):
+    def test_large_turn_does_not_rotate_while_holding_ball(self):
         self.plan(0)
         result = self.plan(.02,target=Point(95,3000))
-        self.assertLessEqual(abs(result[1]),.020001)
-        self.assertEqual(result[4],'CARRY')
+        self.assertAlmostEqual(distance(result[0],self.ball),320)
+        self.assertEqual(result[4],'RELEASE_ALIGN')
 
     def test_shoot_turn_is_also_limited(self):
         self.plan(0,carry=False)
         result = self.plan(.02,target=Point(95,3000),carry=False)
-        self.assertLessEqual(abs(result[1]),.040001)
+        self.assertGreaterEqual(distance(result[0],self.ball),260)
         self.assertFalse(result[2])
-        self.assertTrue(result[3])
+        self.assertFalse(result[3])
 
     def test_reset_clears_all_memory(self):
         self.plan(0)
@@ -753,12 +808,12 @@ class BallControlTests(unittest.TestCase):
         ball = Point(95,15)
         dest,_,_,held,_ = self.control.plan(0,self.robot,0,ball,target,trim=True)
         self.assertTrue(held)
-        self.assertAlmostEqual(dest.x,0)
+        self.assertAlmostEqual(dest.x,10)
         self.assertAlmostEqual(dest.y,30)
 
     def test_lateral_trim_does_not_move_an_aligned_contact(self):
         dest,*_ = self.control.plan(0,self.robot,0,self.ball,self.target,trim=True)
-        self.assertEqual(dest,Point(0,0))
+        self.assertEqual(dest,Point(10,0))
 
     def test_reset_preflight_checks_robot_not_only_ball(self):
         from benchmark_match import scene_error
@@ -777,21 +832,21 @@ class BallControlTests(unittest.TestCase):
 
     def test_shoot_contact_not_65mm_push(self):
         result = self.plan(0,carry=False)
-        self.assertEqual(result[0],Point(0,0))
+        self.assertEqual(result[0],Point(10,0))
 
     def test_shot_margin_is_inside_goal(self):
         c = load_config(ROOT/'match.json')
         point,_ = Tactics(c).shot(Point(2700,0),[Point(3400,0)])
         self.assertLessEqual(abs(point.y),c['goal_width']/2-160)
 
-    def test_advance_shoot_boundary_has_hysteresis(self):
+    def test_old_advance_flag_cannot_reenable_carry_tactics(self):
         c = dict(load_config(ROOT/'match.json'),enable_pass=False,advance_before_shoot=True)
         t = Tactics(c)
         choose = lambda x: t.choose(0,Point(x,0),{0:Point(x-100,0)},[]).phase
-        self.assertEqual(choose(2000),'ADVANCE')
+        self.assertEqual(choose(2000),'ATTACK')
         self.assertEqual(choose(2651),'ATTACK')
         self.assertEqual(choose(2640),'ATTACK')
-        self.assertEqual(choose(2300),'ADVANCE')
+        self.assertEqual(choose(2300),'ATTACK')
 
     def test_audit_requires_real_ball_motion(self):
         from shot_audit import audit
@@ -833,6 +888,112 @@ class BallControlTests(unittest.TestCase):
         sender.set.assert_called_once_with(0)
         sender.close.assert_called_once()
         self.assertIsNone(app.practice_sender)
+
+
+class CompetitionRuleTests(unittest.TestCase):
+    def test_old_unsafe_configurations_fail_closed(self):
+        c = load_config(ROOT/'match.json')
+        for changes in [dict(advance_before_shoot=True),dict(power_cap=7400),dict(shoot_control='legacy'),
+                        dict(shoot_skill='baseline'),dict(goalie_skill='Goalie2022'),dict(ruleset='old'),
+                        dict(contact_budget_mm=1000)]:
+            with self.subTest(changes=changes),patch('run_match.json.loads',return_value=dict(c,**changes)):
+                with self.assertRaises(ValueError):
+                    load_config(ROOT/'match.json')
+
+    def test_continuous_contact_path_is_limited_to_300mm(self):
+        from competition_rules import ContactGuard
+        g = ContactGuard()
+        for i in range(7):
+            g.observe(0,i*.02,Point(i*50,0),Point(i*50+95,0))
+        self.assertTrue(g.blocked(0))
+        self.assertEqual(g.diagnostics()['0']['robot_path_mm'],300)
+
+    def test_control_path_is_accumulated_not_net_displacement(self):
+        from competition_rules import ContactGuard
+        g = ContactGuard()
+        for i in range(7):
+            x = (i%2)*50
+            g.observe(0,i*.02,Point(x,0),Point(x+95,0))
+        self.assertTrue(g.blocked(0))
+
+    def test_clear_separation_releases_contact_budget(self):
+        from competition_rules import ContactGuard
+        g = ContactGuard()
+        g.observe(0,0,Point(0,0),Point(95,0))
+        g.episodes[0].blocked = True
+        g.observe(0,.02,Point(-200,0),Point(95,0))
+        self.assertTrue(g.blocked(0))
+        g.observe(0,.15,Point(-200,0),Point(95,0))
+        self.assertFalse(g.blocked(0))
+
+    def test_brief_visual_separation_does_not_reset_budget(self):
+        from competition_rules import ContactGuard
+        g = ContactGuard()
+        g.observe(0,0,Point(0,0),Point(95,0))
+        g.episodes[0].blocked = True
+        g.observe(0,.02,Point(-200,0),Point(95,0))
+        g.observe(0,.04,Point(0,0),Point(95,0))
+        self.assertTrue(g.blocked(0))
+
+    def test_free_ball_flight_is_not_counted_as_dribbling(self):
+        from competition_rules import ContactGuard
+        g = ContactGuard()
+        g.observe(0,0,Point(0,0),Point(95,0))
+        g.observe(0,.02,Point(0,0),Point(1500,0))
+        self.assertFalse(g.blocked(0))
+        self.assertEqual(g.diagnostics()['0']['ball_path_mm'],0)
+
+    def test_contacts_of_different_robots_do_not_share_budget(self):
+        from competition_rules import ContactGuard
+        g = ContactGuard()
+        g.observe(0,0,Point(0,0),Point(95,0))
+        g.episodes[0].blocked = True
+        g.observe(1,0,Point(95,95),Point(95,0))
+        self.assertFalse(g.blocked(1))
+
+    def test_ball_moving_50mm_does_not_unlock_double_touch(self):
+        from competition_rules import RestartGuard
+        g = RestartGuard()
+        g.begin('OurKickOff')
+        g.requested(0,Point(0,0),{1:0})
+        g.observe(Point(1000,0),{1:0},{1})
+        self.assertTrue(g.started)
+        self.assertTrue(g.blocked(0))
+
+    def test_other_robot_new_infrared_unlocks_double_touch(self):
+        from competition_rules import RestartGuard
+        g = RestartGuard()
+        g.begin('OurDirectKick')
+        g.requested(0,Point(0,0),{1:4})
+        g.observe(Point(1000,0),{1:7},{1})
+        self.assertFalse(g.blocked(0))
+
+    def test_stale_or_far_infrared_does_not_unlock(self):
+        from competition_rules import RestartGuard
+        g = RestartGuard()
+        g.begin('OurKickOff')
+        g.requested(0,Point(0,0),{1:4})
+        g.observe(Point(1000,0),{1:4},{1})
+        self.assertTrue(g.blocked(0))
+        g.observe(Point(1000,0),{1:7},set())
+        self.assertTrue(g.blocked(0))
+
+    def test_repeated_restart_command_does_not_unlock_kicker(self):
+        from competition_rules import RestartGuard
+        g = RestartGuard()
+        g.begin('OurKickOff')
+        g.requested(0,Point(0,0),{})
+        g.begin('OurKickOff')
+        self.assertTrue(g.blocked(0))
+
+    def test_indirect_requires_other_touch_even_after_pass_request(self):
+        from competition_rules import RestartGuard
+        g = RestartGuard()
+        g.begin('OurIndirectKick')
+        g.requested(0,Point(0,0),{})
+        self.assertTrue(g.requires_pass)
+        g.observe(Point(1000,0),{1:3},{1})
+        self.assertFalse(g.requires_pass)
 
 
 if __name__ == '__main__':
