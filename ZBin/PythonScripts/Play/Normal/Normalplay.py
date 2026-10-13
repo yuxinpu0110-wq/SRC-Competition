@@ -28,6 +28,8 @@ from shot_accuracy import ShotGate
 from Vision import Player
 from ball_control import BallControl, wrap
 from competition_rules import ContactGuard, RestartGuard, retreat_target
+from observation import ObservationClock
+from match_events import MatchEvents
 
 
 @dataclass
@@ -44,6 +46,9 @@ class Frame:
     mode: str
     ball_valid: bool
     referee: str = ''
+    cycle: int | None = None
+    fresh: bool = True
+    vision_age: float = 0.0
 
 
 @dataclass
@@ -60,6 +65,7 @@ class PassSession:
     fake_aim: Point | None = None
     feint_started: float = 0.0
     receive_since: float | None = None
+    kick_sequence: int | None = None
 
 
 class MatchState(State):
@@ -189,7 +195,9 @@ class PassKick(MatchState):
         forward = ((p.frame.ball.x-session.origin.x)*dx+(p.frame.ball.y-session.origin.y)*dy)/length
         # 同时要求：请求过踢球、沿线路前进超过200mm、离发球车超过210mm。
         # “下发踢球指令”不保证真的碰到球，因此不能只看 kick_requested。
-        if session.kick_requested and forward > 200 and distance(p.frame.ball, p.frame.players[session.sender]) > 210:
+        if (session.kick_requested and session.kick_sequence is not None
+                and p.events.departed(session.kick_sequence)
+                and forward > 180 and distance(p.frame.ball, p.frame.players[session.sender]) > 200):
             session.flight_started = p.frame.now
             return 'PassFlight'
         return ''
@@ -253,6 +261,8 @@ class NormalPlay(StateMachine):
         self.ball_sample, self.ball_speed = None, math.inf
         self.contact_guard = ContactGuard(config.get('contact_budget_mm',300))
         self.restart_guard = RestartGuard()
+        self.observation_clock = ObservationClock(config.get('vision_stale_seconds', .15))
+        self.events = MatchEvents()
         self.infrared = {}
         self.phase = self.strategy_phase = self.executed_state = 'Hold'
 
@@ -269,19 +279,28 @@ class NormalPlay(StateMachine):
         # 开赛许可和球的位置都要有效；“能进攻”不代表每一帧都要踢球。
         return self.frame.mode in ('PLAY', 'OUR_RESTART', 'OUR_INDIRECT') and self.frame.ball_valid and finite(self.frame.ball)
 
-    def update_frame(self, now, ball, players, opponents, visible, mode, ball_valid, referee=''):
+    def update_frame(self, now, ball, players, opponents, visible, mode, ball_valid, referee='', cycle=None):
+        sample = self.observation_clock.observe(now, cycle)
+        if sample.reset:
+            # 视觉重连/周期回退会产生位置跳变，旧速度和稳定窗口都必须作废。
+            self.ball_sample = None
+            for gate in self.shot_gates.values():
+                gate.previous = None
+                gate.stable_since = None
         # 丢弃 NaN/无穷大坐标，避免把无效位置传入 C++ 运动规划。
         old = self.ball_sample
         if not ball_valid or not finite(ball):
             self.ball_speed, self.ball_sample = math.inf, None
-        elif old is None or not 0 <= now-old[0] <= .25:
+        elif sample.fresh and (old is None or not 0 <= now-old[0] <= .25):
             self.ball_speed, self.ball_sample = math.inf, (now,ball)
-        elif now-old[0] >= .001:
+        elif sample.fresh and now-old[0] >= .001:
             self.ball_speed = distance(ball,old[1])/(now-old[0])
             self.ball_sample = (now,ball)
         clean_players = {n:p for n,p in players.items() if finite(p)}
         self.frame = Frame(now, ball, clean_players, [p for p in opponents if finite(p)],
-                           set(visible) & set(clean_players), mode, ball_valid, referee)
+                           set(visible) & set(clean_players), mode, ball_valid, referee,
+                           cycle, sample.fresh, sample.age)
+        self.events.observe(now, ball, fresh=sample.fresh)
 
     def normal_state(self):
         """普通情况下应该进入哪个状态？只返回名字，不在这里执行任务。"""
@@ -321,13 +340,13 @@ class NormalPlay(StateMachine):
             self.contact_guard.episodes.clear()  # 裁判新死球；重新摆球不计活球连续控制。
         elif f.mode in ('OUR_RESTART','OUR_INDIRECT'):
             self.restart_guard.begin(f.referee or ('OurIndirectKick' if f.mode == 'OUR_INDIRECT' else 'OurKickOff'))
-        if self.can_attack:
+        if self.can_attack and f.fresh:
             for n in self.c['attackers']:
                 if n in f.visible:
                     self.contact_guard.observe(n,f.now,f.players[n],f.ball)
             near_ids = {n for n in f.visible if distance(f.players[n],f.ball) < 125}
             self.restart_guard.observe(f.ball,self.infrared,near_ids)
-        if self.c.get('shoot_control', 'precision') == 'precision':
+        if self.c.get('shoot_control', 'precision') == 'precision' and f.fresh:
             for number, gate in self.shot_gates.items():
                 if number in f.visible:
                     gate.observe(f.now, f.players[number], Player.direction(number), f.ball)
@@ -343,7 +362,8 @@ class NormalPlay(StateMachine):
                                           freeze_striker=self.session is not None)
         if self.restart_guard.requires_pass and self.session is None:
             # 间接任意球只能先传给队友；无合法接应点则保守等待。
-            self.choice.pass_target = (self.tactics.receiving_point(f.ball,f.opponents)
+            self.choice.pass_target = (self.tactics.receiving_point(f.ball,f.opponents,
+                                        f.players.get(self.choice.other))
                                        if self.choice.other is not None else None)
         forced, reason = None, ''
         if not f.ball_valid or not finite(f.ball):
@@ -424,8 +444,11 @@ class NormalPlay(StateMachine):
             target=[target.x, target.y], robot=number, heading=Player.direction(number),
             power=power, passing=passing))
         self.kick_events[:] = self.kick_events[-32:]
+        sequence = self.events.request_kick(self.frame.now, number, ball, target, passing)
         if passing:
             self.note_kick(number, ball)
+            if self.session is not None:
+                self.session.kick_sequence = sequence
 
     def receiver_position(self, ball=None):
         """target 是球的落点；车心应在落点后105mm，车头朝来球方向。"""

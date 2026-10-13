@@ -6,6 +6,7 @@
 """
 from dataclasses import dataclass
 import math
+from pass_planner import evaluate_pass
 
 
 @dataclass(frozen=True)
@@ -57,6 +58,7 @@ class Tactics:
         self.changed = -100.0
         self.target = None
         self.target_time = -100.0
+        self.last_pass_plans = []
 
     def legal(self, p):
         """将进攻车目标限制在场内/禁区外；不保证整段轨迹或所有规则合法。"""
@@ -93,14 +95,27 @@ class Tactics:
         # max(..., key=score) 返回评分最高的点，不是最高的分数本身。
         return best, score(best)
 
-    def receiving_point(self, ball, opponents):
-        """侧翼候选点必须有传球净空，避免把队友派入禁区。"""
+    def receiving_point(self, ball, opponents, receiver=None):
+        """选择队友来得及到达且球能滚到的接应点。
+
+        receiver=None 保留给旧调用和定位球缺少完整观察时的保守几何筛选。
+        评分是启发式，不是传球成功概率；模型参数后续需要仿真标定。
+        """
         # 不带球时依靠真实前传推进；不把队友只派到球侧后方。
         front = self.c['field_length']/2-self.c['defense_depth']-300
         candidates = [self.legal(Point(min(front,ball.x+dx), ball.y+dy))
                       for dx in (650, 1600, 2200, 2800) for dy in (-1500, -1100, -900, -600, 600, 900, 1100, 1500)]
         candidates = [p for p in candidates if 850 < distance(ball, p) < 3000
                       and clearance(ball, p, opponents) > 200]
+        if receiver is not None and self.c.get('enable_reachable_pass', False):
+            plans = [evaluate_pass(ball, receiver, p, opponents,
+                                   initial_speed=self.c.get('pass_ball_speed_mm_s', 3000))
+                     for p in candidates]
+            plans = [plan for plan in plans if plan is not None]
+            self.last_pass_plans = plans
+            return (max(plans, key=lambda plan: plan.score+1000*self.goal_opening(plan.target)).target
+                    if plans else None)
+        self.last_pass_plans = []
         # 接球时门将早已移动，不能用“现在门将离接应点射线很远”打高分。
         # 优先更近、更正的射门位置：从该点看见的门口角度越大，越容易打两侧。
         return max(candidates, key=lambda p: 1000*self.goal_opening(p)-distance(ball,p)*.025) if candidates else None
@@ -141,7 +156,8 @@ class Tactics:
                 and (old_clearance < 0 or new_clearance > old_clearance+80))):
             # 短时间保留射门目标，避免视觉小抖动让车头每帧左右摇摆。
             self.target, self.target_time = aim, now
-        offer = self.receiving_point(ball, opponents) if other is not None and self.c.get('enable_pass', False) else None
+        offer = (self.receiving_point(ball, opponents, players[other])
+                 if other is not None and self.c.get('enable_pass', False) else None)
         support = offer or self.legal(Point(ball.x-650, -1100 if ball.y >= 0 else 1100))
         if distance(support, ball) < 800:
             support = self.legal(Point(ball.x-900, support.y))

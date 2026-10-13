@@ -39,7 +39,8 @@ def load_config(path):
         raise ValueError('Use ruleset src2026-v1-no-carry and disable advance_before_shoot')
     if c.get('goalie_skill','Goalie') != 'Goalie':
         raise ValueError('This ruleset tests the official Goalie skill, not Goalie2022')
-    for name in ('enable_pass', 'enable_feint', 'contact_trim', 'advance_before_shoot', 'enable_dss', 'qt_application', 'complete_frame'):
+    for name in ('enable_pass', 'enable_feint', 'enable_reachable_pass', 'enable_keeper_prediction',
+                 'contact_trim', 'advance_before_shoot', 'enable_dss', 'qt_application', 'complete_frame'):
         if name in c and type(c[name]) is not bool:
             raise ValueError(name+' must be true or false (not a string)')
     for name, low, high in [('pass_setup_timeout', .5, 10), ('pass_flight_timeout', .5, 6), ('pass_kick_timeout', .3, 3),
@@ -164,11 +165,14 @@ def main():
                     if ready_frames < 20:
                         mode = 'WAIT_VISION_STABLE'
                 ball, valid_ball = xy(Ball.pos()), Ball.valid()
+                cycle_getter = getattr(vision, 'getCycle', None)
+                cycle = int(cycle_getter()) if callable(cycle_getter) else None
                 # players 含受控门将位置，供 STOP 退球；选主攻时只看配置里的 attackers。
                 visible = {n for n in ids if Player.isValid(n)}
                 players = {n:xy(Player.Pos(n)) for n in visible}
                 opponents = [xy(Enemy.pos(n)) for n in range(16) if Enemy.valid(n)]
-                play.update_frame(now, ball, players, opponents, visible, mode, valid_ball, referee=message)
+                play.update_frame(now, ball, players, opponents, visible, mode, valid_ball,
+                                  referee=message, cycle=cycle)
                 play.planTasks()  # 唯一调度入口：官方 State.run → Task.run → Skill。
                 Global.isPlaySwitched = False
                 if play.motion_ids or c.get('complete_frame', True):
@@ -197,7 +201,10 @@ def main():
                            'contact_guard':play.contact_guard.diagnostics(),
                            'restart_guard':play.restart_guard.diagnostics(),
                            'ball_speed_sdk_mm_s':Ball.velMod(),
+                           'vision_cycle':cycle, 'vision_fresh':play.frame.fresh,
+                           'vision_age_seconds':play.frame.vision_age,
                            'monotonic':now, 'kick_events':list(play.kick_events),
+                           'match_events':list(play.events.events[-32:]),
                            'aim':[play.choice.aim.x, play.choice.aim.y] if play.choice.aim is not None else None,
                            'shot_gate':{str(n):g.diagnostics for n,g in play.shot_gates.items()},
                            'angles':{str(n):Player.direction(n) for n in visible},
