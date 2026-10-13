@@ -1,3 +1,13 @@
+# 第三方运行时二进制（Qt / grSim / vc_redist 等，约 80MB），不纳入版本控制。
+# 本项目自身的文件予以保留：ZBin/PythonScripts、ZBin/data、ZBin/defence_config，
+# 以及 ZBin 根目录下的 *.ini / *.cmd。
+ZBin/*
+!ZBin/PythonScripts/
+!ZBin/data/
+!ZBin/defence_config/
+!ZBin/*.ini
+!ZBin/*.cmd
+
 ZBin/PythonScripts/.venv/
 **/__pycache__/
 logs/
