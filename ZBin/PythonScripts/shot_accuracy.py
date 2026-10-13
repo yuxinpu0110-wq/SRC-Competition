@@ -18,6 +18,7 @@ class ShotGate:
         self.stable_since = None
         self.previous_target = None
         self.last_kick = -math.inf
+        self.pulse_until = -math.inf
         self.diagnostics = {'reason': 'NO_SAMPLE'}
 
     def observe(self, now, robot, heading, ball):
@@ -81,7 +82,7 @@ class ShotGate:
                 self.stable_since = now
             if now-self.stable_since < .08:
                 reason = 'SETTLE'
-            elif now-self.last_kick < .3:
+            elif now > self.pulse_until and now-self.last_kick < .3:
                 reason = 'COOLDOWN'
         # 不把 inf 写到 JSON 里，缺少速度样本时用 None 表示。
         self.diagnostics = dict(reason=reason, heading_error_rad=error, lateral_mm=lateral,
@@ -92,5 +93,9 @@ class ShotGate:
         return reason == 'READY', reason
 
     def fired(self, now):
-        self.last_kick = now
-        self.stable_since = None
+        # 官方技能按帧请求出球；一次请求并不等于踢球器已经碰到球。
+        # 几何/速度仍逐帧检查，在180ms窗口内重发，避免只发一帧后空等300ms。
+        # 球离开、车头偏移或裁判停止都会由门控/状态机立即取消后续请求。
+        if now > self.pulse_until:
+            self.last_kick = now
+            self.pulse_until = now+.18

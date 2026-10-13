@@ -17,9 +17,13 @@ class BallControl:
     held: bool = False
     direction: float | None = None
     updated: float | None = None
+    approaching: bool = False
+    releasing: bool = False
 
     def reset(self):
         self.held,self.direction,self.updated = False,None,None
+        self.approaching = False
+        self.releasing = False
 
     def plan(self, now, robot, heading, ball, target, *, carry=False, contact=85, trim=False):
         if carry:
@@ -30,13 +34,28 @@ class BallControl:
         lateral = -dx*math.sin(desired)+dy*math.cos(desired)
         error = abs(wrap(heading-desired))
         self.held = 50 < along < 165 and abs(lateral) < 30 and error < .12
-        aligned = along > 0 and abs(lateral) < 20 and error < .06
+        # 进球前最后几厘米不能用同一阈值反复切换“靠近/退320mm”。
+        # 首次进入仍严格；进入后只允许小幅横向修正。大角度换目标仍先离球。
+        fresh = self.updated is not None and 0 <= now-self.updated <= .15
+        same_direction = self.direction is not None and abs(wrap(desired-self.direction)) < .06
+        aligned = (along > 0 and abs(lateral) < 20 and error < .06) or (
+            fresh and self.approaching and same_direction and along > 75
+            and abs(lateral) < 35 and error < .09)
+        gap = distance(robot,ball)
+        # 一旦决定离球，先完成离球再回来；不能下一帧角度刚恢复就掉头贴球。
+        # 否则退几毫米又前进，会把球推走并触发近球路径预算。
+        if self.releasing and gap >= 260:
+            self.releasing = False
+        if not aligned and gap < 260:
+            self.releasing = True
+        aligned = aligned and not self.releasing
+        self.approaching = aligned
         self.direction,self.updated = desired,now
         radial = math.atan2(robot.y-ball.y,robot.x-ball.x)
         radial_error = wrap(desired+math.pi-radial)
         if not aligned:
             # 大角度变向先径向退到320mm，再走避球圆；不能贴球绕转。
-            if distance(robot,ball) < 260:
+            if self.releasing:
                 destination = Point(ball.x+320*math.cos(radial),ball.y+320*math.sin(radial))
             elif abs(radial_error) > .12:
                 waypoint = radial+max(-.45,min(.45,radial_error))

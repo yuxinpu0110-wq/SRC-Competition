@@ -46,6 +46,17 @@ class GeometryTests(unittest.TestCase):
     def test_shoot_away_from_keeper(self):
         self.assertLess(self.p.shot(Point(1000,0), [Point(4250,250)])[0].y, 0)
 
+    def test_forward_receiver_has_wider_goal_view(self):
+        ball = Point(0,0)
+        receiver = self.p.receiving_point(ball,[Point(4200,0)])
+        self.assertGreater(receiver.x,2500)
+        self.assertLessEqual(abs(receiver.y),900)
+        self.assertGreater(self.p.goal_opening(receiver),1.5*self.p.goal_opening(ball))
+        self.assertFalse(self.p.in_defense(receiver))
+
+    def test_goal_opening_does_not_reward_a_wide_sideline(self):
+        self.assertGreater(self.p.goal_opening(Point(2800,600)),self.p.goal_opening(Point(2200,1500)))
+
     def test_segment_clearance(self):
         self.assertLess(clearance(Point(0,0),Point(4000,0),[Point(2000,0)]),0)
 
@@ -205,9 +216,21 @@ class ShotGateTests(unittest.TestCase):
     def test_shot_cooldown(self):
         self.sample(0); self.sample(.02); self.sample(.12)
         self.gate.fired(.12)
-        self.assertEqual(self.sample(.14),(False,'SETTLE'))
-        self.assertEqual(self.sample(.24),(False,'COOLDOWN'))
+        self.assertEqual(self.sample(.14),(True,'READY'))
+        self.gate.fired(.14)
+        self.assertEqual(self.sample(.24),(True,'READY'))
+        self.assertEqual(self.sample(.32),(False,'COOLDOWN'))
         self.assertTrue(self.sample(.43)[0])
+
+    def test_kick_pulse_stops_when_ball_moves(self):
+        self.sample(0); self.sample(.02); self.sample(.12)
+        self.gate.fired(.12)
+        self.assertFalse(self.sample(.14,ball=Point(2800,0))[0])
+
+    def test_kick_pulse_stops_when_alignment_is_lost(self):
+        self.sample(0); self.sample(.02); self.sample(.12)
+        self.gate.fired(.12)
+        self.assertFalse(self.sample(.14,heading=.1)[0])
 
     def test_direction_change_restarts_settling(self):
         self.sample(0); self.sample(.02); self.sample(.12)
@@ -409,6 +432,11 @@ class OfficialPlayTests(unittest.TestCase):
     def prepare_sender(self):
         s = self.play.session
         angle = math.atan2(s.target.y-self.ball.y,s.target.x-self.ball.x)
+        # 先给真实状态机一帧“已经退离球”的观察，再模拟完成贴球。
+        # 不能从正在退球直接瞬移到球前，绕过离球阶段的锁定。
+        self.players[s.sender] = Point(self.ball.x-320*math.cos(angle),self.ball.y-320*math.sin(angle))
+        self.angles[s.sender] = angle
+        self.tick(.03)
         self.players[s.sender] = Point(self.ball.x-95*math.cos(angle),self.ball.y-95*math.sin(angle))
         self.angles[s.sender] = angle
 
@@ -769,6 +797,29 @@ class BallControlTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.plan(0,carry=True)
 
+    def test_small_alignment_noise_does_not_trigger_full_retreat(self):
+        self.plan(0)
+        dest,_,aligned,_,phase = self.control.plan(.02,Point(0,0),0,Point(95,23),Point(3000,23))
+        self.assertTrue(aligned)
+        self.assertEqual(phase,'CONTACT')
+        self.assertLess(distance(dest,Point(95,23)),100)
+
+    def test_off_axis_entry_cannot_use_contact_hysteresis(self):
+        result = self.control.plan(0,Point(0,0),0,Point(95,23),Point(3000,23))
+        self.assertFalse(result[2])
+
+    def test_stale_contact_memory_cannot_keep_approaching(self):
+        self.plan(0)
+        result = self.control.plan(1,Point(0,0),0,Point(95,23),Point(3000,23))
+        self.assertFalse(result[2])
+
+    def test_retreat_completes_before_contact_can_restart(self):
+        self.plan(0)
+        self.plan(.02,ball=Point(95,40))
+        self.assertFalse(self.plan(.04)[2])
+        result = self.control.plan(.06,Point(-200,0),0,self.ball,self.target)
+        self.assertTrue(result[2])
+
     def test_off_axis_contact_releases_before_realigning(self):
         self.plan(0)
         dest,_,_,held,phase = self.plan(.02,ball=Point(95,40))
@@ -829,6 +880,13 @@ class BallControlTests(unittest.TestCase):
         from benchmark_match import scene_error
         row = dict(ball=[float('nan'),0],ball_valid=True,robots={'0':[2705,0]},angles={'0':0})
         self.assertEqual(scene_error(row,(2.8,0),{0:(2.705,0,0)}),'NO_VALID_VISION')
+
+    def test_reset_requires_both_teams_to_observe_same_scene(self):
+        from benchmark_match import opponents_match
+        expected = [[1000,700],[1500,-1200]]
+        self.assertTrue(opponents_match({'opponents':expected[::-1]},expected))
+        self.assertFalse(opponents_match({'opponents':[[2100,700],[1500,-1200]]},expected))
+        self.assertFalse(opponents_match({'opponents':[[1000,700],[1000,700]]},expected))
 
     def test_shoot_contact_not_65mm_push(self):
         result = self.plan(0,carry=False)

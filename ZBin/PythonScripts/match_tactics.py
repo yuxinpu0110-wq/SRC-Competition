@@ -98,10 +98,20 @@ class Tactics:
         # 不带球时依靠真实前传推进；不把队友只派到球侧后方。
         front = self.c['field_length']/2-self.c['defense_depth']-300
         candidates = [self.legal(Point(min(front,ball.x+dx), ball.y+dy))
-                      for dx in (650, 1600, 2200) for dy in (-1500, -1100, 1100, 1500)]
+                      for dx in (650, 1600, 2200, 2800) for dy in (-1500, -1100, -900, -600, 600, 900, 1100, 1500)]
         candidates = [p for p in candidates if 850 < distance(ball, p) < 3000
                       and clearance(ball, p, opponents) > 200]
-        return max(candidates, key=lambda p: self.shot(p, opponents)[1]-distance(ball, p)*0.02) if candidates else None
+        # 接球时门将早已移动，不能用“现在门将离接应点射线很远”打高分。
+        # 优先更近、更正的射门位置：从该点看见的门口角度越大，越容易打两侧。
+        return max(candidates, key=lambda p: 1000*self.goal_opening(p)-distance(ball,p)*.025) if candidates else None
+
+    def goal_opening(self, ball):
+        """球到两侧门内安全点的夹角，单位弧度；不是进球概率。"""
+        dx = self.c['field_length']/2-ball.x
+        half = self.c['goal_width']/2-self.c.get('goal_margin',160)
+        if dx <= 0:
+            return 0.
+        return math.atan2(half-ball.y,dx)-math.atan2(-half-ball.y,dx)
 
     def choose(self, now, ball, players, opponents, last_pass=-100.0, freeze_striker=False):
         """给官方状态机提供选人/目标建议；没有 SETUP/KICK 等字符串状态赋值。"""
@@ -142,7 +152,8 @@ class Tactics:
         if (offer is not None and now-last_pass > 6
                 and distance(players[self.striker], ball) < 280
                 and own_score < self.c.get('pass_shot_threshold', 230)
-                and self.shot(offer, opponents)[1] > own_score+self.c.get('pass_score_gain', 60)):
+                and (self.shot(offer, opponents)[1] > own_score+self.c.get('pass_score_gain', 60)
+                     or (ball.x < 2400 and self.goal_opening(offer) > 1.25*self.goal_opening(ball)))):
             choice.pass_target = offer
             # 此处只是提出传球建议，NormalPlay 才决定切到 PassSetup。
         # 不再建议ADVANCE：推进靠真正出球给前方队友，而不是携球跑动。

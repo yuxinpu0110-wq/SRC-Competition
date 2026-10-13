@@ -7,6 +7,7 @@ Logs no-carry guards and filtered SDK ball speed; none replaces the official ref
 import argparse
 import hashlib
 import math
+import itertools
 import json
 from pathlib import Path
 import subprocess
@@ -37,6 +38,18 @@ def kill_child(p):
     if p is not None and p.poll() is None:
         subprocess.run(['taskkill', '/PID', str(p.pid), '/T', '/F'], capture_output=True)
         p.wait(timeout=5)
+
+
+def opponents_match(row, expected, tolerance=150):
+    """两队融合视觉必须看到同一个摆位，排除刚瞬移后仍残留的对手旧坐标。"""
+    if not row:
+        return False
+    seen = row.get('opponents', [])
+    if len(seen) != len(expected):
+        return False
+    return any(all(len(p) == 2 and all(math.isfinite(v) for v in p)
+                       and math.dist(p,q) <= tolerance for p,q in zip(order,expected))
+               for order in itertools.permutations(seen))
 
 
 def complete_rows(path):
@@ -173,7 +186,8 @@ def main():
                     reset_scene(ball=ball, attackers=c['attackers'], goalie=c['goalie'],attacker_poses=poses)
                     expected_poses = poses or {c['attackers'][0]:(-1,-.7,0),c['attackers'][1]:(-1.5,1.2,0)}
                     from match_launcher import latest_complete_row
-                    deadline = time.monotonic()+5
+                    deadline = time.monotonic()+8
+                    confirmed_since = None
                     last = None
                     while time.monotonic() < deadline:
                         if p.poll() is not None:
@@ -185,9 +199,16 @@ def main():
                         last = latest_complete_row(telemetry)
                         goalie_start = latest_complete_row(goalie_telemetry) if goalie_telemetry else None
                         goalie_ready = (goalie is None or (goalie_start and time.time()-goalie_start['time'] < .3
-                            and not scene_error(goalie_start,(-ball[0],-ball[1]),{c['goalie']:(-4.2,0,0)},150)))
-                        if last and time.time()-last['time'] < .3 and not scene_error(last,ball,expected_poses) and goalie_ready:
-                            break
+                            and not scene_error(goalie_start,(-ball[0],-ball[1]),{c['goalie']:(-4.2,0,0)},150)
+                            and opponents_match(goalie_start,[[-p[0]*1000,-p[1]*1000] for p in expected_poses.values()])))
+                        if (last and time.time()-last['time'] < .3 and not scene_error(last,ball,expected_poses)
+                                and opponents_match(last,[[4200,0]]) and goalie_ready):
+                            if confirmed_since is None:
+                                confirmed_since = time.monotonic()
+                            elif time.monotonic()-confirmed_since >= .2:
+                                break
+                        else:
+                            confirmed_since = None
                         time.sleep(.05)
                     else:
                         result.update(reset_error=scene_error(last,ball,expected_poses) or 'GOALIE_START_NOT_CONFIRMED',
@@ -210,6 +231,8 @@ def main():
                     speed_samples = []
                     max_near_ball_path = 0
                     rule_releases = 0
+                    phase_samples = {}
+                    kick_requests = {'shot':0,'pass':0}
                     with telemetry.open(encoding='utf-8') as stream:
                         stream.seek(offset)
                         while time.monotonic()-start < args.seconds:
@@ -233,6 +256,9 @@ def main():
                             except json.JSONDecodeError:
                                 continue
                             x, y = row['ball']
+                            phase_samples[row['phase']] = phase_samples.get(row['phase'],0)+1
+                            for event in row.get('kick_events',[]):
+                                kick_requests['pass' if event.get('passing') else 'shot'] += 1
                             speed = row.get('ball_speed_sdk_mm_s')
                             if speed is not None and math.isfinite(speed):
                                 speed_samples.append(speed)
@@ -269,6 +295,8 @@ def main():
                             result['last_shot_gate'] = row.get('shot_gate', {})
                     referee(0)
                     result['samples'] = samples
+                    result['phase_samples'] = phase_samples
+                    result['kick_requests'] = kick_requests  # 请求数；短脉冲会重复请求，不代表实际踢了多次。
                     result.update(max_ball_speed_sdk_mm_s=max(speed_samples,default=None),
                                   sdk_speed_over_limit=any(v > 6500 for v in speed_samples),
                                   max_near_ball_path_mm=max_near_ball_path,rule_release_samples=rule_releases,

@@ -172,6 +172,8 @@ def main():
                 play.planTasks()  # 唯一调度入口：官方 State.run → Task.run → Skill。
                 Global.isPlaySwitched = False
                 if play.motion_ids or c.get('complete_frame', True):
+                    if frames < 3:
+                        print(f'[MATCH] native frame={frames} mode={mode} visible={sorted(visible)} tasks={len(play.retained_tasks)}',flush=True)
                     runner.postDecision()
                 # 完成 native 后半帧后，再给无运动任务的受控车追加本机零速度保护。
                 idle = [n for n in ids if n not in play.motion_ids]
