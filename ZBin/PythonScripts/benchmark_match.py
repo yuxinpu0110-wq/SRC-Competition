@@ -44,7 +44,7 @@ def main():
     parser.add_argument('--repeats', type=int, default=1)
     parser.add_argument('--passing', choices=('on', 'off'), help='Explicit passing A/B; otherwise uses match.json')
     parser.add_argument('--dss', choices=('on', 'off'), help='Diagnostic native DSS A/B; default unchanged')
-    parser.add_argument('--dispatch', choices=('state_machine', 'direct'), help='Diagnostic fixed-ID skill dispatch A/B')
+    parser.add_argument('--dispatch', choices=('state_machine',), help='Only official state_machine dispatch is supported')
     parser.add_argument('--qt-app', action='store_true', help='Diagnostic explicit Qt application in both controllers')
     args = parser.parse_args()
     if args.repeats < 1 or args.seconds <= 0:
@@ -68,7 +68,8 @@ def main():
     report = {'description': 'Local practice, three fixed ball starts, official Goalie2022 skill. Not official score/win rate.',
               'complete': False, 'started_at': time.strftime('%Y-%m-%d %H:%M:%S'), 'config': c,
               'source_sha256': {name: hashlib.sha256((ZBIN/'PythonScripts'/name).read_bytes()).hexdigest()
-                                for name in ['run_match.py', 'match_tactics.py', 'sim_tools.py', 'benchmark_match.py']}, 'trials': []}
+                                for name in ['run_match.py', 'match_tactics.py', 'Play/Normal/Normalplay.py',
+                                             'RoleMatch_LuaStyle/Skills/CompetitionSkills.py', 'sim_tools.py', 'benchmark_match.py']}, 'trials': []}
     report_path = ROOT/'logs'/'benchmark-report.json'
     report_path.write_text(json.dumps(report, indent=2), encoding='utf-8')
     practice = PracticeReferee()

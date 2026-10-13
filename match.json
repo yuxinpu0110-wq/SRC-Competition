@@ -5,7 +5,7 @@
   "attackers": [0, 1],
   "goalie": 2,
   "shoot_skill": "targeted",
-  "task_dispatch": "direct",
+  "task_dispatch": "state_machine",
   "enable_pass": false,
   "pass_shot_threshold": 150,
   "pass_score_gain": 90,
