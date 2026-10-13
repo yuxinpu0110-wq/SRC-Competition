@@ -63,13 +63,16 @@ def complete_rows(path):
 
 def launch(config, label):
     f = (ROOT/'logs'/f'benchmark-{label}-{time.time_ns()}-console.txt').open('w', encoding='utf-8')
-    p = subprocess.Popen([sys.executable, '-X', 'utf8', '-X', 'faulthandler', '-u', str(ZBIN/'PythonScripts'/'run_match.py'), '--config', str(config)],
+    telemetry = ROOT/'logs'/f'benchmark-{label}-{time.time_ns()}.jsonl'
+    p = subprocess.Popen([sys.executable, '-X', 'utf8', '-X', 'faulthandler', '-u', str(ZBIN/'PythonScripts'/'run_match.py'), '--config', str(config), '--telemetry',str(telemetry)],
                          cwd=ZBIN, stdout=f, stderr=subprocess.STDOUT)
+    p.telemetry_path = telemetry
     return p, f
 
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--config',default=str(ROOT/'match.json'),help='Explicit candidate config; does not modify match.json')
     parser.add_argument('--seconds', type=float, default=20)
     parser.add_argument('--contact-distance',type=float, help='Diagnostic target contact distance in mm (75..110)')
     parser.add_argument('--contact-trim',action='store_true',help='Bounded lateral contact correction diagnostic')
@@ -96,7 +99,7 @@ def main():
     if process_count('Client.exe') != 1 or process_count('grSim.exe') != 1:
         raise RuntimeError('Benchmark requires ONE connected Client and ONE simulator')
     (ROOT/'logs').mkdir(exist_ok=True)
-    c = load_config(ROOT/'match.json')
+    c = load_config(Path(args.config).resolve())
     if args.contact_trim:
         c['contact_trim'] = True
     if args.contact_distance is not None:
@@ -158,13 +161,11 @@ def main():
                 time.sleep(2)
                 if p.poll() is not None or (goalie is not None and goalie.poll() is not None):
                     raise RuntimeError('A strategy failed; inspect logs/benchmark-*-console.txt')
-                logs = sorted((ROOT/'logs').glob('*-blue.jsonl'), key=lambda p:p.stat().st_mtime)
-                if not logs:
+                if not p.telemetry_path.exists():
                     raise RuntimeError('No telemetry: connect Client Vision first')
-                telemetry = logs[-1]
+                telemetry = p.telemetry_path
                 report.setdefault('attacker_telemetries',[]).append(str(telemetry))
-                yellow_logs = sorted((ROOT/'logs').glob('*-yellow.jsonl'), key=lambda p:p.stat().st_mtime)
-                goalie_telemetry = yellow_logs[-1] if yellow_logs and goalie is not None else None
+                goalie_telemetry = goalie.telemetry_path if goalie is not None else None
                 report['goalie_telemetry'] = str(goalie_telemetry) if goalie_telemetry else None
                 starts = [(0,0),(.8,1),(.8,-1)] if args.starts == 'approach' else [(2.8,0),(2.8,.8),(2.8,-.8)]
                 for trial, ball in enumerate(starts * args.repeats):

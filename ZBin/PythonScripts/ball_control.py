@@ -21,6 +21,7 @@ class BallControl:
     releasing: bool = False
     orbit_sign: int = 0
     stage: str = 'RELEASE'
+    orbit_remaining: float | None = None
 
     def reset(self):
         self.held,self.direction,self.updated = False,None,None
@@ -28,6 +29,7 @@ class BallControl:
         self.releasing = False
         self.orbit_sign = 0
         self.stage = 'RELEASE'
+        self.orbit_remaining = None
 
     def plan(self, now, robot, heading, ball, target, *, carry=False, contact=85, trim=False):
         if carry:
@@ -57,6 +59,16 @@ class BallControl:
         self.direction,self.updated = desired,now
         radial = math.atan2(robot.y-ball.y,robot.x-ball.x)
         radial_error = wrap(desired+math.pi-radial)
+        # 固定绕行方向不能把“刚越过终点”解释为还要绕近一整圈。
+        # 上一帧剩余角小于半圈、这一帧有向角突然接近2π，说明已经越过。
+        directed = (radial_error*self.orbit_sign) % (2*math.pi) if self.orbit_sign else None
+        crossed = (directed is not None and self.orbit_remaining is not None
+                   and self.orbit_remaining < math.pi and directed-self.orbit_remaining > math.pi)
+        if crossed or abs(radial_error) < .20:
+            self.orbit_sign = 0
+            self.orbit_remaining = None
+            # 已经在球后，先在320mm处做横向精调，避免再次绕圈。
+            radial_error = 0.
         if not aligned:
             # 大角度变向先径向退到320mm，再走避球圆；不能贴球绕转。
             if self.releasing:
@@ -66,8 +78,9 @@ class BallControl:
                 # 一次绕后动作锁住顺/逆时针方向，避免视觉噪声令方向逐帧翻转。
                 if not self.orbit_sign:
                     self.orbit_sign = 1 if radial_error > 0 else -1
+                self.orbit_remaining = (radial_error*self.orbit_sign) % (2*math.pi)
                 self.stage = 'ORBIT'
-                waypoint = radial+self.orbit_sign*min(.45,abs(radial_error))
+                waypoint = radial+self.orbit_sign*min(.45,self.orbit_remaining)
                 destination = Point(ball.x+320*math.cos(waypoint),ball.y+320*math.sin(waypoint))
             else:
                 self.orbit_sign = 0
@@ -75,6 +88,7 @@ class BallControl:
                 destination = Point(ball.x-320*math.cos(desired),ball.y-320*math.sin(desired))
             return destination,desired,False,self.held,'RELEASE_ALIGN'
         self.orbit_sign = 0
+        self.orbit_remaining = None
         self.stage = 'CONTACT'
         destination = Point(ball.x-contact*math.cos(desired),ball.y-contact*math.sin(desired))
         if trim and abs(lateral) > 6:

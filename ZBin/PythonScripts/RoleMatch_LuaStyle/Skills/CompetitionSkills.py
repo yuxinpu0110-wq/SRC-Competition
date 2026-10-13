@@ -56,8 +56,19 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
         dest = geometry.legal(dest)
         point = C.CGeoPoint(dest.x,dest.y)
         flags = (0x08000000 if enable_dss else 0) | 0x200 | (0 if aligned else 0x10)
-        skill = Skill.RushTo(point,angle=angle,maxAcc=1200 if aligned else 2200,
-                             flag=flags,needDribble=False)
+        forward = (ball.x-robot.x)*math.cos(heading)+(ball.y-robot.y)*math.sin(heading)
+        lateral = abs(-(ball.x-robot.x)*math.sin(heading)+(ball.y-robot.y)*math.cos(heading))
+        # “允许申请出脚”的105mm上界不等于已经接触踢球器。停在104mm处会
+        # 反复空发请求；只在更近的接触带停车，外层仍缓慢靠近到配置目标。
+        settle_forward = min(98,geometry.c.get('contact_forward_max',105))
+        ready_geometry = (75 <= forward <= settle_forward
+                          and lateral <= 10 and abs(math.atan2(math.sin(heading-angle),math.cos(heading-angle))) <= .018)
+        # 到达真实出脚几何后停车积累稳定窗口，避免每帧RushTo继续挤球/微摆。
+        if geometry.c.get('settle_on_contact',False) and aligned and ready_geometry:
+            skill = Skill.Stop()
+        else:
+            skill = Skill.RushTo(point,angle=angle,maxAcc=1200 if aligned else 2200,
+                                 flag=flags,needDribble=False)
         resources.extend((point,skill))
         skill[0](executor)
         allowed,reason = gate.allow(now,robot,heading,ball,target,geometry.c,shooting=shooting)

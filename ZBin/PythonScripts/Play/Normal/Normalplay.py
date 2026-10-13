@@ -51,6 +51,7 @@ class Frame:
     fresh: bool = True
     vision_age: float = 0.0
     opponent_players: dict | None = None
+    native_motion: dict | None = None
 
 
 @dataclass
@@ -285,7 +286,7 @@ class NormalPlay(StateMachine):
         return self.frame.mode in ('PLAY', 'OUR_RESTART', 'OUR_INDIRECT') and self.frame.ball_valid and finite(self.frame.ball)
 
     def update_frame(self, now, ball, players, opponents, visible, mode, ball_valid, referee='', cycle=None,
-                     opponent_players=None):
+                     opponent_players=None, native_motion=None):
         sample = self.observation_clock.observe(now, cycle)
         if sample.reset:
             # 视觉重连/周期回退会产生位置跳变，旧速度和稳定窗口都必须作废。
@@ -306,7 +307,7 @@ class NormalPlay(StateMachine):
         self.frame = Frame(now, ball, clean_players, [p for p in opponents if finite(p)],
                            set(visible) & set(clean_players), mode, ball_valid, referee,
                            cycle, sample.fresh, sample.age,
-                           {n:p for n,p in (opponent_players or {}).items() if finite(p)})
+                           {n:p for n,p in (opponent_players or {}).items() if finite(p)}, native_motion)
         self.events.observe(now, ball, fresh=sample.fresh)
 
     def normal_state(self):
@@ -357,6 +358,8 @@ class NormalPlay(StateMachine):
             for number, gate in self.shot_gates.items():
                 if number in f.visible:
                     gate.observe(f.now, f.players[number], Player.direction(number), f.ball)
+                    if f.native_motion and number in f.native_motion:
+                        gate.observe_native_velocity(*f.native_motion[number])
                 else:
                     # 失去视觉后下次看到车时必须重新积累稳定样本。
                     gate.previous = None
@@ -588,6 +591,10 @@ class NormalPlay(StateMachine):
             else:
                 ball_point, target_point = C.CGeoPoint(f.ball.x, f.ball.y), C.CGeoPoint(target.x, target.y)
                 power = evalPower(ball_point, target_point, P.NORMAL if action == 'pass' else P.HIGH)
+                if action == 'shoot':
+                    # 近门射门原距离映射只有约2.5m/s，给移动门将充分反应时间。
+                    # 实验配置可设下限；仍受统一上限限制，物理速度另由日志验收。
+                    power = min(self.c['power_cap'],max(power,self.c.get('shot_power_floor',0)))
                 # 使用统一力度映射，不能把这个参数直接当作物理球速。
                 skill = CompetitionSkills.TargetedKick(target, f.ball, power, self.tactics,
                         can_kick=action != 'aim', enable_dss=self.c.get('enable_dss', True),

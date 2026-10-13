@@ -59,6 +59,7 @@ class Tactics:
         self.target = None
         self.target_time = -100.0
         self.last_pass_plans = []
+        self.committed_ball = None
 
     def legal(self, p):
         """将进攻车目标限制在场内/禁区外；不保证整段轨迹或所有规则合法。"""
@@ -109,7 +110,8 @@ class Tactics:
                       and clearance(ball, p, opponents) > 200]
         if receiver is not None and self.c.get('enable_reachable_pass', False):
             plans = [evaluate_pass(ball, receiver, p, opponents,
-                                   initial_speed=self.c.get('pass_ball_speed_mm_s', 3000))
+                                   initial_speed=self.c.get('pass_ball_speed_mm_s', 3000),
+                                   wait_for_receiver=True)
                      for p in candidates]
             plans = [plan for plan in plans if plan is not None]
             self.last_pass_plans = plans
@@ -152,7 +154,13 @@ class Tactics:
         aim, _ = self.shot(ball, obstacles)
         old_clearance = clearance(ball, self.target, obstacles) if self.target is not None else -math.inf
         new_clearance = clearance(ball, aim, obstacles)
-        if (self.target is None or (now-self.target_time > .65
+        near_contact = distance(players[self.striker],ball) < 500
+        if not near_contact or (self.committed_ball is not None and distance(ball,self.committed_ball) > 180):
+            self.committed_ball = None
+        if self.c.get('lock_contact_aim',False) and near_contact and self.committed_ball is None:
+            self.committed_ball = ball
+        committed = self.c.get('lock_contact_aim',False) and self.committed_ball is not None
+        if (self.target is None or (not committed and now-self.target_time > .65
                 and (old_clearance < 0 or new_clearance > old_clearance+80))):
             # 短时间保留射门目标，避免视觉小抖动让车头每帧左右摇摆。
             self.target, self.target_time = aim, now

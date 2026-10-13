@@ -46,7 +46,7 @@ def rolling_time(length, initial_speed=3000.0, deceleration=350.0):
     return (initial_speed-math.sqrt(disc))/deceleration
 
 
-def evaluate_pass(ball, receiver, target, opponents, *, initial_speed=3000.0):
+def evaluate_pass(ball, receiver, target, opponents, *, initial_speed=3000.0, wait_for_receiver=False):
     length = distance(ball, target)
     flight = rolling_time(length, initial_speed)
     if flight is None or not 700 <= length <= 3200:
@@ -55,7 +55,10 @@ def evaluate_pass(ball, receiver, target, opponents, *, initial_speed=3000.0):
     if lane < 200:
         return None
     arrival = reachable_time(receiver, target)+.12  # 转向/停稳余量，后续用实测修正。
-    if arrival > flight+.35:
+    # 我们的PassSetup会先等队友就位；不能用“立刻出球时赶不上”否决所有前场
+    # 接应点，否则队友永远留在球后，永远没有机会就位。动态传球才用飞行期限。
+    deadline = 3.0 if wait_for_receiver else flight+.35
+    if arrival > deadline:
         return None
     score = lane*.55-distance(receiver, target)*.08-length*.025
     return PassPlan(target, flight, arrival, lane, score)

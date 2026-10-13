@@ -40,6 +40,7 @@ def load_config(path):
     if c.get('goalie_skill','Goalie') != 'Goalie':
         raise ValueError('This ruleset tests the official Goalie skill, not Goalie2022')
     for name in ('enable_pass', 'enable_feint', 'enable_reachable_pass', 'enable_keeper_prediction',
+                 'settle_on_contact', 'lock_contact_aim',
                  'contact_trim', 'advance_before_shoot', 'enable_dss', 'qt_application', 'complete_frame'):
         if name in c and type(c[name]) is not bool:
             raise ValueError(name+' must be true or false (not a string)')
@@ -49,6 +50,7 @@ def load_config(path):
         if name in c and (type(c[name]) not in (int, float) or not math.isfinite(c[name]) or not low <= c[name] <= high):
             raise ValueError('Invalid pass parameter: '+name)
     for name, low, high in [('vision_stale_seconds', .05, .5),
+                            ('shot_power_floor',0,c['power_cap']),
                             ('pass_ball_speed_mm_s', 500, 6500),
                             ('shot_ball_speed_mm_s', 500, 6500)]:
         if name in c and (type(c[name]) not in (int, float) or not math.isfinite(c[name]) or not low <= c[name] <= high):
@@ -71,8 +73,11 @@ def main():
     parser.add_argument('--config', default=str(ROOT/'match.json'))
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--frames', type=int, default=0)
+    parser.add_argument('--telemetry', help='Explicit JSONL output for an owned benchmark process')
     args = parser.parse_args()
     args.config = str(Path(args.config).resolve())
+    if args.telemetry:
+        args.telemetry = str(Path(args.telemetry).resolve())
     if args.frames < 0:
         parser.error('frames must be non-negative')
     c = load_config(args.config)
@@ -133,7 +138,9 @@ def main():
     worldModel.SPlayFSMSwitchClearAll(True)
     log_dir = ROOT/'logs'
     log_dir.mkdir(exist_ok=True)
-    log_path = log_dir/(time.strftime('%Y%m%d-%H%M%S')+f"-{c['team']}.jsonl")
+    log_path = (Path(args.telemetry) if args.telemetry else
+                log_dir/(time.strftime('%Y%m%d-%H%M%S')+f"-{c['team']}.jsonl"))
+    log_path.parent.mkdir(parents=True,exist_ok=True)
     frames, last_label, last_log, armed = 0, None, 0.0, False
     ready_frames = 0
     def xy(point):
@@ -177,8 +184,10 @@ def main():
                 players = {n:xy(Player.Pos(n)) for n in visible}
                 opponent_players = {n:xy(Enemy.pos(n)) for n in range(16) if Enemy.valid(n)}
                 opponents = list(opponent_players.values())
+                native_motion = {n:(Player.velMod(n), Player.rotVel(n), Ball.velMod()) for n in visible}
                 play.update_frame(now, ball, players, opponents, visible, mode, valid_ball,
-                                  referee=message, cycle=cycle, opponent_players=opponent_players)
+                                  referee=message, cycle=cycle, opponent_players=opponent_players,
+                                  native_motion=native_motion)
                 play.planTasks()  # 唯一调度入口：官方 State.run → Task.run → Skill。
                 Global.isPlaySwitched = False
                 if play.motion_ids or c.get('complete_frame', True):

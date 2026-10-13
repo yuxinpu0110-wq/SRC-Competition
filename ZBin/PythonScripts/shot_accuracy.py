@@ -99,3 +99,12 @@ class ShotGate:
         if now > self.pulse_until:
             self.last_kick = now
             self.pulse_until = now+.18
+
+    def observe_native_velocity(self, speed, spin, ball_speed):
+        """运行入口提供SDK滤波速度，避免把间歇跳变除以数毫秒循环间隔。
+
+        离线调用仍支持位置差分；SDK速度缺失/异常时不覆盖原有保守结果。
+        """
+        values = (speed, spin, ball_speed)
+        if all(isinstance(v, (int,float)) and math.isfinite(v) for v in values):
+            self.speed, self.spin, self.ball_speed = abs(speed), abs(spin), abs(ball_speed)
