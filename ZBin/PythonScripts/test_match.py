@@ -403,14 +403,15 @@ class OfficialPlayTests(unittest.TestCase):
         self.modules['Vision'].Player._infrared.clear()
         self.modules['Global'].isPlaySwitched = False
 
-    def tick(self,now,mode='PLAY',ball=None,players=None,valid=True,referee=''):
+    def tick(self,now,mode='PLAY',ball=None,players=None,valid=True,referee='',cycle=None):
         if ball is not None: self.ball = ball
         if players is not None: self.players = players
         self.positions.clear()
         self.positions.update(self.players)
         self.calls.clear()
         self.play.retained_tasks.clear()
-        self.play.update_frame(now,self.ball,self.players,self.opponents,set(self.players),mode,valid,referee=referee)
+        self.play.update_frame(now,self.ball,self.players,self.opponents,set(self.players),mode,valid,
+                               referee=referee,cycle=cycle)
         self.play.planTasks()
         return self.play.current_state.state_name
 
@@ -458,6 +459,23 @@ class OfficialPlayTests(unittest.TestCase):
         self.assertEqual(len(self.play.states),10)
         self.assertNotIn('Advance',self.play.states)
         self.assertTrue(Path(sys.modules[StateMachine.__module__].__file__).name == 'StateMachine.py')
+
+    def test_duplicate_vision_cycle_does_not_accumulate_contact_path(self):
+        self.play = self.NormalPlay(dict(self.c,enable_pass=False))
+        self.players[0] = Point(self.ball.x-90,self.ball.y)
+        self.tick(0,cycle=12)
+        self.ball = Point(self.ball.x+100,self.ball.y)
+        self.players[0] = Point(self.players[0].x+100,self.players[0].y)
+        self.tick(.02,cycle=12)
+        episode = self.play.contact_guard.diagnostics()['0']
+        self.assertEqual(episode['robot_path_mm'],0)
+        self.assertEqual(episode['ball_path_mm'],0)
+
+    def test_halt_preempts_even_when_vision_cycle_is_duplicated(self):
+        self.play = self.NormalPlay(dict(self.c,enable_pass=False))
+        self.tick(0,cycle=20)
+        self.tick(.01,cycle=20)
+        self.assertEqual(self.tick(.02,mode='HALT',cycle=20),'Hold')
 
     def test_precision_skill_waits_and_then_requests_kick(self):
         self.play = self.NormalPlay(dict(self.c,shoot_control='precision',enable_pass=False))
