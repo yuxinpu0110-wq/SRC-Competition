@@ -1,2 +1,4 @@
 # Normalize only the new text reports, never the official SDK assets.
 验收记录/*.json text eol=lf
+*.cmd text eol=crlf
+*.code-workspace text eol=lf

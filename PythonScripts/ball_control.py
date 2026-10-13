@@ -8,6 +8,36 @@ import math
 from match_tactics import Point, distance
 
 
+class ActionBudget:
+    """有效距离/角误差必须下降；远处接近的总期限按路径长度放宽。"""
+    def __init__(self):
+        self.origin = self.target = None
+        self.started = self.progress_at = None
+        self.best = math.inf
+        self.deadline = math.inf
+        self.reason = None
+
+    def update(self, now, robot, heading, ball, target, config):
+        desired = math.atan2(target.y-ball.y, target.x-ball.x)
+        gap = distance(robot, ball)
+        radial = abs(wrap(desired+math.pi-math.atan2(robot.y-ball.y, robot.x-ball.x)))
+        angle = abs(wrap(heading-desired))
+        remaining = max(0, gap-config.get('contact_distance', 85))+320*radial+150*angle
+        if self.origin is None or distance(ball, self.origin) > 100 or distance(target, self.target) > 50:
+            self.origin, self.target = ball, target
+            self.started = self.progress_at = now
+            self.best = remaining
+            self.deadline = now+config.get('action_align_timeout_s', 1.)+remaining/250
+            self.reason = None
+        if remaining < self.best-15:
+            self.best, self.progress_at = remaining, now
+        if now > self.deadline:
+            self.reason = 'ACTION_DEADLINE'
+        elif now-self.progress_at > config.get('action_no_progress_s', .65):
+            self.reason = 'ACTION_NO_PROGRESS'
+        return self.reason
+
+
 def wrap(angle):
     return math.atan2(math.sin(angle),math.cos(angle))
 
@@ -19,11 +49,13 @@ class BallControl:
     updated: float | None = None
     approaching: bool = False
     releasing: bool = False
+    budget: ActionBudget | None = None
 
     def reset(self):
         self.held,self.direction,self.updated = False,None,None
         self.approaching = False
         self.releasing = False
+        self.budget = None
 
     def plan(self, now, robot, heading, ball, target, *, carry=False, contact=85, trim=False):
         if carry:

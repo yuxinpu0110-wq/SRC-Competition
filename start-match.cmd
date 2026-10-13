@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-"ZBin\PythonScripts\.venv\Scripts\python.exe" "ZBin\PythonScripts\match_launcher.py"
+call start-v2.1.cmd
 if errorlevel 1 pause

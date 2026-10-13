@@ -1,5 +1,6 @@
 """Small local operator panel. No global process killing, no auto-start on load."""
 import json
+import argparse
 import math
 import os
 from pathlib import Path
@@ -9,6 +10,7 @@ import time
 import tkinter as tk
 from tkinter import messagebox
 from run_match import load_config, ROOT, ZBIN
+from runtime_paths import RUNTIME_ZBIN
 from sim_tools import stop_robots, reset_scene, referee, PracticeReferee
 
 
@@ -34,10 +36,28 @@ def latest_complete_row(path):
     return None
 
 
+def v21_status(row):
+    """面板显示证据状态；发出命令不能显示成球已离脚。"""
+    observation = row.get('observation') or {}
+    if not observation.get('fresh'):
+        return '视觉证据不足，进攻暂停（'+observation.get('reason','UNKNOWN')+'）'
+    transaction = row.get('kick_transaction') or {}
+    active = transaction.get('active') or {}
+    state = active.get('state')
+    if state == 'REQUESTED':
+        return f'出脚请求已发送，等待离脚证据；脉冲 {active.get("pulse_count",0)} 次。'
+    if state == 'IN_FLIGHT':
+        return '已确认球离脚，正在观察飞行。'
+    if transaction.get('retry_exhausted'):
+        return '未离脚重试预算已用尽；等待新球或场景重置。'
+    return 'V2.1 状态：'+row.get('phase',row.get('state','WAIT'))
+
+
 class App:
     def __init__(self, window, config_path=None):
         self.window = window
-        self.config_path = Path(config_path) if config_path is not None else ROOT/'match.json'
+        default = ROOT/'configs/v2.1-foundation.json'
+        self.config_path = Path(config_path) if config_path is not None else default if default.is_file() else ROOT/'match.json'
         self.process = None
         self.output = None
         self.c = None
@@ -51,16 +71,18 @@ class App:
         self.opponent_origin = None
         self.opponent_motion_max = 0.
         self.opponent_telemetry = None
-        window.title('SRC 比赛策略 · 本机仿真')
+        version = 'V2.1 基础实验版' if load_config(self.config_path).get('upgrade_version') == '2.1' else 'V2 输入版'
+        window.title('SRC 比赛策略 · '+version)
         window.geometry('720x830')
-        tk.Label(window, text='比赛策略控制台（V1.0规则修正·不带球）', font=('Microsoft YaHei', 16)).pack(pady=12)
+        tk.Label(window, text='比赛策略控制台（'+version+'·不带球）', font=('Microsoft YaHei', 16)).pack(pady=12)
         tk.Label(window, text='默认：初赛 2 攻，蓝队 0 / 1 号；原练习目录不受影响。\n先关闭旧 Client / grSim / demo / Medusa，避免端口和控制权冲突。', justify='left').pack()
         self.pass_enabled = tk.BooleanVar(value=load_config(self.config_path).get('enable_pass', False))
         tk.Checkbutton(window, text='实验传球（重新启动策略后生效，尚未完成移动门将验收）',
                        variable=self.pass_enabled).pack(pady=4)
         self.feint_enabled = tk.BooleanVar(value=load_config(self.config_path).get('enable_feint', False))
         tk.Checkbutton(window, text='静止佯射后释放/绕后传球（需开启传球；重启生效）',
-                       variable=self.feint_enabled).pack(pady=4)
+                       variable=self.feint_enabled,
+                       state=tk.DISABLED if version.startswith('V2.1') else tk.NORMAL).pack(pady=4)
         self.shoot_control = tk.StringVar(value=load_config(self.config_path).get('shoot_control', 'precision'))
         row = tk.Frame(window)
         row.pack()
@@ -95,7 +117,7 @@ class App:
             running = subprocess.run(['tasklist', '/FI', f'IMAGENAME eq {name}', '/FO', 'CSV', '/NH'],
                                      capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW)
             if name.lower().encode() not in running.stdout.lower():
-                self.gui[name] = subprocess.Popen([str(ZBIN / name)], cwd=ZBIN)
+                self.gui[name] = subprocess.Popen([str(RUNTIME_ZBIN / name)], cwd=RUNTIME_ZBIN)
         self.status.set('Client 中 ZSimulator 选 Show 后播放；连接 Simulation 视觉，勾前4个摄像头。只启动一份 grSim，不点 Medusa。')
 
     def start(self):
@@ -272,6 +294,11 @@ class App:
                     useful = [s for s in lines[-30:] if '[MATCH]' in s or 'Error' in s]
                     if useful:
                         self.status.set(useful[-1])
+                    if self.c.get('upgrade_version') == '2.1':
+                        paths = sorted((ROOT/'logs').glob(f'*-{self.c["team"]}.jsonl'),key=lambda p:p.stat().st_mtime)
+                        row = latest_complete_row(paths[-1]) if paths else None
+                        if row is not None and row.get('time',0) >= self.started_at:
+                            self.status.set(v21_status(row))
                 except OSError:
                     pass
         self.window.after(500, self.poll)
@@ -283,7 +310,14 @@ class App:
         self.window.destroy()
 
 
-if __name__ == '__main__':
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', type=Path)
+    args = parser.parse_args(argv)
     root = tk.Tk()
-    app = App(root)
+    app = App(root, config_path=args.config)
     root.mainloop()
+
+
+if __name__ == '__main__':
+    main()

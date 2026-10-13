@@ -73,6 +73,42 @@ class Tactics:
         return (abs(p.x) > self.c['field_length']/2-self.c['defense_depth']-120
                 and abs(p.y) < self.c['defense_width']/2+120)
 
+    def segment_legal(self, a, b):
+        """检查机器人实体膨胀后的禁区矩形；目标合法不代表线段合法。"""
+        if not finite(a) or not finite(b):
+            return False
+        if max(abs(a.x), abs(b.x)) > self.c['field_length']/2-120 or max(abs(a.y), abs(b.y)) > self.c['field_width']/2-120:
+            return False
+        edge = self.c['field_length']/2-self.c['defense_depth']-120
+        half = self.c['defense_width']/2+120
+        for low_x, high_x in ((edge, self.c['field_length']/2+120),
+                              (-self.c['field_length']/2-120, -edge)):
+            low_t, high_t = 0., 1.
+            for origin, delta, low, high in ((a.x,b.x-a.x,low_x,high_x), (a.y,b.y-a.y,-half,half)):
+                if abs(delta) < 1e-9:
+                    if not low <= origin <= high:
+                        low_t, high_t = 1., 0.
+                        break
+                else:
+                    t1, t2 = (low-origin)/delta, (high-origin)/delta
+                    low_t, high_t = max(low_t,min(t1,t2)), min(high_t,max(t1,t2))
+            if low_t <= high_t:
+                return False
+        return True
+
+    def safe_waypoint(self, robot, target):
+        """无禁区穿越的下一段；已有非法位置只允许朝禁区外释放。"""
+        if self.in_defense(robot):
+            return self.legal(robot)
+        if self.segment_legal(robot, target):
+            return target
+        edge = self.c['field_length']/2-self.c['defense_depth']-220
+        candidates = [Point(math.copysign(edge, robot.x), robot.y),
+                      Point(0, robot.y), Point(target.x, robot.y)]
+        candidates = [self.legal(p) for p in candidates]
+        candidates = [p for p in candidates if distance(p,robot) > 20 and self.segment_legal(robot,p)]
+        return min(candidates, key=lambda p:distance(robot,p)+distance(p,target)) if candidates else None
+
     def ball_status(self, ball):
         if not finite(ball):
             return 'NO_BALL'
@@ -137,10 +173,14 @@ class Tactics:
         aim, _ = self.shot(ball, obstacles)
         old_clearance = clearance(ball, self.target, obstacles) if self.target is not None else -math.inf
         new_clearance = clearance(ball, aim, obstacles)
-        if (self.target is None or (now-self.target_time > .65
+        material_change = (self.c.get('upgrade_version') == '2.1' and (
+            now-self.target_time > self.c.get('target_commit_timeout_s', 2.5)
+            or (hasattr(self, 'target_ball') and distance(ball,self.target_ball) > 100)))
+        if (self.target is None or material_change or (now-self.target_time > .65
                 and (old_clearance < 0 or new_clearance > old_clearance+80))):
             # 短时间保留射门目标，避免视觉小抖动让车头每帧左右摇摆。
             self.target, self.target_time = aim, now
+            self.target_ball = ball
         offer = self.receiving_point(ball, opponents) if other is not None and self.c.get('enable_pass', False) else None
         support = offer or self.legal(Point(ball.x-650, -1100 if ball.y >= 0 else 1100))
         if distance(support, ball) < 800:
