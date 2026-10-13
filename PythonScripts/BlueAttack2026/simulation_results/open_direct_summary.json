@@ -1,0 +1,42 @@
+{
+  "scenario": "open",
+  "tactic": "direct",
+  "seconds": 25.0,
+  "frames": 2826,
+  "kick_requests": [],
+  "max_ball_speed_mm_s": 1270.581277297829,
+  "max_control_path_mm": {
+    "5": 855.43083421589,
+    "6": 0
+  },
+  "max_ball_control_path_mm": {
+    "5": 0,
+    "6": 0
+  },
+  "dribble_frames": 39,
+  "second_touch_unlocked": false,
+  "goal_line_crossings": 0,
+  "ref_messages": [
+    {
+      "time": 0.0,
+      "message": "",
+      "game_on": true,
+      "can_kick": true
+    },
+    {
+      "time": 0.125,
+      "message": "GameHalt",
+      "game_on": false,
+      "can_kick": false
+    },
+    {
+      "time": 1.094,
+      "message": "",
+      "game_on": true,
+      "can_kick": true
+    }
+  ],
+  "errors": [],
+  "elapsed_seconds": 25.0,
+  "log": "D:\\桌面\\ZBin\\PythonScripts\\BlueAttack2026\\simulation_results\\open_direct.jsonl"
+}
