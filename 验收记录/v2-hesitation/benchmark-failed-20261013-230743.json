@@ -1,0 +1,111 @@
+{
+  "description": "Local practice, three fixed ball starts. Not official score/win rate.",
+  "goalie_mode": "official",
+  "shoot_control": "precision",
+  "goalie_skill": "Goalie",
+  "ruleset": "src2026-v1-no-carry",
+  "start_mode": "contact",
+  "complete": false,
+  "started_at": "2026-10-13 23:07:36",
+  "config": {
+    "profile": "qualifier",
+    "ruleset": "src2026-v1-no-carry",
+    "goalie_skill": "Goalie",
+    "contact_budget_mm": 300,
+    "team": "blue",
+    "side": "left",
+    "attackers": [
+      0,
+      1
+    ],
+    "goalie": 2,
+    "shoot_skill": "targeted",
+    "shoot_control": "precision",
+    "task_dispatch": "state_machine",
+    "complete_frame": true,
+    "enable_pass": false,
+    "enable_reachable_pass": true,
+    "enable_keeper_prediction": true,
+    "enable_feint": false,
+    "vision_stale_seconds": 0.15,
+    "pass_ball_speed_mm_s": 3000,
+    "shot_ball_speed_mm_s": 4500,
+    "shot_power_floor": 4500,
+    "goal_margin": 160,
+    "contact_distance": 85,
+    "contact_forward_max": 105,
+    "contact_trim": false,
+    "settle_on_contact": true,
+    "lock_contact_aim": true,
+    "pass_shot_threshold": 230,
+    "pass_score_gain": 60,
+    "advance_before_shoot": false,
+    "field_length": 9000,
+    "field_width": 6000,
+    "goal_width": 1000,
+    "defense_depth": 1000,
+    "defense_width": 2000,
+    "power_cap": 6000,
+    "qt_application": true
+  },
+  "source_sha256": {
+    "run_match.py": "55b4cf2eb2ad8c4bb8a4c14cf3b8ea481be3eac8924777c1064d15120f8f9500",
+    "match_tactics.py": "50944e1857096e5bd0b652ce5e9391f1a318d8aa848962981db2c5b6a8517164",
+    "Play/Normal/Normalplay.py": "e99942bc4895ed18c37e4b2982e1ba80e74eece7d80cbbb3194782e0f724028a",
+    "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "5e61bbe9d0ef1960d8dcc3b7ddf715ea20292a4092884181fc0046114faf19ae",
+    "shot_accuracy.py": "fa036b1a9403e1b0571a79e962201d62ba322146425e6879abe330ceec936330",
+    "ball_control.py": "9ddb031c8376e9b35d7c776f90c02735073e148bbc66ef9cb42b0975d711fba7",
+    "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+    "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+    "benchmark_match.py": "86e8335fc87dead10e6d2ed2fd3d96366309fb68ece03faafde2840d10cb440b"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "skill": "targeted",
+      "ball_start_m": [
+        2.8,
+        0
+      ],
+      "seconds": 15.0,
+      "goal_crossing": false,
+      "valid": false,
+      "goalie_exit_code": 3221226356
+    }
+  ],
+  "goalie_config": {
+    "profile": "goalie",
+    "team": "yellow",
+    "side": "right",
+    "ruleset": "src2026-v1-no-carry",
+    "goalie_skill": "Goalie",
+    "shoot_control": "precision",
+    "advance_before_shoot": false,
+    "attackers": [
+      0,
+      1
+    ],
+    "goalie": 2,
+    "shoot_skill": "targeted",
+    "enable_pass": false,
+    "task_dispatch": "state_machine",
+    "complete_frame": true,
+    "field_length": 9000,
+    "field_width": 6000,
+    "goal_width": 1000,
+    "defense_depth": 1000,
+    "defense_width": 2000,
+    "power_cap": 6000,
+    "qt_application": true
+  },
+  "goalie_console": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\benchmark-goalie-1791904056720658600-console.txt",
+  "attacker_consoles": [
+    "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\benchmark-targeted-1791904058736980400-console.txt"
+  ],
+  "attacker_telemetries": [
+    "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\benchmark-targeted-1791904058737507700.jsonl"
+  ],
+  "goalie_telemetry": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\benchmark-goalie-1791904056721198000.jsonl",
+  "error": "Goalkeeper exited during reset preflight; trial INVALID. Inspect goalie console.",
+  "finished_at": "2026-10-13 23:07:43"
+}
