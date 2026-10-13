@@ -46,3 +46,6 @@ coverage.xml
 *.egg-info/
 dist/
 build/
+
+# The official native SDK is required to restore a runnable competition copy.
+!CppPackage/CppPackage.pyd

@@ -58,11 +58,8 @@ def isRefereePlay():
     curRefMsg = Vision.VisionModule.Instance().getCurrentRefereeMsg()  # 获取当前裁判消息
     debugEngine.gui_debug_msg(CGeoPoint(1000, 1000), curRefMsg)  # 在界面上显示当前裁判消息
 
-    if curRefMsg in ("", "Ready"):
-        # Falcon 在 Normal Start 后发送的是 Ready，而不是空字符串。
-        # Ready 表示开球流程已经完成、比赛进入活球；它必须回到 NormalPlay。
-        # 若把它继续当作 RefPlay，Referee.py 会因没有 Ready 映射而回退到
-        # GameHalt，导致场上机器人始终静止。
+    if curRefMsg == "":
+        # 没有裁判消息，直接返回
         lastRefereeMessage = curRefMsg
         return False
 

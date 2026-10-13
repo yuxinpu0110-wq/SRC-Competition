@@ -1,0 +1,19 @@
+{
+  "folders": [{"path": "."}],
+  "settings": {
+    "python.defaultInterpreterPath": "${workspaceFolder}/ZBin/PythonScripts/.venv/Scripts/python.exe",
+    "python.analysis.extraPaths": ["${workspaceFolder}/ZBin/PythonScripts"],
+    "files.exclude": {"**/__pycache__": true, "**/.venv": true}
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [{
+      "name": "Competition: run_match (simulation)",
+      "type": "debugpy", "request": "launch",
+      "python": "${workspaceFolder}/ZBin/PythonScripts/.venv/Scripts/python.exe",
+      "program": "${workspaceFolder}/ZBin/PythonScripts/run_match.py",
+      "cwd": "${workspaceFolder}/ZBin", "console": "integratedTerminal",
+      "justMyCode": true
+    }]
+  }
+}

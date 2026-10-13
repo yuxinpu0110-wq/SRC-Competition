@@ -35,7 +35,7 @@ print(sys.path)
 try:
     import CppPackage
     import Global
-    Global.read_config_file("zss.ini")
+    Global.read_config_file(os.environ.get("SRC_MATCH_RUNTIME_CONFIG", "zss.ini"))
     print(f"启动参数:")
     print(f"  isSimulation: {Global.isSimulation}")
     print(f"  isYellow: {Global.isYellow}")
