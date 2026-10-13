@@ -43,6 +43,7 @@ def main():
     parser.add_argument('--skills', nargs='+', choices=['targeted', 'baseline'], default=['targeted', 'baseline'])
     parser.add_argument('--repeats', type=int, default=1)
     parser.add_argument('--passing', choices=('on', 'off'), help='Explicit passing A/B; otherwise uses match.json')
+    parser.add_argument('--feint', choices=('on', 'off'), default='off', help='Requires --passing on; candidate feature')
     parser.add_argument('--dss', choices=('on', 'off'), help='Diagnostic native DSS A/B; default unchanged')
     parser.add_argument('--dispatch', choices=('state_machine',), help='Only official state_machine dispatch is supported')
     parser.add_argument('--qt-app', action='store_true', help='Diagnostic explicit Qt application in both controllers')
@@ -67,6 +68,9 @@ def main():
     c['complete_frame'] = args.frame_cycle == 'paired'
     if args.passing:
         c['enable_pass'] = args.passing == 'on'
+    c['enable_feint'] = args.feint == 'on'
+    if c['enable_feint'] and not c.get('enable_pass', False):
+        parser.error('--feint on requires passing enabled')
     if args.dss:
         c['enable_dss'] = args.dss == 'on'
     if args.dispatch:
@@ -82,7 +86,7 @@ def main():
               'source_sha256': {name: hashlib.sha256((ZBIN/'PythonScripts'/name).read_bytes()).hexdigest()
                                 for name in ['run_match.py', 'match_tactics.py', 'Play/Normal/Normalplay.py',
                                              'RoleMatch_LuaStyle/Skills/CompetitionSkills.py', 'shot_accuracy.py',
-                                             'sim_tools.py', 'benchmark_match.py']}, 'trials': []}
+                                             'ball_control.py', 'sim_tools.py', 'benchmark_match.py']}, 'trials': []}
     report_path = ROOT/'logs'/'benchmark-report.json'
     report_path.write_text(json.dumps(report, indent=2), encoding='utf-8')
     practice = PracticeReferee()
@@ -171,6 +175,8 @@ def main():
                             except json.JSONDecodeError:
                                 continue
                             x, y = row['ball']
+                            if row['mode'] in ('HALT','STOP') and time.monotonic()-start > .5:
+                                raise RuntimeError('Unexpected HALT/STOP during FORCE START trial: another referee sender may be active. Trial INVALID.')
                             last_sample_at = time.monotonic()
                             result.update(pass_attempts=row.get('pass_attempts', 0)-baseline_counts.get('pass_attempts', 0),
                                           pass_completed_proximity=row.get('pass_completed', 0)-baseline_counts.get('pass_completed', 0),

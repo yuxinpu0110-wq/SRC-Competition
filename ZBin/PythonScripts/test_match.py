@@ -389,13 +389,18 @@ class OfficialPlayTests(unittest.TestCase):
 
     def ready_to_kick(self):
         s = self.setup_pass()
-        self.players[s.receiver] = s.target
+        self.prepare_receiver()
         self.assertEqual(self.tick(.2),'PassKick')
         angle = math.atan2(s.target.y-self.ball.y,s.target.x-self.ball.x)
         self.players[s.sender] = Point(self.ball.x-65*math.cos(angle),self.ball.y-65*math.sin(angle))
         self.angles[s.sender] = angle
         self.tick(.3)
         return s
+
+    def prepare_receiver(self):
+        s = self.play.session
+        self.players[s.receiver] = self.play.receiver_position()
+        self.angles[s.receiver] = math.atan2(s.origin.y-s.target.y,s.origin.x-s.target.x)
 
     def launched(self):
         s = self.ready_to_kick()
@@ -407,7 +412,7 @@ class OfficialPlayTests(unittest.TestCase):
         from RoleMatch_LuaStyle import State,StateMachine
         self.assertTrue(issubclass(self.NormalPlay,StateMachine))
         self.assertTrue(all(isinstance(s,State) for s in self.play.states.values()))
-        self.assertEqual(len(self.play.states),10)
+        self.assertEqual(len(self.play.states),11)
         self.assertTrue(Path(sys.modules[StateMachine.__module__].__file__).name == 'StateMachine.py')
 
     def test_precision_skill_waits_and_then_requests_kick(self):
@@ -441,14 +446,14 @@ class OfficialPlayTests(unittest.TestCase):
 
     def test_ready_transition_does_not_kick_same_frame(self):
         s = self.setup_pass()
-        self.players[s.receiver] = s.target
+        self.prepare_receiver()
         self.assertEqual(self.tick(.2),'PassKick')
         self.assertEqual(self.play.executed_state,'PassSetup')
         self.assertFalse(any(c[0]=='kick' for c in self.calls))
 
     def test_kick_requires_alignment(self):
         s = self.setup_pass()
-        self.players[s.receiver] = s.target
+        self.prepare_receiver()
         self.tick(.2)
         self.tick(.3)  # 传球车还没朝向侧翼目标。
         self.assertEqual(self.play.pass_attempts,0)
@@ -462,7 +467,7 @@ class OfficialPlayTests(unittest.TestCase):
 
     def test_wrong_kicker_ignored(self):
         s = self.setup_pass()
-        self.players[s.receiver] = s.target
+        self.prepare_receiver()
         self.tick(.2)
         self.play.note_kick(s.receiver,self.ball)
         self.assertEqual(self.play.pass_attempts,0)
@@ -474,6 +479,9 @@ class OfficialPlayTests(unittest.TestCase):
     def test_proximity_hands_over_striker(self):
         s = self.launched()
         self.tick(.6,ball=s.target)
+        self.assertEqual(self.play.pass_completed,0)  # 高速到达的一帧不能算接住。
+        self.tick(.7)
+        self.tick(.8)
         self.assertEqual(self.play.tactics.striker,s.receiver)
         self.assertEqual(self.play.pass_completed,1)
         self.assertIsNone(self.play.session)
@@ -486,6 +494,8 @@ class OfficialPlayTests(unittest.TestCase):
         self.assertEqual(self.tick(.6,ball=near),'Receive')
         self.assertEqual(self.play.pass_completed,0)
         self.tick(.7,ball=s.target)
+        self.tick(.8)
+        self.tick(.9)
         self.assertEqual(self.play.pass_completed,1)
 
     def test_halt_preempts_kick_in_same_frame(self):
@@ -505,6 +515,8 @@ class OfficialPlayTests(unittest.TestCase):
         self.assertEqual(self.play.tactics.striker,s.sender)
         self.assertEqual(self.play.pass_completed,0)
         self.tick(2.2,ball=s.target)
+        self.tick(2.3)
+        self.tick(2.4)
         self.assertEqual(self.play.tactics.striker,s.receiver)
 
     def test_nonfinite_robot_is_not_assigned_task(self):
@@ -537,7 +549,7 @@ class OfficialPlayTests(unittest.TestCase):
 
     def test_kick_timeout(self):
         self.ready_to_kick()
-        self.tick(2)
+        self.tick(3)
         self.assertIsNone(self.play.session)
         self.assertEqual(self.play.pass_reason,'KICK_NOT_OBSERVED')
 
@@ -608,6 +620,179 @@ class OfficialPlayTests(unittest.TestCase):
         self.assertEqual(self.play.executed_state,'Hold')
         self.assertIsNone(self.play.session)
         self.assertFalse(self.play.motion_ids)
+
+
+    def setup_feint(self):
+        self.play = self.NormalPlay(dict(self.c,enable_feint=True))
+        s = self.setup_pass()
+        self.assertIsNotNone(s.fake_aim)
+        self.assertLess(s.fake_aim.y*s.target.y,0)
+        self.prepare_receiver()
+        angle = math.atan2(s.fake_aim.y-self.ball.y,s.fake_aim.x-self.ball.x)
+        self.players[s.sender] = Point(self.ball.x-95*math.cos(angle),self.ball.y-95*math.sin(angle))
+        self.angles[s.sender] = angle
+        self.assertEqual(self.tick(.1),'FakeShot')
+        return s
+
+    def test_feint_does_not_kick_and_has_bounded_duration(self):
+        self.setup_feint()
+        self.assertEqual(self.tick(.2),'FakeShot')
+        self.assertFalse(any(c[0]=='kick' for c in self.calls))
+        self.assertEqual(self.tick(.46),'PassKick')
+        self.assertFalse(any(c[0]=='kick' for c in self.calls))
+
+    def test_feint_halt_preempts(self):
+        self.setup_feint()
+        self.assertEqual(self.tick(.2,'HALT'),'Hold')
+        self.assertFalse(self.play.motion_ids)
+        self.assertFalse(any(c[0]=='kick' for c in self.calls))
+
+    def test_feint_lane_blocked_aborts(self):
+        s = self.setup_feint()
+        self.opponents.append(Point((s.target.x+self.ball.x)/2,(s.target.y+self.ball.y)/2))
+        self.tick(.2)
+        self.assertEqual(self.play.pass_reason,'LANE_BLOCKED')
+        self.assertIsNone(self.play.session)
+
+    def test_receiver_must_face_incoming_pass(self):
+        s = self.setup_pass()
+        self.players[s.receiver] = self.play.receiver_position()
+        self.angles[s.receiver] = math.atan2(s.target.y-s.origin.y,s.target.x-s.origin.x)
+        self.assertEqual(self.tick(.2),'PassSetup')
+        self.assertFalse(any(c[0]=='kick' for c in self.calls))
+
+    def test_receiver_does_not_turn_when_ball_crosses_target(self):
+        s = self.launched()
+        self.tick(.6,ball=Point(s.target.x+80,s.target.y+80))
+        rush = [c for c in self.calls if c[0]=='RushTo' and c[1]==s.receiver][0]
+        self.assertAlmostEqual(rush[4]['angle'],self.angles[s.receiver])
+
+    def test_ball_passing_behind_receiver_is_not_completion(self):
+        s = self.launched()
+        self.tick(.6,ball=self.players[s.receiver])
+        self.assertEqual(self.play.pass_completed,0)
+
+    def test_kick_request_contains_actual_heading_and_target(self):
+        s = self.ready_to_kick()
+        event = self.play.kick_events[-1]
+        self.assertEqual(event['robot'],s.sender)
+        self.assertEqual(event['target'],[s.target.x,s.target.y])
+        self.assertEqual(event['heading'],self.angles[s.sender])
+
+    def test_nonfinite_heading_stops_striker(self):
+        self.play = self.NormalPlay(dict(self.c,enable_pass=False))
+        self.tick(0)
+        self.angles[0] = float('nan')
+        self.tick(.1)
+        self.assertTrue(any(c[0]=='Stop' and c[1]==0 for c in self.calls))
+
+
+class BallControlTests(unittest.TestCase):
+    def setUp(self):
+        from ball_control import BallControl
+        self.control = BallControl()
+        self.robot, self.ball, self.target = Point(0,0),Point(95,0),Point(3000,0)
+
+    def plan(self,now,ball=None,target=None,heading=0,carry=True):
+        return self.control.plan(now,self.robot,heading,ball or self.ball,target or self.target,carry=carry)
+
+    def test_carry_uses_long_lookahead(self):
+        dest,angle,aligned,held,phase = self.plan(0)
+        self.assertEqual(dest,Point(650,0))
+        self.assertEqual(phase,'CARRY')
+
+    def test_small_lateral_noise_does_not_send_robot_behind_ball(self):
+        self.plan(0)
+        dest,_,_,held,phase = self.plan(.02,ball=Point(95,40))
+        self.assertTrue(held)
+        self.assertEqual(phase,'CARRY')
+        self.assertGreater(dest.x,600)
+
+    def test_lost_ball_releases_contact(self):
+        self.plan(0)
+        self.assertFalse(self.plan(.02,ball=Point(-95,0))[3])
+
+    def test_large_gap_reacquires_instead_of_using_old_latch(self):
+        self.plan(0)
+        self.assertFalse(self.plan(1,ball=Point(95,60))[3])
+
+    def test_carry_turn_rate_limited(self):
+        self.plan(0)
+        result = self.plan(.02,target=Point(95,3000))
+        self.assertLessEqual(abs(result[1]),.020001)
+        self.assertEqual(result[4],'CARRY')
+
+    def test_shoot_turn_is_also_limited(self):
+        self.plan(0,carry=False)
+        result = self.plan(.02,target=Point(95,3000),carry=False)
+        self.assertLessEqual(abs(result[1]),.020001)
+        self.assertFalse(result[2])
+        self.assertTrue(result[3])
+
+    def test_reset_clears_all_memory(self):
+        self.plan(0)
+        self.control.reset()
+        self.assertFalse(self.control.held)
+        self.assertIsNone(self.control.direction)
+
+    def test_shoot_contact_not_65mm_push(self):
+        result = self.plan(0,carry=False)
+        self.assertEqual(result[0],Point(0,0))
+
+    def test_shot_margin_is_inside_goal(self):
+        c = load_config(ROOT/'match.json')
+        point,_ = Tactics(c).shot(Point(2700,0),[Point(3400,0)])
+        self.assertLessEqual(abs(point.y),c['goal_width']/2-160)
+
+    def test_advance_shoot_boundary_has_hysteresis(self):
+        c = dict(load_config(ROOT/'match.json'),enable_pass=False,advance_before_shoot=True)
+        t = Tactics(c)
+        choose = lambda x: t.choose(0,Point(x,0),{0:Point(x-100,0)},[]).phase
+        self.assertEqual(choose(2000),'ADVANCE')
+        self.assertEqual(choose(2651),'ATTACK')
+        self.assertEqual(choose(2640),'ATTACK')
+        self.assertEqual(choose(2300),'ADVANCE')
+
+    def test_audit_requires_real_ball_motion(self):
+        from shot_audit import audit
+        event = dict(now=0,frame_ball=[0,0],target=[4500,0],heading=0,robot=0)
+        rows = [dict(monotonic=i*.1,mode='PLAY',ball_valid=True,ball=[0,0],
+                     kick_events=[event] if i==0 else []) for i in range(4)]
+        self.assertFalse(audit(rows)[0]['observed'])
+        for i,r in enumerate(rows): r['ball'] = [i*400,0]
+        self.assertTrue(audit(rows)[0]['observed'])
+        self.assertAlmostEqual(audit(rows)[0]['heading_error_deg'],0)
+
+    def test_audit_rejects_halt_interruption(self):
+        from shot_audit import audit
+        event = dict(now=0,frame_ball=[0,0],target=[4500,0],heading=0,robot=0)
+        rows = [dict(monotonic=i*.1,mode='HALT' if i==1 else 'PLAY',ball_valid=True,
+                     ball=[i*400,0],kick_events=[event] if i==0 else []) for i in range(4)]
+        self.assertFalse(audit(rows)[0]['observed'])
+
+    def test_practice_sender_rejects_second_owner(self):
+        from sim_tools import PracticeReferee
+        sender = PracticeReferee()
+        try:
+            with self.assertRaises(RuntimeError):
+                PracticeReferee()
+        finally:
+            sender.close()
+        replacement = PracticeReferee()
+        replacement.close()
+
+    def test_panel_stop_closes_practice_sender(self):
+        from match_launcher import App
+        from unittest.mock import Mock
+        app = App.__new__(App)
+        app.stop_opponent = Mock()
+        sender = app.practice_sender = Mock()
+        app.process = app.c = app.output = None
+        app.status = Mock()
+        app.stop()
+        sender.set.assert_called_once_with(0)
+        sender.close.assert_called_once()
+        self.assertIsNone(app.practice_sender)
 
 
 if __name__ == '__main__':

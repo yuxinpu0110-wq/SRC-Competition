@@ -34,13 +34,16 @@ def load_config(path):
         raise ValueError('Only official state_machine dispatch is supported; remove old direct setting')
     if c.get('shoot_control', 'legacy') not in ('legacy', 'precision'):
         raise ValueError('shoot_control must be legacy or precision')
-    for name in ('enable_pass', 'advance_before_shoot', 'enable_dss', 'qt_application', 'complete_frame'):
+    for name in ('enable_pass', 'enable_feint', 'advance_before_shoot', 'enable_dss', 'qt_application', 'complete_frame'):
         if name in c and type(c[name]) is not bool:
             raise ValueError(name+' must be true or false (not a string)')
     for name, low, high in [('pass_setup_timeout', .5, 10), ('pass_flight_timeout', .5, 6), ('pass_kick_timeout', .3, 3),
                             ('pass_score_gain', 0, 3000), ('pass_shot_threshold', -1000, 3000)]:
         if name in c and (type(c[name]) not in (int, float) or not math.isfinite(c[name]) or not low <= c[name] <= high):
             raise ValueError('Invalid pass parameter: '+name)
+    if 'goal_margin' in c and (type(c['goal_margin']) not in (int, float)
+            or not math.isfinite(c['goal_margin']) or not 85 <= c['goal_margin'] < c['goal_width']/2):
+        raise ValueError('goal_margin must be >=85 and smaller than half goal_width')
     for name in ('field_length', 'field_width', 'goal_width', 'defense_depth', 'defense_width'):
         if not isinstance(c[name], (int, float)) or not math.isfinite(c[name]) or c[name] <= 0:
             raise ValueError('Invalid field dimension: '+name)
@@ -177,11 +180,15 @@ def main():
                            'referee':message, 'ball':[ball.x, ball.y], 'ball_valid':valid_ball,
                            'striker':play.tactics.striker, 'our_goals':vision.getOurGoal(), 'their_goals':vision.getTheirGoal(),
                            'shoot_control':c.get('shoot_control', 'legacy'),
+                           'monotonic':now, 'kick_events':list(play.kick_events),
+                           'aim':[play.choice.aim.x, play.choice.aim.y] if play.choice.aim is not None else None,
                            'shot_gate':{str(n):g.diagnostics for n,g in play.shot_gates.items()},
                            'angles':{str(n):Player.direction(n) for n in visible},
+                           'opponents':[[p.x,p.y] for p in opponents],
                            'robots':{str(n):[players[n].x, players[n].y] for n in visible}}
                     log.write(json.dumps(row)+'\n')
                     log.flush()
+                    play.kick_events.clear()  # 每次请求只记录一次；高频请求保存在两次日志之间。
                     (ROOT/f'heartbeat-{c["team"]}.txt').write_text(str(time.time()), encoding='ascii')
                     last_log = now
     except KeyboardInterrupt:

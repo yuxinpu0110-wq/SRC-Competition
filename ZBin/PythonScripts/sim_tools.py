@@ -89,6 +89,14 @@ class PracticeReferee:
     and changes only when the operator issues a new command.
     """
     def __init__(self):
+        # 同一电脑只能有一个本工具裁判发送者，避免两个面板相互抢 HALT/START。
+        # Client/官方裁判不使用此锁，正式比赛仍须手动关闭练习发送。
+        self._owner = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            self._owner.bind(('127.0.0.1',45992))
+        except OSError as exc:
+            self._owner.close()
+            raise RuntimeError('已有练习裁判发送器，请先停止/关闭另一个比赛面板') from exc
         self._lock = threading.Lock()
         self._closed = threading.Event()
         self._command = None
@@ -113,6 +121,7 @@ class PracticeReferee:
     def close(self):
         self._closed.set()
         self._thread.join(timeout=.5)
+        self._owner.close()
 
 
 if __name__ == '__main__':

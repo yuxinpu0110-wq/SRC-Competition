@@ -58,6 +58,7 @@ class Tactics:
         self.changed = -100.0
         self.target = None
         self.target_time = -100.0
+        self.advancing = False
 
     def legal(self, p):
         """将进攻车目标限制在场内/禁区外；不保证整段轨迹或所有规则合法。"""
@@ -83,7 +84,9 @@ class Tactics:
 
     def shot(self, ball, obstacles):
         """在门线上选 9 点，优先净空，略惩罚远距离；返回 (点, 分数)。"""
-        half_goal = self.c['goal_width']/2-95
+        # 保留更宽门柱余量：远距离的微小偏角也会变成几十毫米落点误差。
+        # 这是保守瞄点，不是未经标定的固定偏角补偿。
+        half_goal = self.c['goal_width']/2-self.c.get('goal_margin', 160)
         points = [Point(self.c['field_length']/2, half_goal*i/4) for i in range(-4, 5)]
         def score(p):
             # 净空越大越好，线路越长略扣分。分数是启发式评分，不是成功率。
@@ -122,7 +125,10 @@ class Tactics:
         # next(..., None) 找到另一辆车；没有另一辆时返回 None，而不是报错。
         obstacles = opponents+([players[other]] if other is not None else [])
         aim, _ = self.shot(ball, obstacles)
-        if self.target is None or now-self.target_time > .65:
+        old_clearance = clearance(ball, self.target, obstacles) if self.target is not None else -math.inf
+        new_clearance = clearance(ball, aim, obstacles)
+        if (self.target is None or (now-self.target_time > .65
+                and (old_clearance < 0 or new_clearance > old_clearance+80))):
             # 短时间保留射门目标，避免视觉小抖动让车头每帧左右摇摆。
             self.target, self.target_time = aim, now
         offer = self.receiving_point(ball, opponents) if other is not None and self.c.get('enable_pass', False) else None
@@ -139,7 +145,12 @@ class Tactics:
                 and self.shot(offer, opponents)[1] > own_score+self.c.get('pass_score_gain', 60)):
             choice.pass_target = offer
             # 此处只是提出传球建议，NormalPlay 才决定切到 PassSetup。
-        if self.c.get('advance_before_shoot', False) and ball.x < self.c.get('shoot_from_x', 2650):
+        shoot_x = self.c.get('shoot_from_x', 2650)
+        if ball.x < shoot_x-300:
+            self.advancing = True
+        elif ball.x >= shoot_x:
+            self.advancing = False
+        if self.c.get('advance_before_shoot', False) and self.advancing:
             choice.phase = 'ADVANCE'
             choice.carry_target = self.legal(Point(self.c.get('shoot_from_x', 2650), ball.y*.45))
         return choice

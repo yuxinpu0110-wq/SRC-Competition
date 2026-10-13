@@ -51,12 +51,15 @@ class App:
         self.opponent_motion_max = 0.
         self.opponent_telemetry = None
         window.title('SRC 比赛策略 · 本机仿真')
-        window.geometry('720x790')
+        window.geometry('720x830')
         tk.Label(window, text='比赛策略控制台（独立 Competition 环境）', font=('Microsoft YaHei', 16)).pack(pady=12)
         tk.Label(window, text='默认：初赛 2 攻，蓝队 0 / 1 号；原练习目录不受影响。\n先关闭旧 Client / grSim / demo / Medusa，避免端口和控制权冲突。', justify='left').pack()
         self.pass_enabled = tk.BooleanVar(value=load_config(self.config_path).get('enable_pass', False))
         tk.Checkbutton(window, text='实验传球（重新启动策略后生效，尚未完成移动门将验收）',
                        variable=self.pass_enabled).pack(pady=4)
+        self.feint_enabled = tk.BooleanVar(value=load_config(self.config_path).get('enable_feint', False))
+        tk.Checkbutton(window, text='佯射后传球（需同时开启传球；候选功能，重启生效）',
+                       variable=self.feint_enabled).pack(pady=4)
         self.shoot_control = tk.StringVar(value=load_config(self.config_path).get('shoot_control', 'legacy'))
         row = tk.Frame(window)
         row.pack()
@@ -102,6 +105,7 @@ class App:
         try:
             self.c = load_config(self.config_path)
             self.c['enable_pass'] = self.pass_enabled.get()
+            self.c['enable_feint'] = self.feint_enabled.get()
             self.c['shoot_control'] = self.shoot_control.get()
             if self.opponent_process and self.opponent_process.poll() is None:
                 expected = opponent_config(self.c, self.opponent_c)
@@ -123,9 +127,13 @@ class App:
     def practice_ref(self, cmd):
         if not messagebox.askyesno('仅限本机练习', '确认这是自己的本机仿真，且 Client 的裁判 Send 已关闭？\n不要与正式裁判或其他裁判发送器同时使用。'):
             return
-        if self.practice_sender is None:
-            self.practice_sender = PracticeReferee()
-        self.practice_sender.set(cmd)
+        try:
+            if self.practice_sender is None:
+                self.practice_sender = PracticeReferee()
+            self.practice_sender.set(cmd)
+        except RuntimeError as exc:
+            messagebox.showerror('练习裁判未启动',str(exc))
+            return
 
     def start_opponent(self):
         """仅启动一份本面板拥有的官方门将，不自动开赛、不改变裁判。"""
@@ -211,6 +219,8 @@ class App:
         self.stop_opponent()
         if self.practice_sender is not None:
             self.practice_sender.set(0)
+            self.practice_sender.close()
+            self.practice_sender = None
         if self.process and self.process.poll() is None:
             # Terminate only our exact child PID. Native receive may block Ctrl+C.
             subprocess.run(['taskkill', '/PID', str(self.process.pid), '/T', '/F'],
@@ -225,7 +235,7 @@ class App:
             self.output = None
         self.process = None
         self.c = None
-        self.status.set('本面板策略已停止，本机仿真已发送零速度。Client/grSim 保留打开。')
+        self.status.set('策略已停止，练习裁判发送已关闭，本机仿真已发送零速度。Client/grSim 保留打开。')
 
     def logs(self):
         (ROOT/'logs').mkdir(exist_ok=True)

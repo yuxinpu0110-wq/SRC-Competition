@@ -1,0 +1,84 @@
+{
+  "description": "Local practice, three fixed ball starts. Not official score/win rate.",
+  "goalie_mode": "stationary",
+  "shoot_control": "precision",
+  "start_mode": "contact",
+  "complete": false,
+  "started_at": "2026-10-13 09:34:17",
+  "config": {
+    "profile": "qualifier",
+    "team": "blue",
+    "side": "left",
+    "attackers": [
+      0,
+      1
+    ],
+    "goalie": 2,
+    "shoot_skill": "targeted",
+    "shoot_control": "precision",
+    "task_dispatch": "state_machine",
+    "complete_frame": true,
+    "enable_pass": false,
+    "enable_feint": false,
+    "goal_margin": 160,
+    "pass_shot_threshold": 230,
+    "pass_score_gain": 60,
+    "advance_before_shoot": true,
+    "shoot_from_x": 2650,
+    "field_length": 9000,
+    "field_width": 6000,
+    "goal_width": 1000,
+    "defense_depth": 1000,
+    "defense_width": 2000,
+    "power_cap": 7400
+  },
+  "source_sha256": {
+    "run_match.py": "a3d650734e5120817bc25cf1b66bdee90777b110d8e5875da014104df702bbd7",
+    "match_tactics.py": "9b82e4c06f8ca469708e2b2b056a79572526049487b7a4784c88373ad4e4ddd8",
+    "Play/Normal/Normalplay.py": "6b488848ec75d40915b30d86aa5b799a9d24d0872b4deed4855c5cc197d5ecf3",
+    "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "49151114d743b8fdc9c00a7757e3073f9b3e5256790f9cdef0c12954ba5c8f1a",
+    "shot_accuracy.py": "4198ccc10b979f8f3160a79a57c955b52c31e9a87afedaa40dd4dc1f101c2190",
+    "ball_control.py": "6f011331744123bc2a66fc2571e8267bbbc9789d97c3f3896200f0724b004887",
+    "sim_tools.py": "64ad60c256c6464ee56664ed3214716d1bc65ccb38ea9deb4a1a5107c443374e",
+    "benchmark_match.py": "eaa39dcff9d8055e4a8e7029d6dfb8f07d7318c08c871cbb8a6b8f0481a74b5c"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "skill": "targeted",
+      "ball_start_m": [
+        2.8,
+        0
+      ],
+      "seconds": 10.0,
+      "goal_crossing": false,
+      "valid": false
+    }
+  ],
+  "goalie_config": {
+    "profile": "goalie",
+    "team": "yellow",
+    "side": "right",
+    "attackers": [
+      0,
+      1
+    ],
+    "goalie": 2,
+    "shoot_skill": "targeted",
+    "enable_pass": false,
+    "task_dispatch": "state_machine",
+    "complete_frame": true,
+    "field_length": 9000,
+    "field_width": 6000,
+    "goal_width": 1000,
+    "defense_depth": 1000,
+    "defense_width": 2000,
+    "power_cap": 7400
+  },
+  "goalie_console": null,
+  "attacker_consoles": [
+    "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\benchmark-targeted-1791855259695721700-console.txt"
+  ],
+  "error": "Strategy process exited during trial",
+  "finished_at": "2026-10-13 09:34:24"
+}

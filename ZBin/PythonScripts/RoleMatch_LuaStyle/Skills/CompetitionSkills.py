@@ -15,14 +15,14 @@ from WorldModel import kickStatus
 from match_tactics import Point, distance
 
 
-def MoveTo(target, ball, *, slow=False, receive=False, enable_dss=True):
+def MoveTo(target, ball, *, slow=False, receive=False, enable_dss=True, facing=None):
     """执行时读取车位置；接应时允许接触球，并开启吸球。"""
     point = C.CGeoPoint(target.x, target.y)
     resources = [point]  # 随 Task 保活，避免在 native 执行前释放参数。
     def execute(executor):
         # executor 是官方任务分配后给出的真实车号，不是 A/B 角色字符串。
         pos = Player.Pos(executor)
-        angle = math.atan2(ball.y-pos.y(), ball.x-pos.x())
+        angle = facing if facing is not None else math.atan2(ball.y-pos.y(), ball.x-pos.x())
         # atan2(纵向差, 横向差) 得到车朝球看的角度，单位弧度。
         # flag 是官方标志位的组合（用 | 拼起来），不是速度数值：
         # 0x08000000 开启 DSS，0x200 避开己方禁区，0x10 避球。
@@ -40,7 +40,7 @@ def MoveTo(target, ball, *, slow=False, receive=False, enable_dss=True):
 
 def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
                  enable_dss=True, on_kick=None, report_phase=None, gate=None, now=0,
-                 shooting=True):
+                 shooting=True, control=None):
     """绕后→对齐→接触；carry 不踢，can_kick=False 只瞄准。
 
     自定义接触/发球条件，实际轨迹交给官方 RushTo。
@@ -49,6 +49,13 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
     resources = []
     match_point = C.CGeoPoint(ball.x, ball.y)
     def execute(executor):
+        if not all(math.isfinite(v) for v in (Player.direction(executor), target.x, target.y, ball.x, ball.y)):
+            if control is not None:
+                control.reset()
+            stop = Skill.Stop()
+            resources.append(stop)
+            stop[0](executor)
+            return
         angle = math.atan2(target.y-ball.y, target.x-ball.x)
         # (ux, uy) 是从球指向目标的单位方向向量，长度为1。
         ux, uy = math.cos(angle), math.sin(angle)
@@ -70,10 +77,18 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
         if carry and aligned and close:
             # 带球时目标移到球前160mm，吸球并向前推进，不发送踢球请求。
             dest = geometry.legal(Point(ball.x+160*ux, ball.y+160*uy))
+        # 上面保留无跨帧记忆的兼容路径；当前比赛Play始终传入每车BallControl，
+        # 下面用跨帧方案覆盖目标/朝向，避免判定抖动就切回球后240mm。
+        held, control_phase = aligned, None
+        if control is not None:
+            dest, angle, aligned, held, control_phase = control.plan(
+                now, robot, Player.direction(executor), ball, target, carry=carry,
+                contact=95 if gate is not None else 65)
+            dest = geometry.legal(dest)
         point = C.CGeoPoint(dest.x, dest.y)
-        flags = (0x08000000 if enable_dss else 0) | 0x200 | (0 if aligned else 0x10)
-        skill = Skill.RushTo(point, angle=angle, maxAcc=900 if gate is not None and aligned else 1800,
-                             flag=flags, needDribble=aligned)
+        flags = (0x08000000 if enable_dss else 0) | 0x200 | (0 if held or aligned else 0x10)
+        skill = Skill.RushTo(point, angle=angle, maxAcc=2200 if carry and held else 1800,
+                             flag=flags, needDribble=held or aligned)
         resources.extend((point, skill))
         skill[0](executor)
         allowed, reason = True, ''
@@ -92,6 +107,8 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
         phase = ('CARRY' if carry and aligned and close else
                  'KICK' if aligned and close and can_kick and allowed else
                  'HOLD_BALL' if aligned and close else 'CONTACT' if aligned else 'ALIGN')
+        if carry and control_phase is not None:
+            phase = control_phase
         if gate is not None and aligned and close and not carry and can_kick and not allowed:
             phase = 'WAIT_'+reason
         if report_phase is not None:
