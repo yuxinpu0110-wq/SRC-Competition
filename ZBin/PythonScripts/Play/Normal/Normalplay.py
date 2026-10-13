@@ -1,6 +1,13 @@
 """比赛候选策略：官方 State → Task → Skill 结构。
 
 阅读顺序：Advance/Shoot → PassSetup → PassKick → PassFlight → Receive。
+给刚接触框架的同学：
+  Play = 总教练，保存本场观察和战术；State = 当前阶段，例如“准备传球”。
+  Task = 给某辆车的任务单；Skill = 执行任务的动作，例如 RushTo（跑到某点）。
+  self 是当前对象；State 里的 self.play 指向总教练 NormalPlay 对象。
+  return 'PassKick' 是向框架申请切换状态，不是调用 PassKick 函数。
+  return '' 表示保持当前状态；None 表示“没有这个目标/没有这个队友”。
+  所有位置/距离用毫米，角度用弧度，己方坐标中朝 +X 方向进攻。
 getTasks() 决定本帧任务，transFunction() 返回下一状态的类名。
 官方框架是“先执行任务，再切换状态”，新状态任务在下一帧执行。
 只有停赛/视觉丢失等安全中断在 hookBeforePlanTasks 中立即抢占，避免多踢一帧。
@@ -21,9 +28,13 @@ from match_tactics import Point, Tactics, distance, clearance, finite
 
 @dataclass
 class Frame:
+    """一帧观察的快照。@dataclass 自动生成初始化函数，方便集中传递数据。"""
+    # now 是单调时钟秒数，只用来计算时间差，不是比赛剩余时间。
     now: float
     ball: Point
+    # players 如 {0: Point(...), 1: Point(...)}，键是真实车号；包含可见受控车。
     players: dict
+    # opponents 只存对手坐标；visible 是当前观察到且坐标有效的受控车号集合。
     opponents: list
     visible: set
     mode: str
@@ -33,11 +44,11 @@ class Frame:
 @dataclass
 class PassSession:
     """传球参数/计时数据；没有独立 state 字段，状态只属于官方 StateMachine。"""
-    sender: int
-    receiver: int
-    target: Point
-    origin: Point
-    started: float
+    sender: int       # 这次传球的发球车号，传球中途不随意换人。
+    receiver: int     # 这次传球的接球车号。
+    target: Point     # 约定的接应点，不是接球车每帧的当前位置。
+    origin: Point     # 发球位置，判断球是否真的向接应点移动时使用。
+    started: float    # 开始准备传球的时刻，用于超时保护。
     kick_started: float = 0.0
     flight_started: float = 0.0
     kick_requested: bool = False
@@ -46,6 +57,8 @@ class PassSession:
 class MatchState(State):
     """所有状态共享 Play 的观察和辅助函数；车号通过 Task.fixedNumber 绑定。"""
     def getMatchString(self):
+        # 当前所有 Task 都指定 fixedNumber，所以不需要 Munkres 自动分配车号。
+        # 空字符串本身不是“禁用匹配”；真正跳过匹配的原因是任务都固定了车号。
         return ''
 
     def transFunction(self):
@@ -53,6 +66,7 @@ class MatchState(State):
 
 
 class Hold(MatchState):
+    """停车状态。正常开赛后申请转入进攻；HALT 时一直停留在这里。"""
     def getTasks(self):
         return self.play.tasks({})  # 显式给有效受控车分配 Skill.Stop。
 
@@ -64,13 +78,17 @@ class Prepare(MatchState):
     """STOP/定位球准备：禁止踢球，只让距球过近的车退开。"""
     def getTasks(self):
         p, f = self.play, self.play.frame
+        # p/f 是为了缩短表达式的别名，分别代表整个策略和当前帧观察。
+        # actions 是临时任务单：{真实车号: ('动作名称', 目标Point)}。
         actions = {}
         for index, number in enumerate(p.ids):
             pos = f.players.get(number)
             if pos is not None and distance(pos, f.ball) < 650:
+                # 从球指向车的方向继续向外退；恰好重合时给不同车辆不同方向。
                 angle = math.atan2(pos.y-f.ball.y, pos.x-f.ball.x) if distance(pos, f.ball) > 1 else math.pi+index
                 target = p.tactics.legal(Point(f.ball.x+750*math.cos(angle), f.ball.y+750*math.sin(angle)))
                 if distance(target, f.ball) >= 650:
+                    # legal() 可能把目标挪回场内，必须再次检查是否仍离球足够远。
                     actions[number] = ('retreat', target)
         return p.tasks(actions)
 
@@ -97,6 +115,7 @@ class Shoot(MatchState):
 
 
 class WaitOutsideDefense(MatchState):
+    """球进禁区后，不让进攻车硬闯；legal() 会把目标修正到禁区外。"""
     def getTasks(self):
         p, d = self.play, self.play.choice
         actions = {}
@@ -120,6 +139,7 @@ class PassSetup(MatchState):
     def transFunction(self):
         p, session = self.play, self.play.session
         if distance(p.frame.players[session.receiver], session.target) < 180:
+            # 队友已到接应点附近。下一帧才能执行 PassKick，而不是此处立刻踢。
             session.kick_started = p.frame.now
             return 'PassKick'
         return ''
@@ -135,8 +155,12 @@ class PassKick(MatchState):
     def transFunction(self):
         p, session = self.play, self.play.session
         dx, dy = session.target.x-session.origin.x, session.target.y-session.origin.y
+        # hypot(dx, dy) 是传球线路长度；max(1, ...) 防止两点重合时除以零。
         length = max(1, math.hypot(dx, dy))
+        # 点积/线路长度 = 球沿传球方向前进的距离。只横着滚动不算出球成功。
         forward = ((p.frame.ball.x-session.origin.x)*dx+(p.frame.ball.y-session.origin.y)*dy)/length
+        # 同时要求：请求过踢球、沿线路前进超过200mm、离发球车超过210mm。
+        # “下发踢球指令”不保证真的碰到球，因此不能只看 kick_requested。
         if session.kick_requested and forward > 200 and distance(p.frame.ball, p.frame.players[session.sender]) > 210:
             session.flight_started = p.frame.now
             return 'PassFlight'
@@ -158,6 +182,7 @@ class PassFlight(MatchState):
 
 
 class Receive(MatchState):
+    """球已接近接应点：接球车可以小范围追球，靠近后交接主攻权。"""
     def getTasks(self):
         return self.play.receiving_tasks(chase=True)
 
@@ -166,6 +191,7 @@ class Receive(MatchState):
 
 
 class Goalkeeping(MatchState):
+    """单独运行门将的模式。full 模式则由各进攻状态同时附带门将任务。"""
     def getTasks(self):
         return self.play.tasks({}, goalie=True)
 
@@ -180,10 +206,13 @@ class NormalPlay(StateMachine):
     def __init__(self, config):
         super().__init__()
         self.c = config
+        # config 来自 match.json。这里只保存配置，不在构造函数里驱动车辆。
         self.tactics = Tactics(config)
         self.ids = (config['attackers'] if config['profile'] == 'qualifier' else
                     [config['goalie']] if config['profile'] == 'goalie' else config['attackers']+[config['goalie']])
+        # qualifier 只控制两名进攻车；goalie 只控制门将；full 同时控制三车。
         self.frame = self.choice = self.session = None
+        # frame=观察；choice=几何算法给的战术建议；session=进行中的一次传球。
         self.last_pass = -100.0
         self.pass_attempts = self.pass_completed = self.pass_aborted = 0
         self.pass_reason = ''
@@ -200,14 +229,18 @@ class NormalPlay(StateMachine):
 
     @property
     def can_attack(self):
+        # @property 让它像属性一样读：if self.can_attack，不用加括号。
+        # 开赛许可和球的位置都要有效；“能进攻”不代表每一帧都要踢球。
         return self.frame.mode in ('PLAY', 'OUR_RESTART') and self.frame.ball_valid and finite(self.frame.ball)
 
     def update_frame(self, now, ball, players, opponents, visible, mode, ball_valid):
+        # 丢弃 NaN/无穷大坐标，避免把无效位置传入 C++ 运动规划。
         clean_players = {n:p for n,p in players.items() if finite(p)}
         self.frame = Frame(now, ball, clean_players, [p for p in opponents if finite(p)],
                            set(visible) & set(clean_players), mode, ball_valid)
 
     def normal_state(self):
+        """普通情况下应该进入哪个状态？只返回名字，不在这里执行任务。"""
         if not self.can_attack or self.choice.phase in ('NO_BALL', 'BALL_OUT'):
             return 'Hold'
         if self.c['profile'] == 'goalie':
@@ -219,12 +252,18 @@ class NormalPlay(StateMachine):
         return 'Advance' if self.choice.phase == 'ADVANCE' else 'Shoot'
 
     def cancel_pass(self, reason):
+        # 中断后记录冷却时刻，避免下一帧又马上发起同一条失败的传球。
         if self.session is not None:
             self.pass_aborted += 1
             self.last_pass, self.pass_reason = self.frame.now, reason
         self.session = None
 
     def hookBeforePlanTasks(self):
+        """官方框架每帧在 getTasks() 前调用：观察→建议→安全检查。
+
+        正常转换交给 transFunction；但 HALT/超时不能等旧踢球任务执行完，
+        所以在这里抢先切换到安全状态。这不是让你每帧手动切所有状态。
+        """
         if self.frame is None:
             raise RuntimeError('Call update_frame before planTasks')
         # 官方装饰器在 __init__ 返回后才创建 State 实例，在这里绑定共享 Play。
@@ -248,6 +287,7 @@ class NormalPlay(StateMachine):
         if forced is not None:
             self.cancel_pass(reason)
         elif self.session is not None:
+            # 只要传球还没结束，每帧检查人员、通道和计时。任一失败就取消。
             s = self.session
             state = self.current_state.state_name
             if s.sender not in f.players or s.receiver not in f.players:
@@ -274,6 +314,7 @@ class NormalPlay(StateMachine):
         self.phase = self.strategy_phase
 
     def attack_transition(self):
+        # 状态对象负责转换；Tactics 只判断“有没有值得尝试的传球目标”。
         d, f = self.choice, self.frame
         if d.pass_target is not None:
             self.session = PassSession(d.striker, d.other, d.pass_target, f.ball, f.now)
@@ -282,12 +323,16 @@ class NormalPlay(StateMachine):
         return self.normal_state()
 
     def note_kick(self, number, ball):
+        # 技能执行时调用的通知函数。重复发送请求只计一次尝试。
+        # 不在这里切换到 PassFlight：要等视觉证明确实出球。
         s = self.session
         if s is not None and self.current_state.state_name == 'PassKick' and number == s.sender and not s.kick_requested:
             s.kick_requested, s.origin, s.kick_started = True, ball, self.frame.now
             self.pass_attempts += 1
 
     def finish_pass_if_near(self):
+        # “球离发球点够远 + 接球车离球够近”是当前的近似接球判据。
+        # 它不是硬件控球传感器确认；成功后接球车成为新主攻。
         s, f = self.session, self.frame
         if distance(f.ball, s.origin) > 350 and distance(f.ball, f.players[s.receiver]) < 200:
             self.tactics.striker, self.tactics.changed, self.tactics.target = s.receiver, f.now, None
@@ -298,6 +343,8 @@ class NormalPlay(StateMachine):
         return False
 
     def attacking_tasks(self, carry):
+        # d 是 AttackChoice：striker=主攻车号，other=另一辆进攻车号。
+        # 这两个身份可以互换；A/B 角色标签则绑定配置中的车号，不代表永久主攻。
         d = self.choice
         actions = {}
         if d.other is not None:
@@ -311,6 +358,7 @@ class NormalPlay(StateMachine):
         return self.tasks(actions, goalie=True)
 
     def receiving_tasks(self, chase):
+        # chase=False：守在约定接应点；True：球靠近后跟随球的小范围位置。
         s, f = self.session, self.frame
         retreat = self.tactics.legal(Point(s.origin.x-450, s.origin.y))
         target = s.target
@@ -321,12 +369,20 @@ class NormalPlay(StateMachine):
         return self.tasks({s.sender:('move', retreat), s.receiver:('receive', target)}, goalie=True)
 
     def tasks(self, actions, goalie=False):
-        """每帧返回官方 Task；不在 Play 内手动调用技能执行函数。"""
+        """把简易任务单转成官方 Task，集中处理车号、门将、技能和停车。
+
+        actions 示例：{0: ('carry', Point(2650, 0)), 1: ('move', Point(0, 1100))}。
+        move=普通走位，retreat=慢速退让，receive=接应并吸球，
+        carry=带球不踢，aim=对准不踢，shoot=射门，pass=传球。
+        未列出的有效受控车默认 Stop；goalie=True 时门将改用官方守门技能。
+        本函数只创建任务，不执行；执行由官方 State.run → Task.run 完成。
+        """
         result, f = {}, self.frame
         for number in self.ids:
             if number not in f.visible:
                 continue
             role = 'G' if number == self.c['goalie'] else 'A' if number == self.c['attackers'][0] else 'B'
+            # A/B/G 是框架任务字典的角色名，不是模拟器显示的真实数字车号。
             action, target = actions.get(number, ('stop', None))
             if goalie and number == self.c['goalie'] and self.c['profile'] != 'qualifier':
                 skill = Skill.Goalie2022('normal')
@@ -340,6 +396,7 @@ class NormalPlay(StateMachine):
             else:
                 ball_point, target_point = C.CGeoPoint(f.ball.x, f.ball.y), C.CGeoPoint(target.x, target.y)
                 power = evalPower(ball_point, target_point, P.NORMAL if action == 'pass' else P.HIGH)
+                # 使用统一力度映射，不能把这个参数直接当作物理球速。
                 if action == 'shoot' and self.c['shoot_skill'] == 'baseline':
                     skill = Skill.NormalShoot(power)
                 else:
@@ -349,6 +406,9 @@ class NormalPlay(StateMachine):
                         report_phase=lambda phase: setattr(self, 'phase', phase))
                 self.motion_ids.add(number)
             task = Task(skill, fixedNumber=number, description=action)
+            # fixedNumber：明确指定谁做这个任务，官方角色分配会跳过它。
+            # 因而当前并不运行 Munkres 求分配；主攻选择在 Tactics.choose 中完成。
+            # retained_tasks 保留闭包及其原生几何对象到下一帧，不能随手删除。
             self.retained_tasks.append(task)
             result[role] = task
         return result
