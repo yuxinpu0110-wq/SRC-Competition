@@ -28,6 +28,10 @@ class ShotGate:
             self.stable_since = None
             return
         old = self.previous
+        # Windows低分辨率时钟/重复回调可能得到相同时间；不是视觉断帧。
+        # 不覆盖上一个有效样本，也不把已经积累的稳定时间清零。
+        if old is not None and 0 <= now-old[0] < .001:
+            return
         self.previous = (now, robot, heading, ball)
         if old is None or not 0.001 <= now-old[0] <= .25:
             self.speed = self.spin = self.ball_speed = math.inf
@@ -52,7 +56,7 @@ class ShotGate:
         lateral = abs(-dx*math.sin(heading)+dy*math.cos(heading))
         predicted_y = None
         reason = 'READY'
-        if not 75 <= forward <= 130 or lateral > 10:
+        if not 75 <= forward <= config.get('contact_forward_max',130) or lateral > 10:
             reason = 'CONTACT'
         elif error > .018:
             reason = 'AIM'

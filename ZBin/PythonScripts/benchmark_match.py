@@ -15,6 +15,23 @@ from run_match import ROOT, ZBIN, load_config
 from sim_tools import PracticeReferee, reset_scene, stop_robots
 
 
+def scene_error(row, ball, poses, tolerance=100):
+    """必须从视觉确认摆车成功；发了UDP包不代表已经看到新位置。"""
+    if row is None or not row.get('ball_valid') or not all(math.isfinite(v) for v in row['ball']):
+        return 'NO_VALID_VISION'
+    if math.dist(row['ball'],[ball[0]*1000,ball[1]*1000]) > tolerance:
+        return 'BALL_NOT_AT_START'
+    for number,pose in poses.items():
+        actual = row.get('robots',{}).get(str(number))
+        if actual is None or not all(math.isfinite(v) for v in actual) or math.dist(actual,[pose[0]*1000,pose[1]*1000]) > tolerance:
+            return f'ROBOT_{number}_NOT_AT_START'
+        heading = row.get('angles',{}).get(str(number))
+        if heading is None or not math.isfinite(heading) or abs(math.atan2(math.sin(heading-math.radians(pose[2])),
+                                             math.cos(heading-math.radians(pose[2])))) > .2:
+            return f'ROBOT_{number}_HEADING_NOT_AT_START'
+    return ''
+
+
 def kill_child(p):
     if p is not None and p.poll() is None:
         subprocess.run(['taskkill', '/PID', str(p.pid), '/T', '/F'], capture_output=True)
@@ -40,6 +57,8 @@ def launch(config, label):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--seconds', type=float, default=20)
+    parser.add_argument('--contact-distance',type=float, help='Diagnostic target contact distance in mm (75..110)')
+    parser.add_argument('--contact-trim',action='store_true',help='Bounded lateral contact correction diagnostic')
     parser.add_argument('--skills', nargs='+', choices=['targeted', 'baseline'], default=['targeted', 'baseline'])
     parser.add_argument('--repeats', type=int, default=1)
     parser.add_argument('--passing', choices=('on', 'off'), help='Explicit passing A/B; otherwise uses match.json')
@@ -64,6 +83,13 @@ def main():
         raise RuntimeError('Benchmark requires ONE connected Client and ONE simulator')
     (ROOT/'logs').mkdir(exist_ok=True)
     c = load_config(ROOT/'match.json')
+    if args.contact_trim:
+        c['contact_trim'] = True
+    if args.contact_distance is not None:
+        if not 75 <= args.contact_distance <= 110:
+            parser.error('contact-distance must be 75..110 mm')
+        c['contact_distance'] = args.contact_distance
+        c['contact_forward_max'] = min(130,args.contact_distance+20)
     c['shoot_control'] = args.shoot_control
     c['complete_frame'] = args.frame_cycle == 'paired'
     if args.passing:
@@ -121,10 +147,18 @@ def main():
                 if not logs:
                     raise RuntimeError('No telemetry: connect Client Vision first')
                 telemetry = logs[-1]
+                report.setdefault('attacker_telemetries',[]).append(str(telemetry))
                 yellow_logs = sorted((ROOT/'logs').glob('*-yellow.jsonl'), key=lambda p:p.stat().st_mtime)
                 goalie_telemetry = yellow_logs[-1] if yellow_logs and goalie is not None else None
+                report['goalie_telemetry'] = str(goalie_telemetry) if goalie_telemetry else None
                 starts = [(0,0),(.8,1),(.8,-1)] if args.starts == 'approach' else [(2.8,0),(2.8,.8),(2.8,-.8)]
                 for trial, ball in enumerate(starts * args.repeats):
+                    result = {'trial':trial+1, 'skill':skill, 'ball_start_m':ball,
+                              'seconds':args.seconds, 'goal_crossing':False, 'valid':False}
+                    report['trials'].append(result)
+                    # 先STOP再HALT，后摆车；不能贴球摆好后再让Prepare退球破坏初态。
+                    referee(1)
+                    time.sleep(.25)
                     referee(0)
                     time.sleep(.25)
                     poses = None
@@ -135,19 +169,29 @@ def main():
                         poses = {c['attackers'][0]:(ball[0]-.095*math.cos(angle),ball[1]-.095*math.sin(angle),math.degrees(angle)),
                                  c['attackers'][1]:(1.5,1.5,0)}
                     reset_scene(ball=ball, attackers=c['attackers'], goalie=c['goalie'],attacker_poses=poses)
-                    time.sleep(.6)
-                    referee(1)
-                    time.sleep(.25)
+                    expected_poses = poses or {c['attackers'][0]:(-1,-.7,0),c['attackers'][1]:(-1.5,1.2,0)}
+                    from match_launcher import latest_complete_row
+                    deadline = time.monotonic()+5
+                    last = None
+                    while time.monotonic() < deadline:
+                        if p.poll() is not None:
+                            result['attacker_exit_code'] = p.returncode
+                            raise RuntimeError('Strategy exited during reset preflight')
+                        last = latest_complete_row(telemetry)
+                        if last and time.time()-last['time'] < .3 and not scene_error(last,ball,expected_poses):
+                            break
+                        time.sleep(.05)
+                    else:
+                        result.update(reset_error=scene_error(last,ball,expected_poses), observed_start=last)
+                        raise RuntimeError('Reset not confirmed by vision: '+result['reset_error']+'. Trial INVALID.')
+                    result['verified_start'] = dict(ball=last['ball'],robots=last['robots'],angles=last['angles'])
                     previous_rows = list(complete_rows(telemetry))
                     baseline_counts = previous_rows[-1] if previous_rows else {}
                     offset = telemetry.stat().st_size
                     referee(3)
                     start = time.monotonic()
                     trial_wall_time = time.time()
-                    result = {'trial': trial+1, 'skill': skill, 'ball_start_m': ball, 'seconds': args.seconds, 'goal_crossing': False}
                     # 试验开始即保存；即便中途崩溃，也要留下一次无效尝试，不能悄悄消失。
-                    result['valid'] = False
-                    report['trials'].append(result)
                     prev = None
                     samples = 0
                     last_sample_at = time.monotonic()
@@ -157,6 +201,7 @@ def main():
                         stream.seek(offset)
                         while time.monotonic()-start < args.seconds:
                             if p.poll() is not None or (goalie is not None and goalie.poll() is not None):
+                                result.update(attacker_exit_code=p.poll(),goalie_exit_code=goalie.poll() if goalie else None)
                                 raise RuntimeError('Strategy process exited during trial')
                             if goalie is not None:
                                 heartbeat = ROOT/'heartbeat-yellow.txt'

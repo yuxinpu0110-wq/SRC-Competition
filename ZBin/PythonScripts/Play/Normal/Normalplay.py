@@ -153,8 +153,10 @@ class PassSetup(MatchState):
                     return ''
                 session.feint_started = p.frame.now
                 return 'FakeShot'
-            session.kick_started = p.frame.now
-            return 'PassKick'
+            # 不再仅凭队友就位就启动踢球超时；发球车也要先完成转向/贴球。
+            if p.sender_ready():
+                session.kick_started = p.frame.now
+                return 'PassKick'
         return ''
 
 
@@ -172,8 +174,9 @@ class FakeShot(MatchState):
     def transFunction(self):
         p, s = self.play, self.play.session
         if p.frame.now-s.feint_started >= .35:
-            s.kick_started = p.frame.now
-            return 'PassKick'
+            # 回到准备阶段真正瞄准侧传，再进入短时出球阶段；不重复佯射。
+            s.fake_aim, s.started = None, p.frame.now
+            return 'PassSetup'
         return ''
 
 
@@ -273,10 +276,13 @@ class NormalPlay(StateMachine):
     def update_frame(self, now, ball, players, opponents, visible, mode, ball_valid):
         # 丢弃 NaN/无穷大坐标，避免把无效位置传入 C++ 运动规划。
         old = self.ball_sample
-        self.ball_speed = (distance(ball, old[1])/(now-old[0])
-                           if old is not None and ball_valid and finite(ball)
-                           and .001 <= now-old[0] <= .25 else math.inf)
-        self.ball_sample = (now, ball) if ball_valid and finite(ball) else None
+        if not ball_valid or not finite(ball):
+            self.ball_speed, self.ball_sample = math.inf, None
+        elif old is None or not 0 <= now-old[0] <= .25:
+            self.ball_speed, self.ball_sample = math.inf, (now,ball)
+        elif now-old[0] >= .001:
+            self.ball_speed = distance(ball,old[1])/(now-old[0])
+            self.ball_sample = (now,ball)
         clean_players = {n:p for n,p in players.items() if finite(p)}
         self.frame = Frame(now, ball, clean_players, [p for p in opponents if finite(p)],
                            set(visible) & set(clean_players), mode, ball_valid)
@@ -417,6 +423,16 @@ class NormalPlay(StateMachine):
         angle = math.atan2(s.origin.y-s.target.y, s.origin.x-s.target.x)
         return (distance(self.frame.players[s.receiver], self.receiver_position()) < 140
                 and abs(wrap(Player.direction(s.receiver)-angle)) < .2)
+
+    def sender_ready(self):
+        s, f = self.session, self.frame
+        robot = f.players[s.sender]
+        desired = math.atan2(s.target.y-f.ball.y,s.target.x-f.ball.x)
+        dx,dy = f.ball.x-robot.x,f.ball.y-robot.y
+        along = dx*math.cos(desired)+dy*math.sin(desired)
+        side = abs(-dx*math.sin(desired)+dy*math.cos(desired))
+        return (50 < along < 150 and side < 20
+                and abs(wrap(Player.direction(s.sender)-desired)) < .05)
 
     def finish_pass_if_near(self):
         # “球离发球点够远 + 接球车离球够近”是当前的近似接球判据。

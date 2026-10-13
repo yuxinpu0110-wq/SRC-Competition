@@ -83,7 +83,8 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
         if control is not None:
             dest, angle, aligned, held, control_phase = control.plan(
                 now, robot, Player.direction(executor), ball, target, carry=carry,
-                contact=95 if gate is not None else 65)
+                contact=geometry.c.get('contact_distance',95) if gate is not None else 65,
+                trim=geometry.c.get('contact_trim',False))
             dest = geometry.legal(dest)
         point = C.CGeoPoint(dest.x, dest.y)
         flags = (0x08000000 if enable_dss else 0) | 0x200 | (0 if held or aligned else 0x10)

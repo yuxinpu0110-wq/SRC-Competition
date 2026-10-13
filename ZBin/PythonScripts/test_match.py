@@ -161,6 +161,13 @@ class ShotGateTests(unittest.TestCase):
         self.assertEqual(self.sample(.02),(False,'SETTLE'))
         self.assertEqual(self.sample(.12),(True,'READY'))
 
+    def test_duplicate_timestamp_does_not_restart_stability(self):
+        self.sample(0)
+        self.sample(.02)
+        self.sample(.02)
+        self.sample(.02001)
+        self.assertEqual(self.sample(.12),(True,'READY'))
+
     def test_old_angle_tolerance_rejected(self):
         self.sample(0,heading=.07)
         self.assertFalse(self.sample(.02,heading=.07)[0])
@@ -390,12 +397,16 @@ class OfficialPlayTests(unittest.TestCase):
     def ready_to_kick(self):
         s = self.setup_pass()
         self.prepare_receiver()
+        self.prepare_sender()
         self.assertEqual(self.tick(.2),'PassKick')
+        self.tick(.3)
+        return s
+
+    def prepare_sender(self):
+        s = self.play.session
         angle = math.atan2(s.target.y-self.ball.y,s.target.x-self.ball.x)
         self.players[s.sender] = Point(self.ball.x-65*math.cos(angle),self.ball.y-65*math.sin(angle))
         self.angles[s.sender] = angle
-        self.tick(.3)
-        return s
 
     def prepare_receiver(self):
         s = self.play.session
@@ -424,7 +435,7 @@ class OfficialPlayTests(unittest.TestCase):
         self.assertFalse(any(c[0]=='kick' for c in self.calls))
         self.assertEqual(self.play.phase,'WAIT_SETTLE')
         rush = [c for c in self.calls if c[0]=='RushTo' and c[1]==0][0]
-        self.assertEqual(rush[2],2605)  # 停在球后95mm，而不是继续挤向球后65mm。
+        self.assertEqual(rush[2],2700-self.c.get('contact_distance',95))
         self.tick(.12)
         self.assertTrue(any(c[0]=='kick' and c[1]==0 for c in self.calls))
 
@@ -447,6 +458,7 @@ class OfficialPlayTests(unittest.TestCase):
     def test_ready_transition_does_not_kick_same_frame(self):
         s = self.setup_pass()
         self.prepare_receiver()
+        self.prepare_sender()
         self.assertEqual(self.tick(.2),'PassKick')
         self.assertEqual(self.play.executed_state,'PassSetup')
         self.assertFalse(any(c[0]=='kick' for c in self.calls))
@@ -456,6 +468,7 @@ class OfficialPlayTests(unittest.TestCase):
         self.prepare_receiver()
         self.tick(.2)
         self.tick(.3)  # 传球车还没朝向侧翼目标。
+        self.assertEqual(self.play.current_state.state_name,'PassSetup')
         self.assertEqual(self.play.pass_attempts,0)
         self.assertFalse(any(c[0]=='kick' for c in self.calls))
 
@@ -638,7 +651,7 @@ class OfficialPlayTests(unittest.TestCase):
         self.setup_feint()
         self.assertEqual(self.tick(.2),'FakeShot')
         self.assertFalse(any(c[0]=='kick' for c in self.calls))
-        self.assertEqual(self.tick(.46),'PassKick')
+        self.assertEqual(self.tick(.46),'PassSetup')
         self.assertFalse(any(c[0]=='kick' for c in self.calls))
 
     def test_feint_halt_preempts(self):
@@ -725,7 +738,7 @@ class BallControlTests(unittest.TestCase):
     def test_shoot_turn_is_also_limited(self):
         self.plan(0,carry=False)
         result = self.plan(.02,target=Point(95,3000),carry=False)
-        self.assertLessEqual(abs(result[1]),.020001)
+        self.assertLessEqual(abs(result[1]),.040001)
         self.assertFalse(result[2])
         self.assertTrue(result[3])
 
@@ -734,6 +747,33 @@ class BallControlTests(unittest.TestCase):
         self.control.reset()
         self.assertFalse(self.control.held)
         self.assertIsNone(self.control.direction)
+
+    def test_lateral_trim_amplifies_small_error_without_forward_push(self):
+        target = Point(3000,15)
+        ball = Point(95,15)
+        dest,_,_,held,_ = self.control.plan(0,self.robot,0,ball,target,trim=True)
+        self.assertTrue(held)
+        self.assertAlmostEqual(dest.x,0)
+        self.assertAlmostEqual(dest.y,30)
+
+    def test_lateral_trim_does_not_move_an_aligned_contact(self):
+        dest,*_ = self.control.plan(0,self.robot,0,self.ball,self.target,trim=True)
+        self.assertEqual(dest,Point(0,0))
+
+    def test_reset_preflight_checks_robot_not_only_ball(self):
+        from benchmark_match import scene_error
+        row = dict(ball=[2800,0],ball_valid=True,robots={'0':[-1500,0]},angles={'0':0})
+        self.assertEqual(scene_error(row,(2.8,0),{0:(2.705,0,0)}),'ROBOT_0_NOT_AT_START')
+
+    def test_reset_preflight_checks_heading(self):
+        from benchmark_match import scene_error
+        row = dict(ball=[2800,0],ball_valid=True,robots={'0':[2705,0]},angles={'0':math.pi})
+        self.assertEqual(scene_error(row,(2.8,0),{0:(2.705,0,0)}),'ROBOT_0_HEADING_NOT_AT_START')
+
+    def test_reset_preflight_rejects_nan(self):
+        from benchmark_match import scene_error
+        row = dict(ball=[float('nan'),0],ball_valid=True,robots={'0':[2705,0]},angles={'0':0})
+        self.assertEqual(scene_error(row,(2.8,0),{0:(2.705,0,0)}),'NO_VALID_VISION')
 
     def test_shoot_contact_not_65mm_push(self):
         result = self.plan(0,carry=False)

@@ -21,7 +21,7 @@ class BallControl:
     def reset(self):
         self.held, self.direction, self.updated = False, None, None
 
-    def plan(self, now, robot, heading, ball, target, *, carry=False, contact=95):
+    def plan(self, now, robot, heading, ball, target, *, carry=False, contact=95, trim=False):
         desired = math.atan2(target.y-ball.y, target.x-ball.x)
         dx, dy = ball.x-robot.x, ball.y-robot.y
         forward = dx*math.cos(heading)+dy*math.sin(heading)
@@ -38,9 +38,9 @@ class BallControl:
         if self.held:
             # 带球时限转向速率，不能瞬间掉头；首次从实际车头开始。
             previous = heading if self.direction is None else self.direction
-            step = 1.0*min(.05, max(0, gap or 0))
+            step = (1.0 if carry else 2.0)*min(.05, max(0, gap or 0))
             # 指令不能远远超前于实际车头，否则底层转速仍会过大。
-            previous = heading+max(-.15, min(.15, wrap(previous-heading)))
+            previous = heading+max(-.6, min(.6, wrap(previous-heading)))
             angle = previous+max(-step, min(step, wrap(desired-previous)))
         self.direction, self.updated = angle, now
         ux, uy = math.cos(angle), math.sin(angle)
@@ -58,5 +58,12 @@ class BallControl:
                 turn = wrap(desired+math.pi-radial)
                 radial += max(-.3, min(.3, turn))
                 destination = Point(ball.x+contact*math.cos(radial), ball.y+contact*math.sin(radial))
+            elif trim and self.held and abs(wrap(heading-desired)) < .08:
+                # 原生规划在离终点约十余毫米时可能不再微调，而踢球门控要求10mm内。
+                # 仅对横向误差做有界放大，使剩余小偏差仍有驱动力；不向前挤球。
+                side_goal = -dx*math.sin(desired)+dy*math.cos(desired)
+                correction = max(-25,min(25,side_goal)) if abs(side_goal) > 6 else 0
+                destination = Point(destination.x-correction*math.sin(desired),
+                                    destination.y+correction*math.cos(desired))
             phase = 'CONTACT' if self.held or aligned else 'ALIGN'
         return destination, angle, aligned, self.held, phase

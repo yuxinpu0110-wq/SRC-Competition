@@ -34,11 +34,12 @@ def load_config(path):
         raise ValueError('Only official state_machine dispatch is supported; remove old direct setting')
     if c.get('shoot_control', 'legacy') not in ('legacy', 'precision'):
         raise ValueError('shoot_control must be legacy or precision')
-    for name in ('enable_pass', 'enable_feint', 'advance_before_shoot', 'enable_dss', 'qt_application', 'complete_frame'):
+    for name in ('enable_pass', 'enable_feint', 'contact_trim', 'advance_before_shoot', 'enable_dss', 'qt_application', 'complete_frame'):
         if name in c and type(c[name]) is not bool:
             raise ValueError(name+' must be true or false (not a string)')
     for name, low, high in [('pass_setup_timeout', .5, 10), ('pass_flight_timeout', .5, 6), ('pass_kick_timeout', .3, 3),
-                            ('pass_score_gain', 0, 3000), ('pass_shot_threshold', -1000, 3000)]:
+                            ('pass_score_gain', 0, 3000), ('pass_shot_threshold', -1000, 3000),
+                            ('contact_distance',75,110), ('contact_forward_max',90,130)]:
         if name in c and (type(c[name]) not in (int, float) or not math.isfinite(c[name]) or not low <= c[name] <= high):
             raise ValueError('Invalid pass parameter: '+name)
     if 'goal_margin' in c and (type(c['goal_margin']) not in (int, float)
@@ -137,7 +138,9 @@ def main():
                         runner.preDecision()
                 if qt_app is not None:
                     qt_app.processEvents()
-                now = time.monotonic()
+                # Python3.12/Windows的monotonic可能只有约15.6ms分辨率。
+                # 多次回调时间相同会让速度估计/稳定计时反复重置，改用高精度单调计时。
+                now = time.perf_counter()
                 for number in ids:
                     C.setDribbleCommand(number, 0)
                 message = vision.getCurrentRefereeMsg()

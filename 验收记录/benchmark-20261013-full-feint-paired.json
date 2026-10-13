@@ -1,0 +1,271 @@
+{
+  "description": "Local practice, three fixed ball starts. Not official score/win rate.",
+  "goalie_mode": "official",
+  "shoot_control": "precision",
+  "start_mode": "approach",
+  "complete": true,
+  "started_at": "2026-10-13 11:15:22",
+  "config": {
+    "profile": "qualifier",
+    "team": "blue",
+    "side": "left",
+    "attackers": [
+      0,
+      1
+    ],
+    "goalie": 2,
+    "shoot_skill": "targeted",
+    "shoot_control": "precision",
+    "task_dispatch": "state_machine",
+    "complete_frame": true,
+    "enable_pass": true,
+    "enable_feint": true,
+    "goal_margin": 160,
+    "pass_shot_threshold": 230,
+    "pass_score_gain": 60,
+    "advance_before_shoot": true,
+    "shoot_from_x": 2650,
+    "field_length": 9000,
+    "field_width": 6000,
+    "goal_width": 1000,
+    "defense_depth": 1000,
+    "defense_width": 2000,
+    "power_cap": 7400,
+    "contact_distance": 85.0,
+    "contact_forward_max": 105.0
+  },
+  "source_sha256": {
+    "run_match.py": "6b90ce404fec8772453591f935bb2186dc306e2bb0888fb8feaf0b7f66f3726f",
+    "match_tactics.py": "9b82e4c06f8ca469708e2b2b056a79572526049487b7a4784c88373ad4e4ddd8",
+    "Play/Normal/Normalplay.py": "c39e565496d865a1a7c4528e886bc02aa8aa2df6a51b20856036b31719b513a8",
+    "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "4a96bd59438d412cd67e4800c5242ebb4351743febf48ffea01492c8fc0fdaff",
+    "shot_accuracy.py": "44d77afe8f992fc3c3bb745fc265d4ac38b44226303e28da34c2979e4ae4b6cf",
+    "ball_control.py": "dee7c0149fa6cbafd756d8dcaf8ded70f2df020542f6c0b0b998cfebf78c9e1d",
+    "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+    "benchmark_match.py": "cc5a9285fea5652d7cf0b5179e4e72ad74759dd8265b6488f65659393051b7db"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "skill": "targeted",
+      "ball_start_m": [
+        0,
+        0
+      ],
+      "seconds": 16.906,
+      "goal_crossing": true,
+      "valid": true,
+      "verified_start": {
+        "ball": [
+          0.0,
+          0.10000000149011612
+        ],
+        "robots": {
+          "0": [
+            -1015.0029296875,
+            -700.9324951171875
+          ],
+          "1": [
+            -1518.1558837890625,
+            1206.90673828125
+          ]
+        },
+        "angles": {
+          "0": 0.0002550645440351218,
+          "1": -0.0007032775902189314
+        }
+      },
+      "pass_attempts": 1,
+      "pass_completed_proximity": 1,
+      "pass_aborted": 0,
+      "last_ball_mm": [
+        4456.69921875,
+        354.5449523925781
+      ],
+      "last_phase": "WAIT_OUTSIDE_DEFENSE",
+      "last_shot_gate": {
+        "0": {
+          "reason": "CONTACT",
+          "heading_error_rad": 0.01341942985999367,
+          "lateral_mm": 5.138960237649506,
+          "forward_mm": 325.3641505277931,
+          "predicted_goal_y_mm": null,
+          "speed_mm_s": 413.79770308830047,
+          "spin_rad_s": 0.1606952427704309,
+          "ball_speed_mm_s": 10352.120192315735
+        },
+        "1": {
+          "reason": "CONTACT",
+          "heading_error_rad": 0.009088362702086517,
+          "lateral_mm": 11.061876726730858,
+          "forward_mm": 764.9394448273806,
+          "predicted_goal_y_mm": 350.63404465056976,
+          "speed_mm_s": 125.19237006234415,
+          "spin_rad_s": 0.0008709808824331675,
+          "ball_speed_mm_s": 0.0
+        }
+      },
+      "crossing_y_mm": 364.48956175175056,
+      "samples": 426,
+      "goalie_samples": 151,
+      "goalie_max_displacement_mm": 302.89827744529464,
+      "moving_goalie_observed": true
+    },
+    {
+      "trial": 2,
+      "skill": "targeted",
+      "ball_start_m": [
+        0.8,
+        1
+      ],
+      "seconds": 13.532,
+      "goal_crossing": true,
+      "valid": true,
+      "verified_start": {
+        "ball": [
+          800.0,
+          1000.0
+        ],
+        "robots": {
+          "0": [
+            -1019.4524536132812,
+            -708.5441284179688
+          ],
+          "1": [
+            -1517.88232421875,
+            1203.8331298828125
+          ]
+        },
+        "angles": {
+          "0": 0.0017849334981292486,
+          "1": -0.0024809606838971376
+        }
+      },
+      "pass_attempts": 0,
+      "pass_completed_proximity": 0,
+      "pass_aborted": 1,
+      "last_ball_mm": [
+        4485.9072265625,
+        -343.9328308105469
+      ],
+      "last_phase": "WAIT_OUTSIDE_DEFENSE",
+      "last_shot_gate": {
+        "0": {
+          "reason": "CONTACT",
+          "heading_error_rad": 0.01341942985999367,
+          "lateral_mm": 5.138960237649506,
+          "forward_mm": 325.3641505277931,
+          "predicted_goal_y_mm": null,
+          "speed_mm_s": 413.79770308830047,
+          "spin_rad_s": 0.1606952427704309,
+          "ball_speed_mm_s": 10352.120192315735
+        },
+        "1": {
+          "reason": "CONTACT",
+          "heading_error_rad": 0.003571253872977409,
+          "lateral_mm": 15.147396002967184,
+          "forward_mm": 770.208413128555,
+          "predicted_goal_y_mm": -344.2869865892785,
+          "speed_mm_s": 0.0,
+          "spin_rad_s": 0.0,
+          "ball_speed_mm_s": 0.0
+        }
+      },
+      "crossing_y_mm": -352.2603579081118,
+      "samples": 331,
+      "goalie_samples": 117,
+      "goalie_max_displacement_mm": 272.7965795999565,
+      "moving_goalie_observed": true
+    },
+    {
+      "trial": 3,
+      "skill": "targeted",
+      "ball_start_m": [
+        0.8,
+        -1
+      ],
+      "seconds": 20.0,
+      "goal_crossing": false,
+      "valid": true,
+      "verified_start": {
+        "ball": [
+          800.0,
+          -1000.0
+        ],
+        "robots": {
+          "0": [
+            -1095.06982421875,
+            -685.8529052734375
+          ],
+          "1": [
+            -1590.987548828125,
+            1227.37548828125
+          ]
+        },
+        "angles": {
+          "0": -0.018274065107107162,
+          "1": -0.005101780407130718
+        }
+      },
+      "pass_attempts": 0,
+      "pass_completed_proximity": 0,
+      "pass_aborted": 1,
+      "last_ball_mm": [
+        1867.564697265625,
+        2745.125244140625
+      ],
+      "last_phase": "WAIT_CONTACT",
+      "last_shot_gate": {
+        "0": {
+          "reason": "CONTACT",
+          "heading_error_rad": 0.0029415742095473263,
+          "lateral_mm": 15.167359974512479,
+          "forward_mm": 75.12955329503524,
+          "predicted_goal_y_mm": null,
+          "speed_mm_s": 19.752384699355925,
+          "spin_rad_s": 0.051309182077276666,
+          "ball_speed_mm_s": 0.0
+        },
+        "1": {
+          "reason": "CONTACT",
+          "heading_error_rad": 0.003571253872977409,
+          "lateral_mm": 15.147396002967184,
+          "forward_mm": 770.208413128555,
+          "predicted_goal_y_mm": -344.2869865892785,
+          "speed_mm_s": 0.0,
+          "spin_rad_s": 0.0,
+          "ball_speed_mm_s": 0.0
+        }
+      },
+      "samples": 466,
+      "goalie_samples": 177,
+      "goalie_max_displacement_mm": 258.15173388492843,
+      "moving_goalie_observed": true
+    }
+  ],
+  "goalie_config": {
+    "profile": "goalie",
+    "team": "yellow",
+    "side": "right",
+    "attackers": [
+      0,
+      1
+    ],
+    "goalie": 2,
+    "shoot_skill": "targeted",
+    "enable_pass": false,
+    "task_dispatch": "state_machine",
+    "complete_frame": true,
+    "field_length": 9000,
+    "field_width": 6000,
+    "goal_width": 1000,
+    "defense_depth": 1000,
+    "defense_width": 2000,
+    "power_cap": 7400
+  },
+  "goalie_console": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\benchmark-goalie-1791861322963235400-console.txt",
+  "attacker_consoles": [
+    "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\logs\\benchmark-targeted-1791861324986280300-console.txt"
+  ],
+  "finished_at": "2026-10-13 11:16:28"
+}
