@@ -18,8 +18,7 @@ def main():
     args = parser.parse_args()
     if not 1 <= args.frames <= 1200:
         parser.error('frames must be 1..1200')
-    root = Path(__file__).resolve().parents[2]
-    zbin = root/'ZBin'
+    from runtime_paths import ROOT as root, SOURCE_ZBIN as zbin, dll_directories
     from match_processes import check_duplicates, process_count
     check_duplicates()
     if process_count('Client.exe') != 1 or process_count('grSim.exe') != 1:
@@ -27,7 +26,7 @@ def main():
     lock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     lock.bind(('127.0.0.1', 45990))
     os.chdir(zbin)
-    dll = os.add_dll_directory(str(zbin))
+    dll_handles = dll_directories()
     import CppPackage as C
     qt_app = None
     if args.qt_app:

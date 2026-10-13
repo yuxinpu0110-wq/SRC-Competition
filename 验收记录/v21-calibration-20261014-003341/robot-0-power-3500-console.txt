@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "D:\桌面\ZBin\SRC-Competition-v2.1\ZBin\PythonScripts\benchmark_match.py", line 377, in <module>
+    main()
+  File "D:\桌面\ZBin\SRC-Competition-v2.1\ZBin\PythonScripts\benchmark_match.py", line 98, in main
+    raise RuntimeError('Benchmark requires ONE connected Client and ONE simulator')
+RuntimeError: Benchmark requires ONE connected Client and ONE simulator

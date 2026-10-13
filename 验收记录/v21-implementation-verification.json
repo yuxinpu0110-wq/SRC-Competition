@@ -1,0 +1,74 @@
+{
+  "offline_passed": true,
+  "checks": [
+    {
+      "command": [
+        "D:\\桌面\\ZBin\\PythonScripts\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "test_match",
+        "test_v21",
+        "-q"
+      ],
+      "exit_code": 0,
+      "output": "----------------------------------------------------------------------\nRan 154 tests in 0.542s\n\nOK\n"
+    },
+    {
+      "command": [
+        "D:\\桌面\\ZBin\\PythonScripts\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-q"
+      ],
+      "exit_code": 0,
+      "output": "[PowerCurveBackend] Failed to reload 'D:\\桌面\\ZBin\\PythonScripts\\tests\\_curve_test_runtime.json': Expecting property name enclosed in double quotes: line 1 column 2 (char 1)\n----------------------------------------------------------------------\nRan 7 tests in 0.052s\n\nOK\n"
+    },
+    {
+      "command": [
+        "D:\\桌面\\ZBin\\PythonScripts\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "D:\\桌面\\ZBin\\tools\\version_entry.py",
+        "v2.1",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": "[VERSION] v2.1 source=D:\\桌面\\ZBin\\PythonScripts config=D:\\桌面\\ZBin\\configs\\v2.1-foundation.json\n[MATCH] Python=D:\\桌面\\ZBin\\PythonScripts\\.venv\\Scripts\\python.exe\n[MATCH] config=D:\\桌面\\ZBin\\configs\\v2.1-foundation.json\n[MATCH] {'profile': 'qualifier', 'ruleset': 'src2026-v1-no-carry', 'goalie_skill': 'Goalie', 'contact_budget_mm': 300, 'team': 'blue', 'side': 'left', 'attackers': [0, 1], 'goalie': 2, 'shoot_skill': 'targeted', 'shoot_control': 'precision', 'task_dispatch': 'state_machine', 'complete_frame': True, 'enable_pass': False, 'enable_feint': False, 'goal_margin': 160, 'contact_distance': 85, 'contact_forward_max': 105, 'contact_trim': False, 'pass_shot_threshold': 230, 'pass_score_gain': 60, 'advance_before_shoot': False, 'field_length': 9000, 'field_width': 6000, 'goal_width': 1000, 'defense_depth': 1000, 'defense_width': 2000, 'power_cap': 6000, 'upgrade_version': '2.1', 'vision_max_age_s': 0.2, 'vision_match_tolerance_mm': 60, 'raw_camera_id': -1, 'kick_pulse_seconds': 0.18, 'kick_departure_timeout': 0.45, 'kick_max_attempts': 2, 'flight_observe_seconds': 1.5, 'action_no_progress_s': 0.65, 'action_align_timeout_s': 1.0, 'target_commit_timeout_s': 2.5, 'enable_one_touch': False, 'enable_dynamic_keeper': False, 'log_interval': 0.02}\n[CHECK] Config and official Play/State/Task/Skill imports OK. No motion sent.\n"
+    },
+    {
+      "command": [
+        "D:\\桌面\\ZBin\\PythonScripts\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "D:\\桌面\\ZBin\\tools\\version_entry.py",
+        "v2",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": "[VERSION] v2 source=D:\\桌面\\ZBin\\.local-backups\\v2\\SRC-Competition-main\\ZBin\\PythonScripts config=D:\\桌面\\ZBin\\.local-backups\\v2\\SRC-Competition-main\\match.json\n[MATCH] Python=D:\\桌面\\ZBin\\PythonScripts\\.venv\\Scripts\\python.exe\n[MATCH] config=D:\\桌面\\ZBin\\.local-backups\\v2\\SRC-Competition-main\\match.json\n[MATCH] {'profile': 'qualifier', 'ruleset': 'src2026-v1-no-carry', 'goalie_skill': 'Goalie', 'contact_budget_mm': 300, 'team': 'blue', 'side': 'left', 'attackers': [0, 1], 'goalie': 2, 'shoot_skill': 'targeted', 'shoot_control': 'precision', 'task_dispatch': 'state_machine', 'complete_frame': True, 'enable_pass': False, 'enable_feint': False, 'goal_margin': 160, 'contact_distance': 85, 'contact_forward_max': 105, 'contact_trim': False, 'pass_shot_threshold': 230, 'pass_score_gain': 60, 'advance_before_shoot': False, 'field_length': 9000, 'field_width': 6000, 'goal_width': 1000, 'defense_depth': 1000, 'defense_width': 2000, 'power_cap': 6000}\n[CHECK] Config and official Play/State/Task/Skill imports OK. No motion sent.\n"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "core.autocrlf=false",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": "warning: in the working copy of 'Competition.code-workspace', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'open-client.cmd', LF will be replaced by CRLF the next time Git touches it\n"
+    }
+  ],
+  "baseline_source_differences": [],
+  "restored_source_differences": [],
+  "runtime_manifest_files": 1768,
+  "physical_acceptance_passed": false,
+  "live_test_status": "Not part of this verifier; see separate live experiment reports"
+}

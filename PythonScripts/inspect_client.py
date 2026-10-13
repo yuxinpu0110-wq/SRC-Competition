@@ -60,7 +60,8 @@ def main():
         from PySide6.QtGui import QImage
         picture = QImage(c.string_at(pixels, width*height*4), width, height,
                          width*4, QImage.Format.Format_RGB32)
-        target = Path(__file__).resolve().parents[2]/'client-inspect.png'
+        from runtime_paths import ROOT
+        target = ROOT/'client-inspect.png'
         if not picture.save(str(target)):
             raise RuntimeError('Capture save failed')
         print(target)

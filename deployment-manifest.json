@@ -1,0 +1,1336 @@
+{
+  "layout": "flat",
+  "source_archive": "D:\\下载\\SRC-Competition-main.zip",
+  "archive_sha256": "3256dcf89840fca00ae032fe034c2a6b1838695b6e640d43da2ea5c9fafcf2c9",
+  "runtime_root": "D:\\桌面\\ZBin",
+  "source_root": "D:\\桌面\\ZBin\\PythonScripts",
+  "premerge_backup": "D:\\桌面\\ZBin\\.local-backups\\pre-new-competition-20261014-004328.zip",
+  "premerge_backup_sha256": "c0cfc1e4b40c346da89ec7e87d23ad96f289ca2af86021b5f02417a3ce2f2a72",
+  "previous_files": {
+    "data/power_curve/active_curve.json": "4554e40aa0afd75f11ceefb2c12dc7dd56b458240f77ecdc181c70517041b118",
+    "data/power_curve/default_curve.json": "cc2d486c7cac9f5a3a5ce0afff2a9f168da95b294e3bf402fb13795d540cb07f",
+    "data/ssl/play_books/data.txt": "4ebdb947c228f3794d862aaa8fa6be9ddcd3a140b07335b01fbc8adfdfb88af9",
+    "defence_config/TestOppRoleMatch.txt": "42a8afa2272b967eac9d98ba7da20f132f4371ebe2d042d1697c9624a3584fd1",
+    "PythonScripts/.gitignore": "46b094baa4f5b317d026420b3709fcca2ff0cd539a9f3cb1fcd9313934259f0a",
+    "PythonScripts/.python-version": "16c863195943df357aff24d69eb6f1f022b5e5a0ca2bcd74df2d8494d54b6e23",
+    "PythonScripts/Algorithm/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "PythonScripts/Algorithm/munkre.py": "f01d9635b9c183deafdbb6036b6605cd97a6a1d4b5885111e8275d8eb7da9281",
+    "PythonScripts/BlueAttack2026/__init__.py": "f4df856ead33f2d21abe138582c28f852e65a21bfe339edcf801fa76b9e5c6af",
+    "PythonScripts/BlueAttack2026/core.py": "42c19dc2c1aebc98a3d8d7e80b986ae451bb7c5c7baa1e69ffe22157ce4a0b6f",
+    "PythonScripts/BlueAttack2026/medusa.py": "2d1e51882c7c4463b5254e070dc0fb7328b3215fcb66967f7886d28ab8c7ce8c",
+    "PythonScripts/BlueAttack2026/README.md": "a8fb30ba899fd638a5abbeb7690df7fdaa8687225f47bd554e968dbfb3262707",
+    "PythonScripts/BlueAttack2026/run_simulation.py": "b48a0c5e5ac224ca1b834f601128b1677bcf469588780363fbf47cb9309a49c4",
+    "PythonScripts/BlueAttack2026/settings.py": "8a92cb130f440d34e737b83c401879f88fa0e1361c1bf5e0fa012fc902debe82",
+    "PythonScripts/BlueAttack2026/sim_protocol.py": "66adb60f7b46821139c2d73a6a8ed3973b18979de99f91c55252936a8a2e8ae2",
+    "PythonScripts/BlueAttack2026/simulation_results/open_direct.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "PythonScripts/BlueAttack2026/simulation_results/open_direct_summary.json": "3b9803004ed20c30cb58738901cff6ea74fca1bcf5df2e44d4af5db4bc91971f",
+    "PythonScripts/BlueAttack2026/simulation_results/本次仿真记录.md": "31fefccda4c3c54661e0bb2faf4844ac193802cc5c31c425e219d2d7459ae807",
+    "PythonScripts/BlueAttack2026/tests/test_blue_attack_core.py": "47f28c0980d62187b09c07ba00aa3124cb67c073a01a1b524cbbf37c7288452f",
+    "PythonScripts/Config.py": "e69d139a84dbdc4878cd4606c12a26e336f4ece089da76901e4776c6b56dde6d",
+    "PythonScripts/CppPackage/__init__.py": "f2f1d5647abb55e637541cf184dcd372f17185d9bd2835be7feb63d28619e636",
+    "PythonScripts/CppPackage/CppPackage.pyd": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+    "PythonScripts/CppPackage/CppPackage.pyi": "d475809e2596fc5c4cf1deb77cb10a162cffebd1cc760051323b0e492b956b63",
+    "PythonScripts/GameControl/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "PythonScripts/GameControl/Referee.py": "0291cb2f75ab2ebcc089dd834a9f9827d43cc21767c6ceb6d4ad35379cd3c78a",
+    "PythonScripts/Geometry/__init__.py": "1442b3892a2e0b25ac91d047347929cadf7b8515dd421d8091c9cd5ae84d5668",
+    "PythonScripts/Geometry/GeometryUtils.py": "9cda763e6cfcc91769c922b8a08a0fe0326921cf9575b3b8c5d06fb57e2c677c",
+    "PythonScripts/Global.py": "418800ed414bf525310e8657458e8a141945f557dcec297d9e55beb96a8065fe",
+    "PythonScripts/InitAllModules.py": "bf8d7bd6899bb73b5db2ea4e2d56c6683611f2e2ea9e327d9a937c74d0970339",
+    "PythonScripts/main.py": "8cd359e4603f0d5eebb333ac3306557d06cf8132aace3f1d49e24ac656123a58",
+    "PythonScripts/Play/__init__.py": "e9a218f3b16054ca15d4abd8fc436c3167b48869baa0d69b0abb25afdea2fcbe",
+    "PythonScripts/Play/Normal/ExampleNormal.py": "951060da5d53189a44a5258830ad381645655773d8eb10c35be02e82fc8009e6",
+    "PythonScripts/Play/Normal/ExampleNormalPlay.py": "95cf0ea1c9754449bc68026c7852fdc58335a6eefad71cf8fd9753b73e21fb38",
+    "PythonScripts/Play/Normal/GoalieFool.py": "4a0a3408f44f233b6d7b9c68fb9685152fbfa275ef36ae869f1f233c5b361690",
+    "PythonScripts/Play/RefPlay/__init__.py": "fde61bc5b881c3b99645913befc43541e2dde2558d81ff37d47ccf07be3e97ee",
+    "PythonScripts/Play/RefPlay/ExampleFreeKick.py": "72d2356706e6affa2b6d9850fde54f5dac678389339c04b561422ec841c34fd0",
+    "PythonScripts/Play/RefPlay/ExampleFreeKickDefend.py": "25ba4fdcc7fb63fe36ad4eee2a56c77dd4cbea1c79f646a32b5c9ee799418aa0",
+    "PythonScripts/Play/RefPlay/ExampleKickOff.py": "7d244e10ddf7f23ec4e773679262c365c523522f34ce32cd8cc15c2c42e4f7b5",
+    "PythonScripts/Play/RefPlay/ExampleKickOffDefend.py": "8ecfbaf8fa04c431909a6317097677590f37b67e4a50dce01ad88433594a373b",
+    "PythonScripts/Play/RefPlay/ExampleRef.py": "3f5d9401ffe96b91876611385c16e65e5a1a2a14de75b022027261202fb543eb",
+    "PythonScripts/Play/RefPlay/GameHalt.py": "bf555d1bfa168c1c890abb62c36317f3aa0314557d16ad76d972eb8f35f8bdea",
+    "PythonScripts/Play/RefPlay/GameStop.py": "b5e559e6dd5648f5ac3db3216f883ae50d2db0e142fb4cb2ec92e8118482a328",
+    "PythonScripts/Play/RefPlay/OfficialSupport.py": "5253479f4f003b5a3cdbd09668a891b20d30e063bedd866c7e4dffd570758317",
+    "PythonScripts/Play/RefPlay/OurTimeout.py": "2166647b260d0b74272a541a26a8598f567e2e34b1d2f2685e43f51e3f3a93b5",
+    "PythonScripts/Play/Test/ExampleTest.py": "4440efd2bfaa3ce907f0f6698cef46843b65154584b1fafbd274675e20a039e0",
+    "PythonScripts/Play/Test/goalie_common.py": "f563e3f1720a9a5fe32120915a01bdefb8bd231967057dcedaafe58d1c2c9558",
+    "PythonScripts/Play/Test/README_GoalieStrategies.md": "abd7bd90e80169070a528bfb28b4e13a82bedda1539e90d006e81b15db270555",
+    "PythonScripts/Play/Test/Test_Goalie2022.py": "f2a7e686e7da382f2b55033c29ae533c126fbe6106b3920e28cc88e74fb6d092",
+    "PythonScripts/Play/Test/Test_GoaliePatrol.py": "ca9e71bc8220c9895d82bb182605d9fcd877f668c346e0284babf6aa69386a88",
+    "PythonScripts/Play/Test/Test_GoalieRandomWalk.py": "18d24b6aed09333745f2cd0e21c217486fd38c154fbcb0fe131863f0d56a9060",
+    "PythonScripts/Play/Test/Test_GoalieTrackAttacker.py": "53b32a49222897c0ccecce50a023717bc05723d6cca350b71dea266287845b98",
+    "PythonScripts/PowerCurveBackend.py": "a9411853805cca9743f9a53d73d6b11aac3d5be323fedb1cc42b85f6d0f039be",
+    "PythonScripts/Preliminary2026/__init__.py": "ca21e28ee956d9084ea617785df93ae31426affe187af5689a77314c7e689c4f",
+    "PythonScripts/Preliminary2026/core.py": "3fed6abb874db6cc17bf56e773127876e2afd64abfecf2e7153a8ca8ab6eb3a5",
+    "PythonScripts/Preliminary2026/medusa.py": "98a841ad2ba250f9e2aa6dbde480b49ef0d5fdcc2f7e350fed7427f6889a7686",
+    "PythonScripts/Preliminary2026/munkres.py": "6d9385fcbda6d295205888da90674c6609db38e1533c12215d8dc5d0d0c5b992",
+    "PythonScripts/Preliminary2026/settings.py": "eec2d0091421830e1333dbf2e877aac479f0a1dbb56cc3b1298e6de8a5d16297",
+    "PythonScripts/pyproject.toml": "effd3079c234d2f86bb1ee7a978e7b9430f51f5c07d28000c3b1d57e3be570b7",
+    "PythonScripts/README.md": "2810d1a2648963e4eda459888bf5b075bf00113c72dd5e92ec684ea94c18eae7",
+    "PythonScripts/RoleMatch_LuaStyle/__init__.py": "0157b6bc9e5c5a5c71b76ef4cb9a8b0dcd1e5a33d940e49743939a0954b3db37",
+    "PythonScripts/RoleMatch_LuaStyle/Play/__init__.py": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+    "PythonScripts/RoleMatch_LuaStyle/Play/Test/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "PythonScripts/RoleMatch_LuaStyle/Skills/__init__.py": "95d45ede6b13ec42b8e04a812e2409c21eae2f04f07d9160813e3da15c394f8b",
+    "PythonScripts/RoleMatch_LuaStyle/Skills/Actions.py": "0a2d2e4f01a5b1c91523d129d4b9fe45f967be504dc25f0f7ac0332cbdad31f9",
+    "PythonScripts/RoleMatch_LuaStyle/Skills/Skill.py": "1a69b2c95b8b6624353a5cec5fb7d3b109260441f68f88faa41de7cc528cb595",
+    "PythonScripts/RoleMatch_LuaStyle/State.py": "e432aafd60de776de9d24cdcbe09605e8e8fa88920b2eef28f41372439c9ec1f",
+    "PythonScripts/RoleMatch_LuaStyle/StateMachine.py": "d6327f253fd774ec59fc77324c5112d8a153396186515f24238ef85f3dc549b0",
+    "PythonScripts/RoleMatch_LuaStyle/Task.py": "cea3dc9efe74c1658f033eae3bd2ce96714a705999b03543a516e22062c4287f",
+    "PythonScripts/SelectPlay.py": "598b8e42905b3ab196e8d60f876d03da2e0a78fa00581806901d8dea525d7a83",
+    "PythonScripts/Strategy/__init__.py": "406480ae82574c99ec90cea58c2f5f6a7556ee291bb2555e90b4e05c0adf7733",
+    "PythonScripts/Strategy/AttackInfomation.py": "d6b690b664b7762a420e231d2d5767a4696811e63297692475596c07d7617653",
+    "PythonScripts/test.py": "91ae3b6b5cc8bd3ef0fc63d5c63f9527b59b992f24861987e2cbe7d55360b6e1",
+    "PythonScripts/tests/test_power_curve_backend.py": "8c007c492bb304dfb00887cd22d187e6984ef6086d205cd6b158010171505fdd",
+    "PythonScripts/tools/power_curve_editor.py": "ed4b64b0dbf815cbf4647a4f6f4ee7f0e3ec2df305fdff2f70b0608dcf554761",
+    "PythonScripts/Utils/__init__.py": "2c3d3b16ccf55eafa50842747406878061792d285dd48f0e3103f9ba715f8b80",
+    "PythonScripts/Utils/BufferedCondition.py": "56b0cb6e6a770b463e0893d30a22cac102e28b0a435e771187a1ec456f3c52a8",
+    "PythonScripts/uv.lock": "8491c55ba09aec800604cd30e8012db467ea0a4bcd64704cd6784023e732ff85",
+    "PythonScripts/Vision/__init__.py": "92054de637cac6749aab9dd24b1b3199751dfd345f80f02479562f877fd8322e",
+    "PythonScripts/Vision/Ball.py": "6de9be513a6bbc6c9590be557a55bbc96651c74512ccddcdff0acc6551f5e884",
+    "PythonScripts/Vision/Enemy.py": "3d58920040917ed6ca71e7e60b896b07956f427c76ad79115bf59458e7a9b690",
+    "PythonScripts/Vision/Player.py": "f15a930b79cc78f0afbbe95cafa818e0eb4df23aea5f3a95d41c0d0832961b58",
+    "PythonScripts/WorldModel/__init__.py": "9b36d2d80bd5f4171e0fa171e593b60c73b2a3fa7e0303681f019dbeaef3807a",
+    "PythonScripts/WorldModel/ChipPower.py": "ec84ef484cab2af3d75b4fb5ebfd43e0265d6ea7fb920ec2d1fd3579ca5f47b0",
+    "PythonScripts/WorldModel/Conditions.py": "d4484e39cb584340e2ee1f9c82dda1d128713597a84ba919244feb11c2c18a5b",
+    "PythonScripts/WorldModel/Directions.py": "c27426f3a9633384c3035a770a7b36fa4a677239b84d481cea5d665e8bb83eca",
+    "PythonScripts/WorldModel/Flags.py": "905d938674e435984217306ed8a8d5ee6351cf8f7070f30d05446a0f6c6820a1",
+    "PythonScripts/WorldModel/KickPower.py": "cf6ae4dd33f0496cfe2cad7aa7a23fb2cd75cf1ddb2665cdcbcff41031bc6b76",
+    "PythonScripts/WorldModel/Params.py": "ffa41f448bfe61d1494c654372e3ea400c6432845e6ad3798988c481760aba42",
+    "PythonScripts/WorldModel/Positions.py": "b3685f1562ac41a2f8fae7a3f39fc1142e6d77627393da723e6a85b82f466c2c",
+    "PythonScripts/WorldModel/PowerCalculator.py": "51cd082d7e050986b42540f4c38bceebbbd94bdb8ef31901bd34db49931c6081",
+    "PythonScripts/WorldModel/Precision.py": "95fb68329b15da2c2c4da6fdb5354071ad5b565c7e618a99ac6d38d3017aee76",
+    "PythonScripts/zss.ini": "ea070c0af946a938ec0e408fcc25f80cc9f6a59302aa4b01852ec61b9e7cb1b5",
+    "zss.ini": "7f95b40c2b40ab0a887b9c036545d58a213522123a0df70396b9b9192e3d5fc3",
+    "zss_simulator.ini": "bd9e24ecd1901c783f4e1b266ad44418c2ff7ac9df898dede5ffc2287a9eb9af"
+  },
+  "upstream_files": [
+    {
+      "archive_path": "SRC-Competition-main/.gitattributes",
+      "target": ".gitattributes",
+      "upstream_sha256": "6e0441251ae19cef13075d42d1955481905959502d02ada74e156517e043e2ff",
+      "present": true,
+      "deployed_sha256": "16b8a9b9f47bc1e0ecf2b49b8d28d052fa19aba2c28019e62b26a5e19302eda4",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/.gitignore",
+      "target": ".gitignore",
+      "upstream_sha256": "95bdd13c3f6bedf6acb33c1621356a56ffe1aa8d87cd23022eb4ba3ba84feae2",
+      "present": true,
+      "deployed_sha256": "05042983e40a5a3ade18bfbdc1bf771498e77e02d26b3c3f1c5bf6d5fb54cc7f",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/2026RoboCup校内赛规则.pdf",
+      "target": "2026RoboCup校内赛规则.pdf",
+      "upstream_sha256": "193d752792a7bde91933558ced3f38461b8736b1f92944a20e4ebdc4dcb0cec0",
+      "present": true,
+      "deployed_sha256": "193d752792a7bde91933558ced3f38461b8736b1f92944a20e4ebdc4dcb0cec0",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/Competition.code-workspace",
+      "target": "Competition.code-workspace",
+      "upstream_sha256": "a221dff4e5916442e558ff897e4d7a0afa262e60b97d33d439658e94ad7be7e0",
+      "present": true,
+      "deployed_sha256": "65a4cadc0a884d05442d202e51ccd9be20781e3eaa9626376954604430be405b",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/HZK_v2评审与合并结论.md",
+      "target": "HZK_v2评审与合并结论.md",
+      "upstream_sha256": "9e1ace600e19f8216303b570c7102480676a479a8e030f425187951927315e55",
+      "present": true,
+      "deployed_sha256": "9e1ace600e19f8216303b570c7102480676a479a8e030f425187951927315e55",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/V2升级执行文档.md",
+      "target": "V2升级执行文档.md",
+      "upstream_sha256": "afdef6fc09428748a1773f2a98e404f426750b252207bda72e369205af728998",
+      "present": true,
+      "deployed_sha256": "afdef6fc09428748a1773f2a98e404f426750b252207bda72e369205af728998",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/.gitignore",
+      "target": "PythonScripts/.gitignore",
+      "upstream_sha256": "08ab3a5af97872a57fe291f9a3060d3cbb4d87a2f630ac81a8e79923c07c09fc",
+      "present": true,
+      "deployed_sha256": "08ab3a5af97872a57fe291f9a3060d3cbb4d87a2f630ac81a8e79923c07c09fc",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/.python-version",
+      "target": "PythonScripts/.python-version",
+      "upstream_sha256": "16c863195943df357aff24d69eb6f1f022b5e5a0ca2bcd74df2d8494d54b6e23",
+      "present": true,
+      "deployed_sha256": "16c863195943df357aff24d69eb6f1f022b5e5a0ca2bcd74df2d8494d54b6e23",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Algorithm/__init__.py",
+      "target": "PythonScripts/Algorithm/__init__.py",
+      "upstream_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "present": true,
+      "deployed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Algorithm/munkre.py",
+      "target": "PythonScripts/Algorithm/munkre.py",
+      "upstream_sha256": "f01d9635b9c183deafdbb6036b6605cd97a6a1d4b5885111e8275d8eb7da9281",
+      "present": true,
+      "deployed_sha256": "f01d9635b9c183deafdbb6036b6605cd97a6a1d4b5885111e8275d8eb7da9281",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Config.py",
+      "target": "PythonScripts/Config.py",
+      "upstream_sha256": "a9652548d20409e27d30fc979980c0214526f1ef678ae9fff4a9813afd0451b8",
+      "present": true,
+      "deployed_sha256": "a9652548d20409e27d30fc979980c0214526f1ef678ae9fff4a9813afd0451b8",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/CppPackage/CppPackage.pyd",
+      "target": "PythonScripts/CppPackage/CppPackage.pyd",
+      "upstream_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+      "present": true,
+      "deployed_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/CppPackage/CppPackage.pyi",
+      "target": "PythonScripts/CppPackage/CppPackage.pyi",
+      "upstream_sha256": "d475809e2596fc5c4cf1deb77cb10a162cffebd1cc760051323b0e492b956b63",
+      "present": true,
+      "deployed_sha256": "d475809e2596fc5c4cf1deb77cb10a162cffebd1cc760051323b0e492b956b63",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/CppPackage/__init__.py",
+      "target": "PythonScripts/CppPackage/__init__.py",
+      "upstream_sha256": "f2f1d5647abb55e637541cf184dcd372f17185d9bd2835be7feb63d28619e636",
+      "present": true,
+      "deployed_sha256": "e37a8b60ef3df09e4c03bce198d9674b96c717848a45b66ee8ed005e1333e812",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/GameControl/Referee.py",
+      "target": "PythonScripts/GameControl/Referee.py",
+      "upstream_sha256": "0291cb2f75ab2ebcc089dd834a9f9827d43cc21767c6ceb6d4ad35379cd3c78a",
+      "present": true,
+      "deployed_sha256": "0291cb2f75ab2ebcc089dd834a9f9827d43cc21767c6ceb6d4ad35379cd3c78a",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/GameControl/__init__.py",
+      "target": "PythonScripts/GameControl/__init__.py",
+      "upstream_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "present": true,
+      "deployed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Geometry/GeometryUtils.py",
+      "target": "PythonScripts/Geometry/GeometryUtils.py",
+      "upstream_sha256": "9cda763e6cfcc91769c922b8a08a0fe0326921cf9575b3b8c5d06fb57e2c677c",
+      "present": true,
+      "deployed_sha256": "9cda763e6cfcc91769c922b8a08a0fe0326921cf9575b3b8c5d06fb57e2c677c",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Geometry/__init__.py",
+      "target": "PythonScripts/Geometry/__init__.py",
+      "upstream_sha256": "1442b3892a2e0b25ac91d047347929cadf7b8515dd421d8091c9cd5ae84d5668",
+      "present": true,
+      "deployed_sha256": "1442b3892a2e0b25ac91d047347929cadf7b8515dd421d8091c9cd5ae84d5668",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Global.py",
+      "target": "PythonScripts/Global.py",
+      "upstream_sha256": "418800ed414bf525310e8657458e8a141945f557dcec297d9e55beb96a8065fe",
+      "present": true,
+      "deployed_sha256": "418800ed414bf525310e8657458e8a141945f557dcec297d9e55beb96a8065fe",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/InitAllModules.py",
+      "target": "PythonScripts/InitAllModules.py",
+      "upstream_sha256": "d414daf8942f097e62182ff7008171c02a3e19698fc78b8ddfecc28394ebb3fb",
+      "present": true,
+      "deployed_sha256": "d414daf8942f097e62182ff7008171c02a3e19698fc78b8ddfecc28394ebb3fb",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/Normal/ExampleNormal.py",
+      "target": "PythonScripts/Play/Normal/ExampleNormal.py",
+      "upstream_sha256": "951060da5d53189a44a5258830ad381645655773d8eb10c35be02e82fc8009e6",
+      "present": true,
+      "deployed_sha256": "951060da5d53189a44a5258830ad381645655773d8eb10c35be02e82fc8009e6",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/Normal/ExampleNormalPlay.py",
+      "target": "PythonScripts/Play/Normal/ExampleNormalPlay.py",
+      "upstream_sha256": "95cf0ea1c9754449bc68026c7852fdc58335a6eefad71cf8fd9753b73e21fb38",
+      "present": true,
+      "deployed_sha256": "95cf0ea1c9754449bc68026c7852fdc58335a6eefad71cf8fd9753b73e21fb38",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/Normal/GoalieFool.py",
+      "target": "PythonScripts/Play/Normal/GoalieFool.py",
+      "upstream_sha256": "4a0a3408f44f233b6d7b9c68fb9685152fbfa275ef36ae869f1f233c5b361690",
+      "present": true,
+      "deployed_sha256": "4a0a3408f44f233b6d7b9c68fb9685152fbfa275ef36ae869f1f233c5b361690",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/Normal/Normalplay.py",
+      "target": "PythonScripts/Play/Normal/Normalplay.py",
+      "upstream_sha256": "db10822433a27932f8c8660c1c30d2610e0ce1ff8e8bb2242dff646f6765a114",
+      "present": true,
+      "deployed_sha256": "450501a75e4a765d1e139210d1b1a3ab37de2a48c2ca3f759f01ad06b2b1aaf0",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/RefPlay/ExampleFreeKick.py",
+      "target": "PythonScripts/Play/RefPlay/ExampleFreeKick.py",
+      "upstream_sha256": "72d2356706e6affa2b6d9850fde54f5dac678389339c04b561422ec841c34fd0",
+      "present": true,
+      "deployed_sha256": "72d2356706e6affa2b6d9850fde54f5dac678389339c04b561422ec841c34fd0",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/RefPlay/ExampleFreeKickDefend.py",
+      "target": "PythonScripts/Play/RefPlay/ExampleFreeKickDefend.py",
+      "upstream_sha256": "25ba4fdcc7fb63fe36ad4eee2a56c77dd4cbea1c79f646a32b5c9ee799418aa0",
+      "present": true,
+      "deployed_sha256": "25ba4fdcc7fb63fe36ad4eee2a56c77dd4cbea1c79f646a32b5c9ee799418aa0",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/RefPlay/ExampleKickOff.py",
+      "target": "PythonScripts/Play/RefPlay/ExampleKickOff.py",
+      "upstream_sha256": "7d244e10ddf7f23ec4e773679262c365c523522f34ce32cd8cc15c2c42e4f7b5",
+      "present": true,
+      "deployed_sha256": "7d244e10ddf7f23ec4e773679262c365c523522f34ce32cd8cc15c2c42e4f7b5",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/RefPlay/ExampleKickOffDefend.py",
+      "target": "PythonScripts/Play/RefPlay/ExampleKickOffDefend.py",
+      "upstream_sha256": "8ecfbaf8fa04c431909a6317097677590f37b67e4a50dce01ad88433594a373b",
+      "present": true,
+      "deployed_sha256": "8ecfbaf8fa04c431909a6317097677590f37b67e4a50dce01ad88433594a373b",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/RefPlay/ExampleRef.py",
+      "target": "PythonScripts/Play/RefPlay/ExampleRef.py",
+      "upstream_sha256": "3f5d9401ffe96b91876611385c16e65e5a1a2a14de75b022027261202fb543eb",
+      "present": true,
+      "deployed_sha256": "3f5d9401ffe96b91876611385c16e65e5a1a2a14de75b022027261202fb543eb",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/RefPlay/GameHalt.py",
+      "target": "PythonScripts/Play/RefPlay/GameHalt.py",
+      "upstream_sha256": "bf555d1bfa168c1c890abb62c36317f3aa0314557d16ad76d972eb8f35f8bdea",
+      "present": true,
+      "deployed_sha256": "bf555d1bfa168c1c890abb62c36317f3aa0314557d16ad76d972eb8f35f8bdea",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/RefPlay/GameStop.py",
+      "target": "PythonScripts/Play/RefPlay/GameStop.py",
+      "upstream_sha256": "b5e559e6dd5648f5ac3db3216f883ae50d2db0e142fb4cb2ec92e8118482a328",
+      "present": true,
+      "deployed_sha256": "b5e559e6dd5648f5ac3db3216f883ae50d2db0e142fb4cb2ec92e8118482a328",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/RefPlay/OfficialSupport.py",
+      "target": "PythonScripts/Play/RefPlay/OfficialSupport.py",
+      "upstream_sha256": "5253479f4f003b5a3cdbd09668a891b20d30e063bedd866c7e4dffd570758317",
+      "present": true,
+      "deployed_sha256": "5253479f4f003b5a3cdbd09668a891b20d30e063bedd866c7e4dffd570758317",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/RefPlay/OurTimeout.py",
+      "target": "PythonScripts/Play/RefPlay/OurTimeout.py",
+      "upstream_sha256": "2166647b260d0b74272a541a26a8598f567e2e34b1d2f2685e43f51e3f3a93b5",
+      "present": true,
+      "deployed_sha256": "2166647b260d0b74272a541a26a8598f567e2e34b1d2f2685e43f51e3f3a93b5",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/RefPlay/__init__.py",
+      "target": "PythonScripts/Play/RefPlay/__init__.py",
+      "upstream_sha256": "fde61bc5b881c3b99645913befc43541e2dde2558d81ff37d47ccf07be3e97ee",
+      "present": true,
+      "deployed_sha256": "fde61bc5b881c3b99645913befc43541e2dde2558d81ff37d47ccf07be3e97ee",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/Test/DemoMove.py",
+      "target": "PythonScripts/Play/Test/DemoMove.py",
+      "upstream_sha256": "40ad05f63a84c583a6b15f52fd323d66ea205a1cc7d5bdb37d87f2e01fad00d5",
+      "present": true,
+      "deployed_sha256": "40ad05f63a84c583a6b15f52fd323d66ea205a1cc7d5bdb37d87f2e01fad00d5",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/Test/ExampleTest.py",
+      "target": "PythonScripts/Play/Test/ExampleTest.py",
+      "upstream_sha256": "4440efd2bfaa3ce907f0f6698cef46843b65154584b1fafbd274675e20a039e0",
+      "present": true,
+      "deployed_sha256": "4440efd2bfaa3ce907f0f6698cef46843b65154584b1fafbd274675e20a039e0",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/Test/Test_Goalie2022.py",
+      "target": "PythonScripts/Play/Test/Test_Goalie2022.py",
+      "upstream_sha256": "f2a7e686e7da382f2b55033c29ae533c126fbe6106b3920e28cc88e74fb6d092",
+      "present": true,
+      "deployed_sha256": "f2a7e686e7da382f2b55033c29ae533c126fbe6106b3920e28cc88e74fb6d092",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/Test/TutorialPlay.py",
+      "target": "PythonScripts/Play/Test/TutorialPlay.py",
+      "upstream_sha256": "cf36d94a96d8f02f3dcfbbc5054ea68f7f0bcd2fdf47cb0767d32df00625cd47",
+      "present": true,
+      "deployed_sha256": "cf36d94a96d8f02f3dcfbbc5054ea68f7f0bcd2fdf47cb0767d32df00625cd47",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Play/__init__.py",
+      "target": "PythonScripts/Play/__init__.py",
+      "upstream_sha256": "e9a218f3b16054ca15d4abd8fc436c3167b48869baa0d69b0abb25afdea2fcbe",
+      "present": true,
+      "deployed_sha256": "e9a218f3b16054ca15d4abd8fc436c3167b48869baa0d69b0abb25afdea2fcbe",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/PowerCurveBackend.py",
+      "target": "PythonScripts/PowerCurveBackend.py",
+      "upstream_sha256": "a9411853805cca9743f9a53d73d6b11aac3d5be323fedb1cc42b85f6d0f039be",
+      "present": true,
+      "deployed_sha256": "a9411853805cca9743f9a53d73d6b11aac3d5be323fedb1cc42b85f6d0f039be",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/README.md",
+      "target": "PythonScripts/README.md",
+      "upstream_sha256": "2810d1a2648963e4eda459888bf5b075bf00113c72dd5e92ec684ea94c18eae7",
+      "present": true,
+      "deployed_sha256": "2810d1a2648963e4eda459888bf5b075bf00113c72dd5e92ec684ea94c18eae7",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/RoleMatch_LuaStyle/Play/Test/__init__.py",
+      "target": "PythonScripts/RoleMatch_LuaStyle/Play/Test/__init__.py",
+      "upstream_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "present": true,
+      "deployed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/RoleMatch_LuaStyle/Play/__init__.py",
+      "target": "PythonScripts/RoleMatch_LuaStyle/Play/__init__.py",
+      "upstream_sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "present": true,
+      "deployed_sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/RoleMatch_LuaStyle/Skills/Actions.py",
+      "target": "PythonScripts/RoleMatch_LuaStyle/Skills/Actions.py",
+      "upstream_sha256": "0a2d2e4f01a5b1c91523d129d4b9fe45f967be504dc25f0f7ac0332cbdad31f9",
+      "present": true,
+      "deployed_sha256": "0a2d2e4f01a5b1c91523d129d4b9fe45f967be504dc25f0f7ac0332cbdad31f9",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/RoleMatch_LuaStyle/Skills/CompetitionSkills.py",
+      "target": "PythonScripts/RoleMatch_LuaStyle/Skills/CompetitionSkills.py",
+      "upstream_sha256": "d3c8246306a7b21d2b2bd0777aa7dfe786930319cb52f632718bc6b11bbced71",
+      "present": true,
+      "deployed_sha256": "30e7a3966bf0ba4741dd26dce6835401a0d26b60fca204f2497848519fea2df2",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/RoleMatch_LuaStyle/Skills/Skill.py",
+      "target": "PythonScripts/RoleMatch_LuaStyle/Skills/Skill.py",
+      "upstream_sha256": "1a69b2c95b8b6624353a5cec5fb7d3b109260441f68f88faa41de7cc528cb595",
+      "present": true,
+      "deployed_sha256": "1a69b2c95b8b6624353a5cec5fb7d3b109260441f68f88faa41de7cc528cb595",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/RoleMatch_LuaStyle/Skills/__init__.py",
+      "target": "PythonScripts/RoleMatch_LuaStyle/Skills/__init__.py",
+      "upstream_sha256": "95d45ede6b13ec42b8e04a812e2409c21eae2f04f07d9160813e3da15c394f8b",
+      "present": true,
+      "deployed_sha256": "95d45ede6b13ec42b8e04a812e2409c21eae2f04f07d9160813e3da15c394f8b",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/RoleMatch_LuaStyle/State.py",
+      "target": "PythonScripts/RoleMatch_LuaStyle/State.py",
+      "upstream_sha256": "e432aafd60de776de9d24cdcbe09605e8e8fa88920b2eef28f41372439c9ec1f",
+      "present": true,
+      "deployed_sha256": "e432aafd60de776de9d24cdcbe09605e8e8fa88920b2eef28f41372439c9ec1f",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/RoleMatch_LuaStyle/StateMachine.py",
+      "target": "PythonScripts/RoleMatch_LuaStyle/StateMachine.py",
+      "upstream_sha256": "d6327f253fd774ec59fc77324c5112d8a153396186515f24238ef85f3dc549b0",
+      "present": true,
+      "deployed_sha256": "d6327f253fd774ec59fc77324c5112d8a153396186515f24238ef85f3dc549b0",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/RoleMatch_LuaStyle/Task.py",
+      "target": "PythonScripts/RoleMatch_LuaStyle/Task.py",
+      "upstream_sha256": "cea3dc9efe74c1658f033eae3bd2ce96714a705999b03543a516e22062c4287f",
+      "present": true,
+      "deployed_sha256": "cea3dc9efe74c1658f033eae3bd2ce96714a705999b03543a516e22062c4287f",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/RoleMatch_LuaStyle/__init__.py",
+      "target": "PythonScripts/RoleMatch_LuaStyle/__init__.py",
+      "upstream_sha256": "0157b6bc9e5c5a5c71b76ef4cb9a8b0dcd1e5a33d940e49743939a0954b3db37",
+      "present": true,
+      "deployed_sha256": "0157b6bc9e5c5a5c71b76ef4cb9a8b0dcd1e5a33d940e49743939a0954b3db37",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/SelectPlay.py",
+      "target": "PythonScripts/SelectPlay.py",
+      "upstream_sha256": "e2d0001225c15187f210e7bd64fb9c1aa3bca6a5317e28cfb823cdf222d64e11",
+      "present": true,
+      "deployed_sha256": "e2d0001225c15187f210e7bd64fb9c1aa3bca6a5317e28cfb823cdf222d64e11",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Strategy/AttackInfomation.py",
+      "target": "PythonScripts/Strategy/AttackInfomation.py",
+      "upstream_sha256": "d6b690b664b7762a420e231d2d5767a4696811e63297692475596c07d7617653",
+      "present": true,
+      "deployed_sha256": "d6b690b664b7762a420e231d2d5767a4696811e63297692475596c07d7617653",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Strategy/__init__.py",
+      "target": "PythonScripts/Strategy/__init__.py",
+      "upstream_sha256": "406480ae82574c99ec90cea58c2f5f6a7556ee291bb2555e90b4e05c0adf7733",
+      "present": true,
+      "deployed_sha256": "406480ae82574c99ec90cea58c2f5f6a7556ee291bb2555e90b4e05c0adf7733",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Utils/BufferedCondition.py",
+      "target": "PythonScripts/Utils/BufferedCondition.py",
+      "upstream_sha256": "56b0cb6e6a770b463e0893d30a22cac102e28b0a435e771187a1ec456f3c52a8",
+      "present": true,
+      "deployed_sha256": "56b0cb6e6a770b463e0893d30a22cac102e28b0a435e771187a1ec456f3c52a8",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Utils/__init__.py",
+      "target": "PythonScripts/Utils/__init__.py",
+      "upstream_sha256": "2c3d3b16ccf55eafa50842747406878061792d285dd48f0e3103f9ba715f8b80",
+      "present": true,
+      "deployed_sha256": "2c3d3b16ccf55eafa50842747406878061792d285dd48f0e3103f9ba715f8b80",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Vision/Ball.py",
+      "target": "PythonScripts/Vision/Ball.py",
+      "upstream_sha256": "6de9be513a6bbc6c9590be557a55bbc96651c74512ccddcdff0acc6551f5e884",
+      "present": true,
+      "deployed_sha256": "6de9be513a6bbc6c9590be557a55bbc96651c74512ccddcdff0acc6551f5e884",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Vision/Enemy.py",
+      "target": "PythonScripts/Vision/Enemy.py",
+      "upstream_sha256": "3d58920040917ed6ca71e7e60b896b07956f427c76ad79115bf59458e7a9b690",
+      "present": true,
+      "deployed_sha256": "3d58920040917ed6ca71e7e60b896b07956f427c76ad79115bf59458e7a9b690",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Vision/Player.py",
+      "target": "PythonScripts/Vision/Player.py",
+      "upstream_sha256": "f15a930b79cc78f0afbbe95cafa818e0eb4df23aea5f3a95d41c0d0832961b58",
+      "present": true,
+      "deployed_sha256": "f15a930b79cc78f0afbbe95cafa818e0eb4df23aea5f3a95d41c0d0832961b58",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/Vision/__init__.py",
+      "target": "PythonScripts/Vision/__init__.py",
+      "upstream_sha256": "92054de637cac6749aab9dd24b1b3199751dfd345f80f02479562f877fd8322e",
+      "present": true,
+      "deployed_sha256": "92054de637cac6749aab9dd24b1b3199751dfd345f80f02479562f877fd8322e",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/WorldModel/ChipPower.py",
+      "target": "PythonScripts/WorldModel/ChipPower.py",
+      "upstream_sha256": "ec84ef484cab2af3d75b4fb5ebfd43e0265d6ea7fb920ec2d1fd3579ca5f47b0",
+      "present": true,
+      "deployed_sha256": "ec84ef484cab2af3d75b4fb5ebfd43e0265d6ea7fb920ec2d1fd3579ca5f47b0",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/WorldModel/Conditions.py",
+      "target": "PythonScripts/WorldModel/Conditions.py",
+      "upstream_sha256": "d4484e39cb584340e2ee1f9c82dda1d128713597a84ba919244feb11c2c18a5b",
+      "present": true,
+      "deployed_sha256": "d4484e39cb584340e2ee1f9c82dda1d128713597a84ba919244feb11c2c18a5b",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/WorldModel/Directions.py",
+      "target": "PythonScripts/WorldModel/Directions.py",
+      "upstream_sha256": "c27426f3a9633384c3035a770a7b36fa4a677239b84d481cea5d665e8bb83eca",
+      "present": true,
+      "deployed_sha256": "c27426f3a9633384c3035a770a7b36fa4a677239b84d481cea5d665e8bb83eca",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/WorldModel/Flags.py",
+      "target": "PythonScripts/WorldModel/Flags.py",
+      "upstream_sha256": "905d938674e435984217306ed8a8d5ee6351cf8f7070f30d05446a0f6c6820a1",
+      "present": true,
+      "deployed_sha256": "905d938674e435984217306ed8a8d5ee6351cf8f7070f30d05446a0f6c6820a1",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/WorldModel/KickPower.py",
+      "target": "PythonScripts/WorldModel/KickPower.py",
+      "upstream_sha256": "cf6ae4dd33f0496cfe2cad7aa7a23fb2cd75cf1ddb2665cdcbcff41031bc6b76",
+      "present": true,
+      "deployed_sha256": "cf6ae4dd33f0496cfe2cad7aa7a23fb2cd75cf1ddb2665cdcbcff41031bc6b76",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/WorldModel/Params.py",
+      "target": "PythonScripts/WorldModel/Params.py",
+      "upstream_sha256": "ffa41f448bfe61d1494c654372e3ea400c6432845e6ad3798988c481760aba42",
+      "present": true,
+      "deployed_sha256": "ffa41f448bfe61d1494c654372e3ea400c6432845e6ad3798988c481760aba42",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/WorldModel/Positions.py",
+      "target": "PythonScripts/WorldModel/Positions.py",
+      "upstream_sha256": "b3685f1562ac41a2f8fae7a3f39fc1142e6d77627393da723e6a85b82f466c2c",
+      "present": true,
+      "deployed_sha256": "b3685f1562ac41a2f8fae7a3f39fc1142e6d77627393da723e6a85b82f466c2c",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/WorldModel/PowerCalculator.py",
+      "target": "PythonScripts/WorldModel/PowerCalculator.py",
+      "upstream_sha256": "51cd082d7e050986b42540f4c38bceebbbd94bdb8ef31901bd34db49931c6081",
+      "present": true,
+      "deployed_sha256": "51cd082d7e050986b42540f4c38bceebbbd94bdb8ef31901bd34db49931c6081",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/WorldModel/Precision.py",
+      "target": "PythonScripts/WorldModel/Precision.py",
+      "upstream_sha256": "95fb68329b15da2c2c4da6fdb5354071ad5b565c7e618a99ac6d38d3017aee76",
+      "present": true,
+      "deployed_sha256": "95fb68329b15da2c2c4da6fdb5354071ad5b565c7e618a99ac6d38d3017aee76",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/WorldModel/__init__.py",
+      "target": "PythonScripts/WorldModel/__init__.py",
+      "upstream_sha256": "9b36d2d80bd5f4171e0fa171e593b60c73b2a3fa7e0303681f019dbeaef3807a",
+      "present": true,
+      "deployed_sha256": "9b36d2d80bd5f4171e0fa171e593b60c73b2a3fa7e0303681f019dbeaef3807a",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/ball_control.py",
+      "target": "PythonScripts/ball_control.py",
+      "upstream_sha256": "ca6273788345de67d60dddafb06f436354dbb4931984b5496fcacac9c51f7597",
+      "present": true,
+      "deployed_sha256": "dd5d3c3145d4132c15cd278b4017f2cb6bc5c7dfe76f5116609d10af9ecec026",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/benchmark_match.py",
+      "target": "PythonScripts/benchmark_match.py",
+      "upstream_sha256": "14a91a8f768d5e5af397daa593efcf7d5f7d7dbb8ed1e3471825418dfd7c05b3",
+      "present": true,
+      "deployed_sha256": "9f9c01f8dfe90515dc132f52b3606c785a241ff8d31cf8da0c53c354750c4a25",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/competition_rules.py",
+      "target": "PythonScripts/competition_rules.py",
+      "upstream_sha256": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+      "present": true,
+      "deployed_sha256": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/inspect_client.py",
+      "target": "PythonScripts/inspect_client.py",
+      "upstream_sha256": "60a6ae76a15eba4f90fcf5c2ecb723345a96828957ccd91ab0314d5c15a9f576",
+      "present": true,
+      "deployed_sha256": "a00c1c3a9487ad09f549c0453b820c2a3b3fd98af2c1e56d68f657801554cf1d",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/inspect_native_dump.py",
+      "target": "PythonScripts/inspect_native_dump.py",
+      "upstream_sha256": "230b255b1e4f956d8ac1a0e54de732d7f2d3b119bb74012d8fb10c9f2f413832",
+      "present": true,
+      "deployed_sha256": "230b255b1e4f956d8ac1a0e54de732d7f2d3b119bb74012d8fb10c9f2f413832",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/main.py",
+      "target": "PythonScripts/main.py",
+      "upstream_sha256": "1c0d2df308c8ef8f25f9729e4461550895259a2697d9e23cc5cd9a22ef7a9ae5",
+      "present": true,
+      "deployed_sha256": "1c0d2df308c8ef8f25f9729e4461550895259a2697d9e23cc5cd9a22ef7a9ae5",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/match_launcher.py",
+      "target": "PythonScripts/match_launcher.py",
+      "upstream_sha256": "302ae976835aa51dd67ac1380c574db6bd43d57d67047291595f406fc577c18b",
+      "present": true,
+      "deployed_sha256": "2e13dc684ac640f8b58850f020c11963795f3ae4e62e00b98e3f508e7a69decb",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/match_processes.py",
+      "target": "PythonScripts/match_processes.py",
+      "upstream_sha256": "9d42d912b3c0b3ed29d97f280fc5a77363dde5c1b0728967b09f17d8f2cb3189",
+      "present": true,
+      "deployed_sha256": "9d42d912b3c0b3ed29d97f280fc5a77363dde5c1b0728967b09f17d8f2cb3189",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/match_tactics.py",
+      "target": "PythonScripts/match_tactics.py",
+      "upstream_sha256": "15687517e0a717329def6199ac58b9f7e228a5ddcc2bd90640cdf0fa5de5fc5b",
+      "present": true,
+      "deployed_sha256": "756aca4f6cbcb9603753891be886813dbdb88529f2e2b8a35c7165b49abe7bcd",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/native_smoke.py",
+      "target": "PythonScripts/native_smoke.py",
+      "upstream_sha256": "97e60c83f97b84a2827c1b5edec5b4ca095e63c4c508b8787bad51870c321381",
+      "present": true,
+      "deployed_sha256": "41f631a303c894909a5674f04fdd316c335d21179243ee47f5b7ff212354a9bb",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/operator_check.py",
+      "target": "PythonScripts/operator_check.py",
+      "upstream_sha256": "9a1c0afdb185fc1aca9f495c668edae9094ba371ca69fb18e029851522d873d6",
+      "present": true,
+      "deployed_sha256": "9a1c0afdb185fc1aca9f495c668edae9094ba371ca69fb18e029851522d873d6",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/pyproject.toml",
+      "target": "PythonScripts/pyproject.toml",
+      "upstream_sha256": "23570f93cb615ef2c89e02c28494dd31f484d0c643e2505a736b1264230fe970",
+      "present": true,
+      "deployed_sha256": "23570f93cb615ef2c89e02c28494dd31f484d0c643e2505a736b1264230fe970",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/run_demo.py",
+      "target": "PythonScripts/run_demo.py",
+      "upstream_sha256": "e2f8d467b16d6755d2d0dcccac017e3711452c85382bbe19048a42c6aed2149e",
+      "present": true,
+      "deployed_sha256": "e2f8d467b16d6755d2d0dcccac017e3711452c85382bbe19048a42c6aed2149e",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/run_match.py",
+      "target": "PythonScripts/run_match.py",
+      "upstream_sha256": "cc32633961fde9925d6d412b5623bea347742b7fc7566edf95e48415c164be7d",
+      "present": true,
+      "deployed_sha256": "9e313547d7a1bb2333ef0bea13e99f2aed649d5771c00b7e57c1374c784a5366",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/shot_accuracy.py",
+      "target": "PythonScripts/shot_accuracy.py",
+      "upstream_sha256": "f02844127befa49d43c03ec7e1a6fac571c1a2b87ceeb7e958751e092c8a4a3a",
+      "present": true,
+      "deployed_sha256": "74b41cfe09d600b25b72bc1421d3457128d991b7cdc19a8b3aa77ea3d1a900b4",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/shot_audit.py",
+      "target": "PythonScripts/shot_audit.py",
+      "upstream_sha256": "840560d21accf6e7e96233117bbb47cef54ed548f0cc8a826e62a3aa67df3729",
+      "present": true,
+      "deployed_sha256": "840560d21accf6e7e96233117bbb47cef54ed548f0cc8a826e62a3aa67df3729",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/sim_tools.py",
+      "target": "PythonScripts/sim_tools.py",
+      "upstream_sha256": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+      "present": true,
+      "deployed_sha256": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/simulation_probe.py",
+      "target": "PythonScripts/simulation_probe.py",
+      "upstream_sha256": "451db7b2609c052c0631c737d8cd30c9a24b3d461e7c8c4363bddc4d1ffc7743",
+      "present": true,
+      "deployed_sha256": "451db7b2609c052c0631c737d8cd30c9a24b3d461e7c8c4363bddc4d1ffc7743",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/test.py",
+      "target": "PythonScripts/test.py",
+      "upstream_sha256": "91ae3b6b5cc8bd3ef0fc63d5c63f9527b59b992f24861987e2cbe7d55360b6e1",
+      "present": true,
+      "deployed_sha256": "91ae3b6b5cc8bd3ef0fc63d5c63f9527b59b992f24861987e2cbe7d55360b6e1",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/test_match.py",
+      "target": "PythonScripts/test_match.py",
+      "upstream_sha256": "a08e9c5f277dd85da7d299285fb6710ae11613a2da3191acf8292f9cf2dd5566",
+      "present": true,
+      "deployed_sha256": "eb8b9d61a04d39d7ac751a7bce77e380bf7aaf813de95910ddb73f2d55f03009",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/tests/test_power_curve_backend.py",
+      "target": "PythonScripts/tests/test_power_curve_backend.py",
+      "upstream_sha256": "8c007c492bb304dfb00887cd22d187e6984ef6086d205cd6b158010171505fdd",
+      "present": true,
+      "deployed_sha256": "8c007c492bb304dfb00887cd22d187e6984ef6086d205cd6b158010171505fdd",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/tools/power_curve_editor.py",
+      "target": "PythonScripts/tools/power_curve_editor.py",
+      "upstream_sha256": "ed4b64b0dbf815cbf4647a4f6f4ee7f0e3ec2df305fdff2f70b0608dcf554761",
+      "present": true,
+      "deployed_sha256": "ed4b64b0dbf815cbf4647a4f6f4ee7f0e3ec2df305fdff2f70b0608dcf554761",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/uv.lock",
+      "target": "PythonScripts/uv.lock",
+      "upstream_sha256": "431508738173da01bbc37693697e5cacb2333a04b0c4e6e9d5b2cd84052ee921",
+      "present": true,
+      "deployed_sha256": "431508738173da01bbc37693697e5cacb2333a04b0c4e6e9d5b2cd84052ee921",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/PythonScripts/zss.ini",
+      "target": "PythonScripts/zss.ini",
+      "upstream_sha256": "b3ddd7ecd0a9dd001650fb3972c156984384a72b2ab5c6a80e7a2e9155300ba4",
+      "present": true,
+      "deployed_sha256": "b3ddd7ecd0a9dd001650fb3972c156984384a72b2ab5c6a80e7a2e9155300ba4",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/data/power_curve/active_curve.json",
+      "target": "data/power_curve/active_curve.json",
+      "upstream_sha256": "4554e40aa0afd75f11ceefb2c12dc7dd56b458240f77ecdc181c70517041b118",
+      "present": true,
+      "deployed_sha256": "4554e40aa0afd75f11ceefb2c12dc7dd56b458240f77ecdc181c70517041b118",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/data/power_curve/default_curve.json",
+      "target": "data/power_curve/default_curve.json",
+      "upstream_sha256": "cc2d486c7cac9f5a3a5ce0afff2a9f168da95b294e3bf402fb13795d540cb07f",
+      "present": true,
+      "deployed_sha256": "cc2d486c7cac9f5a3a5ce0afff2a9f168da95b294e3bf402fb13795d540cb07f",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/data/ssl/play_books/data.txt",
+      "target": "data/ssl/play_books/data.txt",
+      "upstream_sha256": "4ebdb947c228f3794d862aaa8fa6be9ddcd3a140b07335b01fbc8adfdfb88af9",
+      "present": true,
+      "deployed_sha256": "4ebdb947c228f3794d862aaa8fa6be9ddcd3a140b07335b01fbc8adfdfb88af9",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/defence_config/TestOppRoleMatch.txt",
+      "target": "defence_config/TestOppRoleMatch.txt",
+      "upstream_sha256": "42a8afa2272b967eac9d98ba7da20f132f4371ebe2d042d1697c9624a3584fd1",
+      "present": true,
+      "deployed_sha256": "42a8afa2272b967eac9d98ba7da20f132f4371ebe2d042d1697c9624a3584fd1",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/open-client.cmd",
+      "target": "open-client.cmd",
+      "upstream_sha256": "8aaa5f36186f1d42f34ff0c814ee57160a4b32833d2f039d3643e99a036f084e",
+      "present": true,
+      "deployed_sha256": "8aaa5f36186f1d42f34ff0c814ee57160a4b32833d2f039d3643e99a036f084e",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/run-demo.cmd",
+      "target": "run-demo.cmd",
+      "upstream_sha256": "4e466e6250f41e2c6407b99b402d37047e9b91d15e9dda3d9763dafe00579cbb",
+      "present": true,
+      "deployed_sha256": "83dbe9559416492007b182bd77a46a5f8053725f87c341cd631083b821950c5d",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/run-tutorial.cmd",
+      "target": "run-tutorial.cmd",
+      "upstream_sha256": "66ff8b0f7bd1ae871ed129f38397cb475fc59cc124e100a7e1fd3e17e5844ffc",
+      "present": true,
+      "deployed_sha256": "94faa648d2c67dd1365ce0894a30c2a69e0da72bd2baf9e51566b78a43f65c90",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/zss.ini",
+      "target": "zss.ini",
+      "upstream_sha256": "1ca149ade9a1fba7caee493961d756d2472626513f4e8b6cad9a86a8b8b4e36e",
+      "present": true,
+      "deployed_sha256": "1ca149ade9a1fba7caee493961d756d2472626513f4e8b6cad9a86a8b8b4e36e",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/ZBin/zss_simulator.ini",
+      "target": "zss_simulator.ini",
+      "upstream_sha256": "bd9e24ecd1901c783f4e1b266ad44418c2ff7ac9df898dede5ffc2287a9eb9af",
+      "present": true,
+      "deployed_sha256": "bd9e24ecd1901c783f4e1b266ad44418c2ff7ac9df898dede5ffc2287a9eb9af",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/check.cmd",
+      "target": "check.cmd",
+      "upstream_sha256": "b158b393f66245125338fb0fd0bdd04dfc79607b37a6a3919eed54f8f361bbfe",
+      "present": true,
+      "deployed_sha256": "340385b3efa28a613c30f1a803211471801af67aee550aa97a70c9a433c9341b",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/match.json",
+      "target": "match.json",
+      "upstream_sha256": "fe62ef2ef08794ccbd3e9acf736bebe421ef6f8cc0b36b5236d8ccacc1e27e8d",
+      "present": true,
+      "deployed_sha256": "fe62ef2ef08794ccbd3e9acf736bebe421ef6f8cc0b36b5236d8ccacc1e27e8d",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/opponent.json",
+      "target": "opponent.json",
+      "upstream_sha256": "bc438a5b724b0a60856df9109d901fe267b8f519eab792c3048cb4c054e9077c",
+      "present": true,
+      "deployed_sha256": "bc438a5b724b0a60856df9109d901fe267b8f519eab792c3048cb4c054e9077c",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/run-opponent.cmd",
+      "target": "run-opponent.cmd",
+      "upstream_sha256": "99934a5a1c5b42b6a5aabab7c11ffd21c4358fc55e4834aba18345e208efa16f",
+      "present": true,
+      "deployed_sha256": "ad024d331cef769cb183505d54753c9c869b3c1e9462eafdc1a602b62cc3d107",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/start-accuracy-v2.cmd",
+      "target": "start-accuracy-v2.cmd",
+      "upstream_sha256": "019eb072e92bb4acd37573b5d8c99d9ce36032d30569cf371fb41c9b82767deb",
+      "present": true,
+      "deployed_sha256": "76f7a5cb1dbaf61950c7560b9a1769e5bbb46650c010412f16855e22a22bc752",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/start-baseline.cmd",
+      "target": "start-baseline.cmd",
+      "upstream_sha256": "db5f4ca716ee59c271e43f7cf85ca5ca8572095ef848f6aa43f7256c1e137626",
+      "present": true,
+      "deployed_sha256": "76f7a5cb1dbaf61950c7560b9a1769e5bbb46650c010412f16855e22a22bc752",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/start-match.cmd",
+      "target": "start-match.cmd",
+      "upstream_sha256": "f2afb165125b85ae6a4e15221a5dd09f0a1ff5477dcc7197ccdeed0e58f0753d",
+      "present": true,
+      "deployed_sha256": "8ec015a55bf4f0efb5223a637a8158bffc622f0aa30f835826a3ee176939bf99",
+      "changed_by_upgrade": true
+    },
+    {
+      "archive_path": "SRC-Competition-main/使用指南.md",
+      "target": "使用指南.md",
+      "upstream_sha256": "5cdf3986ae5347d027e33e6dec3d4bd2379d7fb04ecb6b5b4afd79b6c854e4c7",
+      "present": true,
+      "deployed_sha256": "5cdf3986ae5347d027e33e6dec3d4bd2379d7fb04ecb6b5b4afd79b6c854e4c7",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/技术说明.md",
+      "target": "技术说明.md",
+      "upstream_sha256": "d96fe48b076f09a8c3486d17bf9d56c08984abaaa87f3dd9e6c62d33b1571db1",
+      "present": true,
+      "deployed_sha256": "d96fe48b076f09a8c3486d17bf9d56c08984abaaa87f3dd9e6c62d33b1571db1",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/本轮修正与假动作指南.md",
+      "target": "本轮修正与假动作指南.md",
+      "upstream_sha256": "fd5ebb0c8b901b55d672a96e9af08d7297b802132c62fa859ca75526c63e1573",
+      "present": true,
+      "deployed_sha256": "fd5ebb0c8b901b55d672a96e9af08d7297b802132c62fa859ca75526c63e1573",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/测试报告.md",
+      "target": "测试报告.md",
+      "upstream_sha256": "1d2f9b0153ff8b2b57ba70191c277841b2c74d6c36baf8621b4a3e447e7cb9d9",
+      "present": true,
+      "deployed_sha256": "1d2f9b0153ff8b2b57ba70191c277841b2c74d6c36baf8621b4a3e447e7cb9d9",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/版本管理与代码导读.md",
+      "target": "版本管理与代码导读.md",
+      "upstream_sha256": "e894a52e9fcd50f3938f19a72e09b6681b48838f091d87a1901444c39e4a7b21",
+      "present": true,
+      "deployed_sha256": "e894a52e9fcd50f3938f19a72e09b6681b48838f091d87a1901444c39e4a7b21",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/给组委会的故障说明.md",
+      "target": "给组委会的故障说明.md",
+      "upstream_sha256": "7f2a7bfaba15c47338ee4a4d21143454f9e2b509899d4c661b7f9b09378cff5b",
+      "present": true,
+      "deployed_sha256": "7f2a7bfaba15c47338ee4a4d21143454f9e2b509899d4c661b7f9b09378cff5b",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/规则修正版指南.md",
+      "target": "规则修正版指南.md",
+      "upstream_sha256": "05ba0c32f599e90ef3527c5fd1e3b440ef96d87c4158fd990d0bf380220662d5",
+      "present": true,
+      "deployed_sha256": "05ba0c32f599e90ef3527c5fd1e3b440ef96d87c4158fd990d0bf380220662d5",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收对比指南.md",
+      "target": "验收对比指南.md",
+      "upstream_sha256": "f7521c006bda79ece43741816e0da4e363f8fd41dcb0f63746efb325b024115e",
+      "present": true,
+      "deployed_sha256": "f7521c006bda79ece43741816e0da4e363f8fd41dcb0f63746efb325b024115e",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-084537.json",
+      "target": "验收记录/benchmark-20261013-084537.json",
+      "upstream_sha256": "52805856d5aa494acd245e497c04d72d9492768b766d506c9611c477a7c5012b",
+      "present": true,
+      "deployed_sha256": "52805856d5aa494acd245e497c04d72d9492768b766d506c9611c477a7c5012b",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-084838.json",
+      "target": "验收记录/benchmark-20261013-084838.json",
+      "upstream_sha256": "e6db08d004b31fff8e8774acbe1439a47e5c6d56f785a22e962c928d069322fe",
+      "present": true,
+      "deployed_sha256": "e6db08d004b31fff8e8774acbe1439a47e5c6d56f785a22e962c928d069322fe",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-085544.json",
+      "target": "验收记录/benchmark-20261013-085544.json",
+      "upstream_sha256": "c782786852dbddc53da41be8cdd54f3b3c099a301863b5b062bd58c34ddffffd",
+      "present": true,
+      "deployed_sha256": "c782786852dbddc53da41be8cdd54f3b3c099a301863b5b062bd58c34ddffffd",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-085655.json",
+      "target": "验收记录/benchmark-20261013-085655.json",
+      "upstream_sha256": "e82107bf05a52f263c0eb4e7af8b1e5dc8952161cb56c1206070039c1fb6bd77",
+      "present": true,
+      "deployed_sha256": "e82107bf05a52f263c0eb4e7af8b1e5dc8952161cb56c1206070039c1fb6bd77",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-090036.json",
+      "target": "验收记录/benchmark-20261013-090036.json",
+      "upstream_sha256": "e50c902802b34517460bea420ea6e777a7e0b7a0ededdaec6fddfb9c6a83ffb3",
+      "present": true,
+      "deployed_sha256": "e50c902802b34517460bea420ea6e777a7e0b7a0ededdaec6fddfb9c6a83ffb3",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-090223.json",
+      "target": "验收记录/benchmark-20261013-090223.json",
+      "upstream_sha256": "de9b9817d796277d9daf85e861df5a76fdfe048965946457ee794410282aec07",
+      "present": true,
+      "deployed_sha256": "de9b9817d796277d9daf85e861df5a76fdfe048965946457ee794410282aec07",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-105845.json",
+      "target": "验收记录/benchmark-20261013-105845.json",
+      "upstream_sha256": "f520dd4dceb5c1286225345c62f3ab57c2fd885865070e1839b9c2323d0540d7",
+      "present": true,
+      "deployed_sha256": "f520dd4dceb5c1286225345c62f3ab57c2fd885865070e1839b9c2323d0540d7",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-clock-after-contact95.json",
+      "target": "验收记录/benchmark-20261013-clock-after-contact95.json",
+      "upstream_sha256": "1dec73cb7092f321ce890612b616b9a93576a96fbd59032289d9e664d6ded88a",
+      "present": true,
+      "deployed_sha256": "1dec73cb7092f321ce890612b616b9a93576a96fbd59032289d9e664d6ded88a",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-contact85-first.json",
+      "target": "验收记录/benchmark-20261013-contact85-first.json",
+      "upstream_sha256": "a4673e14c479396b546408862f6115401a5156282dc51f6677a7e8c8736a0a1d",
+      "present": true,
+      "deployed_sha256": "a4673e14c479396b546408862f6115401a5156282dc51f6677a7e8c8736a0a1d",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-full-feint-paired.json",
+      "target": "验收记录/benchmark-20261013-full-feint-paired.json",
+      "upstream_sha256": "99e4b0c4f7735f6f1422aa32ce41b2d694b59643c2c7f99bc6dd203011381288",
+      "present": true,
+      "deployed_sha256": "99e4b0c4f7735f6f1422aa32ce41b2d694b59643c2c7f99bc6dd203011381288",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-full-feint-trim-paired.json",
+      "target": "验收记录/benchmark-20261013-full-feint-trim-paired.json",
+      "upstream_sha256": "90a1a3daa6d328784fb9c68d83b8c9e4f24f9122a1f34a7702784666ccde9134",
+      "present": true,
+      "deployed_sha256": "90a1a3daa6d328784fb9c68d83b8c9e4f24f9122a1f34a7702784666ccde9134",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-full-no-pass-paired.json",
+      "target": "验收记录/benchmark-20261013-full-no-pass-paired.json",
+      "upstream_sha256": "b7185f698dd6e4e8d2ec66a35f2ae5fc697500dd1ce0bebc96d0546f0cddaf53",
+      "present": true,
+      "deployed_sha256": "b7185f698dd6e4e8d2ec66a35f2ae5fc697500dd1ce0bebc96d0546f0cddaf53",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-full-pass-before-ready-fix.json",
+      "target": "验收记录/benchmark-20261013-full-pass-before-ready-fix.json",
+      "upstream_sha256": "923d10017d9fe66471733a7cff0da5371cb00b4eeaf8f1137a2161b9a6f546ea",
+      "present": true,
+      "deployed_sha256": "923d10017d9fe66471733a7cff0da5371cb00b4eeaf8f1137a2161b9a6f546ea",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-20261013-preflight-clock-before.json",
+      "target": "验收记录/benchmark-20261013-preflight-clock-before.json",
+      "upstream_sha256": "e13c7ce596f213d492de60fc3bd3f12f5e9eb1d18a1727d153d7596ebc50348d",
+      "present": true,
+      "deployed_sha256": "e13c7ce596f213d492de60fc3bd3f12f5e9eb1d18a1727d153d7596ebc50348d",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-failed-20261013-084017.json",
+      "target": "验收记录/benchmark-failed-20261013-084017.json",
+      "upstream_sha256": "42b83f2c7112c799e707bed3695d55ff6c047a78aee5e91a133b8e99d46c4383",
+      "present": true,
+      "deployed_sha256": "42b83f2c7112c799e707bed3695d55ff6c047a78aee5e91a133b8e99d46c4383",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-failed-20261013-093424.json",
+      "target": "验收记录/benchmark-failed-20261013-093424.json",
+      "upstream_sha256": "6b8974ec707d63e0223c46066208a575090a20edb3e99602a5acea91283aa6bf",
+      "present": true,
+      "deployed_sha256": "6b8974ec707d63e0223c46066208a575090a20edb3e99602a5acea91283aa6bf",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-failed-20261013-110551.json",
+      "target": "验收记录/benchmark-failed-20261013-110551.json",
+      "upstream_sha256": "f930029466321a2e420f943bb90cb423651799e65ec0269118db5b4a15f5e10b",
+      "present": true,
+      "deployed_sha256": "f930029466321a2e420f943bb90cb423651799e65ec0269118db5b4a15f5e10b",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-failed-20261013-111005.json",
+      "target": "验收记录/benchmark-failed-20261013-111005.json",
+      "upstream_sha256": "4e949d9c12d68573d985c02ef1defe003230f4f3293659bd912f1954abb0b946",
+      "present": true,
+      "deployed_sha256": "4e949d9c12d68573d985c02ef1defe003230f4f3293659bd912f1954abb0b946",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-failed-20261013-111033.json",
+      "target": "验收记录/benchmark-failed-20261013-111033.json",
+      "upstream_sha256": "a2899c593959207696294b291372aa4cfb27368ef4b05325691dec213170b258",
+      "present": true,
+      "deployed_sha256": "a2899c593959207696294b291372aa4cfb27368ef4b05325691dec213170b258",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-failed-20261013-112217.json",
+      "target": "验收记录/benchmark-failed-20261013-112217.json",
+      "upstream_sha256": "258f0be8afa316a1800ff69c892e4eaa3218a87fedb6219962cfd78f3767c2bb",
+      "present": true,
+      "deployed_sha256": "258f0be8afa316a1800ff69c892e4eaa3218a87fedb6219962cfd78f3767c2bb",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-rules-v4-first-Goalie.json",
+      "target": "验收记录/benchmark-rules-v4-first-Goalie.json",
+      "upstream_sha256": "9c0e1136956ae7bc0e1f31ab8a824e5d48aecf3faf18ced5096e89820ce6ec04",
+      "present": true,
+      "deployed_sha256": "9c0e1136956ae7bc0e1f31ab8a824e5d48aecf3faf18ced5096e89820ce6ec04",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-rules-v4-legacy-diagnostic.json",
+      "target": "验收记录/benchmark-rules-v4-legacy-diagnostic.json",
+      "upstream_sha256": "8b87793e1cab787a4dd1130d3fd517b9e6ec5c17d5e6a9c1705edd7f1e7be91b",
+      "present": true,
+      "deployed_sha256": "8b87793e1cab787a4dd1130d3fd517b9e6ec5c17d5e6a9c1705edd7f1e7be91b",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-rules-v4-paired-forward-pass.json",
+      "target": "验收记录/benchmark-rules-v4-paired-forward-pass.json",
+      "upstream_sha256": "33710cfc219023fe1e491b7b397b7aff32dccd0a914ec1a84d122395a57d0c0f",
+      "present": true,
+      "deployed_sha256": "33710cfc219023fe1e491b7b397b7aff32dccd0a914ec1a84d122395a57d0c0f",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-rules-v4-preflight-failed.json",
+      "target": "验收记录/benchmark-rules-v4-preflight-failed.json",
+      "upstream_sha256": "35c63f81fbc2e26accef1ba70029582c32824f2a39bb74d6414c2dd60ca9b78c",
+      "present": true,
+      "deployed_sha256": "35c63f81fbc2e26accef1ba70029582c32824f2a39bb74d6414c2dd60ca9b78c",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-rules-v4-restarted-failed.json",
+      "target": "验收记录/benchmark-rules-v4-restarted-failed.json",
+      "upstream_sha256": "9eed70e216b2fa88e6abc3377bb5897ba33c42421234e1f5019f1f76ed9f23f2",
+      "present": true,
+      "deployed_sha256": "9eed70e216b2fa88e6abc3377bb5897ba33c42421234e1f5019f1f76ed9f23f2",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-v5-active-cycle-failed.json",
+      "target": "验收记录/benchmark-v5-active-cycle-failed.json",
+      "upstream_sha256": "087d96f24831554fba032ec2e75aae898d0580d49776a949ba264bc777442a10",
+      "present": true,
+      "deployed_sha256": "087d96f24831554fba032ec2e75aae898d0580d49776a949ba264bc777442a10",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-v5-baseline-30s.json",
+      "target": "验收记录/benchmark-v5-baseline-30s.json",
+      "upstream_sha256": "09afd9927db079f034c71d4e4bd98544bdd8651cb5cbcd006e0710e0e179a811",
+      "present": true,
+      "deployed_sha256": "09afd9927db079f034c71d4e4bd98544bdd8651cb5cbcd006e0710e0e179a811",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-v5-baseline-interrupted.json",
+      "target": "验收记录/benchmark-v5-baseline-interrupted.json",
+      "upstream_sha256": "161a1325dcd8a611e707f89a8cc8f573cb93989256530cf59761140e849c877c",
+      "present": true,
+      "deployed_sha256": "161a1325dcd8a611e707f89a8cc8f573cb93989256530cf59761140e849c877c",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-v5-contact-hysteresis.json",
+      "target": "验收记录/benchmark-v5-contact-hysteresis.json",
+      "upstream_sha256": "0c43398c776a479760fffb832de7d73eb4595e4d6210857cd3a7a8a966d766ca",
+      "present": true,
+      "deployed_sha256": "0c43398c776a479760fffb832de7d73eb4595e4d6210857cd3a7a8a966d766ca",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-v5-contact-startup-failed.json",
+      "target": "验收记录/benchmark-v5-contact-startup-failed.json",
+      "upstream_sha256": "26a9eb044ba07f1370046b1a0f42d6c1a6b6f803fe3a2d15680bb06694d69546",
+      "present": true,
+      "deployed_sha256": "26a9eb044ba07f1370046b1a0f42d6c1a6b6f803fe3a2d15680bb06694d69546",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-v5-default-startup-failed.json",
+      "target": "验收记录/benchmark-v5-default-startup-failed.json",
+      "upstream_sha256": "8276ad0f607a6c5a926d551a31600009ab40a39bf1f67b9e8c120ca3f9b78d87",
+      "present": true,
+      "deployed_sha256": "8276ad0f607a6c5a926d551a31600009ab40a39bf1f67b9e8c120ca3f9b78d87",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-v5-forward-first-frame-failed.json",
+      "target": "验收记录/benchmark-v5-forward-first-frame-failed.json",
+      "upstream_sha256": "70a35dd549b1c20546671d55bd01202eb3bab40bba6b507d69e97dab2516398b",
+      "present": true,
+      "deployed_sha256": "70a35dd549b1c20546671d55bd01202eb3bab40bba6b507d69e97dab2516398b",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-v5-forward-startup-failed.json",
+      "target": "验收记录/benchmark-v5-forward-startup-failed.json",
+      "upstream_sha256": "a1b259c49adb498e433e217a232a70eef392d9d36ff8a234d422494b24fe1b1b",
+      "present": true,
+      "deployed_sha256": "a1b259c49adb498e433e217a232a70eef392d9d36ff8a234d422494b24fe1b1b",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-v5-forward-warmup-rejected.json",
+      "target": "验收记录/benchmark-v5-forward-warmup-rejected.json",
+      "upstream_sha256": "89b6a78650e29612bb2c2d57fab4521236f5845cbb239de6bfa1b3f286fbd23e",
+      "present": true,
+      "deployed_sha256": "89b6a78650e29612bb2c2d57fab4521236f5845cbb239de6bfa1b3f286fbd23e",
+      "changed_by_upgrade": false
+    },
+    {
+      "archive_path": "SRC-Competition-main/验收记录/benchmark-v5-kick-pulse.json",
+      "target": "验收记录/benchmark-v5-kick-pulse.json",
+      "upstream_sha256": "9da58357159add6c3344014311888b3156e35ceccaf276298d4673e8e9b05b60",
+      "present": true,
+      "deployed_sha256": "9da58357159add6c3344014311888b3156e35ceccaf276298d4673e8e9b05b60",
+      "changed_by_upgrade": false
+    }
+  ],
+  "upstream_file_count": 153,
+  "all_upstream_files_present": true,
+  "primary_entry": "start-match.cmd -> start-v2.1.cmd -> tools/version_entry.py -> PythonScripts/match_launcher.py",
+  "physical_acceptance_passed": false,
+  "premerge_backup_verified": true
+}

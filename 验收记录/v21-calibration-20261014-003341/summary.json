@@ -1,0 +1,14 @@
+{
+  "complete": false,
+  "stage": "static_open_goal",
+  "attempts": [
+    {
+      "robot": 0,
+      "power": 3500,
+      "config": "D:\\\u684c\u9762\\ZBin\\SRC-Competition-v2.1\\\u9a8c\u6536\u8bb0\u5f55\\v21-calibration-20261014-003341\\robot-0-power-3500.json",
+      "console": "D:\\\u684c\u9762\\ZBin\\SRC-Competition-v2.1\\\u9a8c\u6536\u8bb0\u5f55\\v21-calibration-20261014-003341\\robot-0-power-3500-console.txt",
+      "exit_code": 1
+    }
+  ],
+  "physical_acceptance_passed": false
+}

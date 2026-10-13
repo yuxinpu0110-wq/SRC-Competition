@@ -383,6 +383,10 @@ class OfficialPlayTests(unittest.TestCase):
         cls.modules = modules
         cls.patcher = patch.dict(sys.modules,modules)
         cls.patcher.start()
+        # 不复用另一测试类缓存的 fake Player/Global；重新绑定真实 Python 框架。
+        for name in tuple(sys.modules):
+            if name not in modules and (name.startswith('RoleMatch_LuaStyle') or name.startswith('Play.')):
+                del sys.modules[name]
         cls.play_module = importlib.import_module('Play.Normal.Normalplay')
         cls.NormalPlay = cls.play_module.NormalPlay
         cls.Task = importlib.import_module('RoleMatch_LuaStyle.Task').Task
@@ -455,7 +459,7 @@ class OfficialPlayTests(unittest.TestCase):
         from RoleMatch_LuaStyle import State,StateMachine
         self.assertTrue(issubclass(self.NormalPlay,StateMachine))
         self.assertTrue(all(isinstance(s,State) for s in self.play.states.values()))
-        self.assertEqual(len(self.play.states),10)
+        self.assertEqual(len(self.play.states),12)
         self.assertNotIn('Advance',self.play.states)
         self.assertTrue(Path(sys.modules[StateMachine.__module__].__file__).name == 'StateMachine.py')
 
