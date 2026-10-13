@@ -1,5 +1,6 @@
 """Small local operator panel. No global process killing, no auto-start on load."""
 import json
+import argparse
 import math
 import os
 from pathlib import Path
@@ -284,6 +285,9 @@ class App:
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', default=str(ROOT/'match.json'))
+    args = parser.parse_args()
     root = tk.Tk()
-    app = App(root)
+    app = App(root, Path(args.config).resolve())
     root.mainloop()

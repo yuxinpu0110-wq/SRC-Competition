@@ -19,11 +19,15 @@ class BallControl:
     updated: float | None = None
     approaching: bool = False
     releasing: bool = False
+    orbit_sign: int = 0
+    stage: str = 'RELEASE'
 
     def reset(self):
         self.held,self.direction,self.updated = False,None,None
         self.approaching = False
         self.releasing = False
+        self.orbit_sign = 0
+        self.stage = 'RELEASE'
 
     def plan(self, now, robot, heading, ball, target, *, carry=False, contact=85, trim=False):
         if carry:
@@ -56,13 +60,22 @@ class BallControl:
         if not aligned:
             # 大角度变向先径向退到320mm，再走避球圆；不能贴球绕转。
             if self.releasing:
+                self.stage = 'RELEASE'
                 destination = Point(ball.x+320*math.cos(radial),ball.y+320*math.sin(radial))
             elif abs(radial_error) > .12:
-                waypoint = radial+max(-.45,min(.45,radial_error))
+                # 一次绕后动作锁住顺/逆时针方向，避免视觉噪声令方向逐帧翻转。
+                if not self.orbit_sign:
+                    self.orbit_sign = 1 if radial_error > 0 else -1
+                self.stage = 'ORBIT'
+                waypoint = radial+self.orbit_sign*min(.45,abs(radial_error))
                 destination = Point(ball.x+320*math.cos(waypoint),ball.y+320*math.sin(waypoint))
             else:
+                self.orbit_sign = 0
+                self.stage = 'ALIGN'
                 destination = Point(ball.x-320*math.cos(desired),ball.y-320*math.sin(desired))
             return destination,desired,False,self.held,'RELEASE_ALIGN'
+        self.orbit_sign = 0
+        self.stage = 'CONTACT'
         destination = Point(ball.x-contact*math.cos(desired),ball.y-contact*math.sin(desired))
         if trim and abs(lateral) > 6:
             correction = max(-20,min(20,lateral))

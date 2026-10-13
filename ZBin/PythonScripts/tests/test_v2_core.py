@@ -95,5 +95,18 @@ class KeeperModelTests(unittest.TestCase):
         self.assertAlmostEqual(model.velocity.y, 0)
 
 
+class OrbitDirectionTests(unittest.TestCase):
+    def test_orbit_direction_does_not_flip_on_small_noise(self):
+        from ball_control import BallControl
+        control = BallControl()
+        ball = Point(0, 0)
+        target = Point(3000, 0)
+        control.plan(0, Point(0, 320), 0, ball, target)
+        first = control.orbit_sign
+        control.plan(.02, Point(0, -320), 0, ball, target)
+        self.assertNotEqual(first, 0)
+        self.assertEqual(control.orbit_sign, first)
+
+
 if __name__ == '__main__':
     unittest.main()

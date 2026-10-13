@@ -48,6 +48,11 @@ def load_config(path):
                             ('contact_distance',75,110), ('contact_forward_max',90,130)]:
         if name in c and (type(c[name]) not in (int, float) or not math.isfinite(c[name]) or not low <= c[name] <= high):
             raise ValueError('Invalid pass parameter: '+name)
+    for name, low, high in [('vision_stale_seconds', .05, .5),
+                            ('pass_ball_speed_mm_s', 500, 6500),
+                            ('shot_ball_speed_mm_s', 500, 6500)]:
+        if name in c and (type(c[name]) not in (int, float) or not math.isfinite(c[name]) or not low <= c[name] <= high):
+            raise ValueError('Invalid V2 observation/ball parameter: '+name)
     if type(c.get('contact_budget_mm',300)) not in (int,float) or not 50 <= c.get('contact_budget_mm',300) <= 400:
         raise ValueError('contact_budget_mm must be 50..400, below the 1m rule limit')
     if 'goal_margin' in c and (type(c['goal_margin']) not in (int, float)
@@ -170,9 +175,10 @@ def main():
                 # players 含受控门将位置，供 STOP 退球；选主攻时只看配置里的 attackers。
                 visible = {n for n in ids if Player.isValid(n)}
                 players = {n:xy(Player.Pos(n)) for n in visible}
-                opponents = [xy(Enemy.pos(n)) for n in range(16) if Enemy.valid(n)]
+                opponent_players = {n:xy(Enemy.pos(n)) for n in range(16) if Enemy.valid(n)}
+                opponents = list(opponent_players.values())
                 play.update_frame(now, ball, players, opponents, visible, mode, valid_ball,
-                                  referee=message, cycle=cycle)
+                                  referee=message, cycle=cycle, opponent_players=opponent_players)
                 play.planTasks()  # 唯一调度入口：官方 State.run → Task.run → Skill。
                 Global.isPlaySwitched = False
                 if play.motion_ids or c.get('complete_frame', True):
@@ -207,8 +213,17 @@ def main():
                            'match_events':list(play.events.events[-32:]),
                            'aim':[play.choice.aim.x, play.choice.aim.y] if play.choice.aim is not None else None,
                            'shot_gate':{str(n):g.diagnostics for n,g in play.shot_gates.items()},
+                           'ball_control':{str(n):{'stage':control.stage,
+                                                   'releasing':control.releasing,
+                                                   'orbit_sign':control.orbit_sign}
+                                           for n,control in play.ball_controls.items()},
                            'angles':{str(n):Player.direction(n) for n in visible},
                            'opponents':[[p.x,p.y] for p in opponents],
+                           'opponent_robots':{str(n):[p.x,p.y] for n,p in opponent_players.items()},
+                           'keeper_prediction':([play.keeper_prediction.position.x,
+                                                 play.keeper_prediction.position.y,
+                                                 play.keeper_prediction.uncertainty]
+                                                if play.keeper_prediction is not None else None),
                            'robots':{str(n):[players[n].x, players[n].y] for n in visible}}
                     log.write(json.dumps(row)+'\n')
                     log.flush()

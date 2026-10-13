@@ -30,6 +30,7 @@ from ball_control import BallControl, wrap
 from competition_rules import ContactGuard, RestartGuard, retreat_target
 from observation import ObservationClock
 from match_events import MatchEvents
+from keeper_model import KeeperModel
 
 
 @dataclass
@@ -49,6 +50,7 @@ class Frame:
     cycle: int | None = None
     fresh: bool = True
     vision_age: float = 0.0
+    opponent_players: dict | None = None
 
 
 @dataclass
@@ -263,6 +265,9 @@ class NormalPlay(StateMachine):
         self.restart_guard = RestartGuard()
         self.observation_clock = ObservationClock(config.get('vision_stale_seconds', .15))
         self.events = MatchEvents()
+        self.keeper_model = KeeperModel()
+        self.keeper_opponent_id = None
+        self.keeper_prediction = None
         self.infrared = {}
         self.phase = self.strategy_phase = self.executed_state = 'Hold'
 
@@ -279,7 +284,8 @@ class NormalPlay(StateMachine):
         # 开赛许可和球的位置都要有效；“能进攻”不代表每一帧都要踢球。
         return self.frame.mode in ('PLAY', 'OUR_RESTART', 'OUR_INDIRECT') and self.frame.ball_valid and finite(self.frame.ball)
 
-    def update_frame(self, now, ball, players, opponents, visible, mode, ball_valid, referee='', cycle=None):
+    def update_frame(self, now, ball, players, opponents, visible, mode, ball_valid, referee='', cycle=None,
+                     opponent_players=None):
         sample = self.observation_clock.observe(now, cycle)
         if sample.reset:
             # 视觉重连/周期回退会产生位置跳变，旧速度和稳定窗口都必须作废。
@@ -299,7 +305,8 @@ class NormalPlay(StateMachine):
         clean_players = {n:p for n,p in players.items() if finite(p)}
         self.frame = Frame(now, ball, clean_players, [p for p in opponents if finite(p)],
                            set(visible) & set(clean_players), mode, ball_valid, referee,
-                           cycle, sample.fresh, sample.age)
+                           cycle, sample.fresh, sample.age,
+                           {n:p for n,p in (opponent_players or {}).items() if finite(p)})
         self.events.observe(now, ball, fresh=sample.fresh)
 
     def normal_state(self):
@@ -357,8 +364,26 @@ class NormalPlay(StateMachine):
                 if not self.can_attack:
                     gate.stable_since = None
         self.motion_ids = set()
+        tactical_opponents = f.opponents
+        if self.c.get('enable_keeper_prediction', False) and f.opponent_players:
+            goal = Point(self.c['field_length']/2, 0)
+            if self.keeper_opponent_id not in f.opponent_players:
+                # 锁定最靠近对方球门的可见 ID；之后不会因队员交叉而逐帧换身份。
+                self.keeper_opponent_id = min(f.opponent_players,
+                                              key=lambda n: distance(f.opponent_players[n], goal))
+            keeper = f.opponent_players[self.keeper_opponent_id]
+            if f.fresh:
+                self.keeper_model.observe(f.now, keeper)
+            speed = self.c.get('shot_ball_speed_mm_s', 4500)
+            self.keeper_prediction = self.keeper_model.predict(
+                min(.8, distance(f.ball, goal)/max(1, speed)), self.c)
+            if self.keeper_prediction is not None:
+                tactical_opponents = [p for n,p in f.opponent_players.items()
+                                      if n != self.keeper_opponent_id]+[self.keeper_prediction.position]
+        else:
+            self.keeper_prediction = None
         # 传球途中锁住主攻权；球只是靠近接球车还不够，必须由完成条件交接。
-        self.choice = self.tactics.choose(f.now, f.ball, f.players, f.opponents, self.last_pass,
+        self.choice = self.tactics.choose(f.now, f.ball, f.players, tactical_opponents, self.last_pass,
                                           freeze_striker=self.session is not None)
         if self.restart_guard.requires_pass and self.session is None:
             # 间接任意球只能先传给队友；无合法接应点则保守等待。
