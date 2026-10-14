@@ -15,7 +15,7 @@ import time
 import traceback
 import uuid
 
-from strategy_contract import normalize_verified_contract, uses_verified_control
+from strategy_contract import normalize_verified_contract, uses_verified_control, uses_range_gate
 
 ROOT = Path(__file__).resolve().parents[2]
 ZBIN = ROOT/'ZBin'
@@ -91,6 +91,23 @@ def load_config(path):
                 raise ValueError('Calibration isolates two attackers, without passing')
     if c['defense_depth'] >= c['field_length']/2 or c['defense_width'] >= c['field_width'] or c['goal_width'] >= c['field_width']:
         raise ValueError('Inconsistent field dimensions')
+    if uses_range_gate(c):
+        from ball_travel import load_ball_model
+        if c.get('v22_mode') not in ('development', 'candidate'):
+            raise ValueError('V2.2 requires explicit development or candidate mode')
+        if c.get('enable_pass') or c.get('calibration_mode'):
+            raise ValueError('V2.2 calibrated cooperative plans are not implemented; use V2.1 calibration entry')
+        if c.get('ball_radius_mm') != 21.5:
+            raise ValueError('V2.2 full-crossing gate currently requires ball_radius_mm=21.5')
+        powers = c.get('planned_shot_power_by_robot')
+        if (not isinstance(powers, dict) or set(powers) != {str(n) for n in c['attackers']}
+                or any(type(p) is not int or not 1000 <= p <= c['power_cap'] for p in powers.values())):
+            raise ValueError('V2.2 requires exact planned SDK powers for both attackers')
+        if not isinstance(c.get('ball_model_path'), str) or not c['ball_model_path']:
+            raise ValueError('Missing V2.2 ball_model_path')
+        load_ball_model(ROOT/c['ball_model_path'], ZBIN, c)
+        if c['v22_mode'] == 'candidate':
+            raise ValueError('V2.2 candidate is not accepted: physical calibration and paired match acceptance remain incomplete')
     return c
 
 
@@ -98,6 +115,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default=str(ROOT/'configs/v2.1-foundation.json'))
     parser.add_argument('--check', action='store_true')
+    parser.add_argument('--check-config', action='store_true', help='Validate config and model without importing native SDK or sending commands')
     parser.add_argument('--frames', type=int, default=0)
     parser.add_argument('--telemetry', help='Explicit JSONL output for an owned benchmark process')
     args = parser.parse_args()
@@ -107,6 +125,14 @@ def main():
     if args.frames < 0:
         parser.error('frames must be non-negative')
     c = load_config(args.config)
+    if args.check_config:
+        print('[CHECK] Config valid. strategy=%s control_contract=%s' %
+              (c.get('strategy_version',c.get('upgrade_version','legacy')),c.get('control_contract_version','legacy')))
+        if uses_range_gate(c):
+            from ball_travel import load_ball_model
+            model = load_ball_model(ROOT/c['ball_model_path'], ZBIN, c)
+            print('[CHECK] V2.2 development only; model usable_for_planning=%s; physical acceptance incomplete.' % model.data['usable_for_planning'])
+        return
     os.environ.setdefault('SRC_MATCH_RUN_ID', uuid.uuid4().hex)
     if not args.check:
         from match_processes import check_duplicates
@@ -294,6 +320,7 @@ def main():
                            'match_events':list(play.events.events[-32:]),
                            'aim':[play.choice.aim.x, play.choice.aim.y] if play.choice.aim is not None else None,
                            'shot_gate':{str(n):g.diagnostics for n,g in play.shot_gates.items()},
+                           'shot_opportunities':{str(n):v for n,v in play.shot_opportunities.items()},
                            'ball_control':{str(n):{'stage':control.stage,
                                                    'releasing':control.releasing,
                                                    'orbit_sign':control.orbit_sign}

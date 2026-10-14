@@ -60,6 +60,7 @@ def fit_window(samples, expected_angle):
 def analyze(rows):
     requests,departures={},{}
     raw={}
+    audit_departures, audit_raw = {}, {}
     def identity(event, row):
         return (event.get('run_id', row.get('run_id', 'legacy')),
                 event.get('reset_epoch', row.get('reset_epoch', 0)),
@@ -76,6 +77,12 @@ def analyze(rows):
             key=identity(pulse, row)
             if key in requests:
                 requests[key]['power']=pulse.get('power')
+        for e in row.get('flight_audit_events', []):
+            key=identity(e, row)
+            if e.get('kind') == 'BALL_DEPARTED':
+                audit_departures[key]=e
+            elif e.get('kind') == 'FLIGHT_SAMPLE' and e.get('ball'):
+                audit_raw[key,e['camera'],e['frame_id']]=e
         sample=row.get('raw_capture')
         if sample and sample.get('ball') and row.get('observation',{}).get('fresh'):
             raw[row.get('run_id','legacy'),row.get('reset_epoch',0),sample['camera'],sample['frame_id']]=sample
@@ -85,6 +92,15 @@ def analyze(rows):
         item=dict(run_id=key[0],reset_epoch=key[1],plan_id=key[2],leg_id=key[3],
                   transaction_id=key[4],robot=e['robot'],power=e['power'],departed=departure is not None,
                   departure_confirmation_delay_s=departure['delay_s'] if departure else None)
+        audit=audit_departures.get(key)
+        item['audit_departed']=audit is not None
+        if audit:
+            item['audit_confirmation_delay_s']=audit['delay_s']
+            samples=sorted((s for sample_key,s in audit_raw.items() if sample_key[0] == key
+                           and audit['now'] <= s['receive_time'] <= audit['now']+.25),
+                           key=lambda s:s['capture_time'])
+            angle=math.atan2(e['target']['y']-e['start_ball']['y'],e['target']['x']-e['start_ball']['x'])
+            item['audit_flight']=fit_window(samples,angle)
         if departure:
             dx=e['target']['x']-e['start_ball']['x']
             dy=e['target']['y']-e['start_ball']['y']

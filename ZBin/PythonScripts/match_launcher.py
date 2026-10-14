@@ -50,7 +50,11 @@ def v21_status(row):
         return '已确认球离脚，正在观察飞行。'
     if transaction.get('retry_exhausted'):
         return '未离脚重试预算已用尽；等待新球或场景重置。'
-    return 'V2.1 状态：'+row.get('phase',row.get('state','WAIT'))
+    if row.get('version') == '2.2':
+        rejected = [v for v in row.get('shot_opportunities',{}).values() if not v.get('reachable')]
+        if rejected:
+            return 'V2.2 开发版：出脚已拒绝，'+rejected[-1].get('reason','UNKNOWN')
+    return str(row.get('version','V2.1'))+' 状态：'+row.get('phase',row.get('state','WAIT'))
 
 
 class App:
@@ -72,7 +76,9 @@ class App:
         self.opponent_telemetry = None
         window.title('SRC 比赛策略 · 本机仿真')
         window.geometry('720x830')
-        tk.Label(window, text='比赛策略控制台（V2.1集成·不带球）', font=('Microsoft YaHei', 16)).pack(pady=12)
+        config = load_config(self.config_path)
+        version = config.get('strategy_version',config.get('upgrade_version','V2'))
+        tk.Label(window, text=f'比赛策略控制台（{version}·不带球）', font=('Microsoft YaHei', 16)).pack(pady=12)
         tk.Label(window, text='默认：初赛 2 攻，蓝队 0 / 1 号；原练习目录不受影响。\n先关闭旧 Client / grSim / demo / Medusa，避免端口和控制权冲突。', justify='left').pack()
         self.pass_enabled = tk.BooleanVar(value=load_config(self.config_path).get('enable_pass', False))
         tk.Checkbutton(window, text='实验传球（重新启动策略后生效，尚未完成移动门将验收）',

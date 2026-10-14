@@ -10,6 +10,8 @@ def normalize_verified_contract(config):
     strategy = config.get('strategy_version')
     if upgrade not in (None, '2.1', '2.2') or strategy not in (None, '2.1', '2.2'):
         raise ValueError('Unsupported strategy version')
+    if upgrade is not None and strategy is not None and upgrade != strategy:
+        raise ValueError('Conflicting upgrade_version and strategy_version')
     if 'control_contract_version' in config:
         contract = config['control_contract_version']
         if type(contract) is not int or contract != 2:
