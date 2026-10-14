@@ -20,8 +20,9 @@ class ActionBudget:
         self.best = math.inf
         self.deadline = math.inf
         self.reason = None
+        self.stage = None
 
-    def update(self, now, robot, heading, ball, target, config):
+    def update(self, now, robot, heading, ball, target, config, *, stage=None):
         desired = math.atan2(target.y-ball.y, target.x-ball.x)
         gap = distance(robot, ball)
         radial = abs(wrap(desired+math.pi-math.atan2(robot.y-ball.y, robot.x-ball.x)))
@@ -33,6 +34,18 @@ class ActionBudget:
             self.best = remaining
             self.deadline = now+config.get('action_align_timeout_s', 1.)+remaining/250
             self.reason = None
+            self.stage = None
+        if stage is not None:
+            # 必要的“先退球”会增加到球距离，不能误判为毫无进展并反复取消。
+            # 分阶段计进展，但保留原始总期限；阶段来回跳也不能无限续命。
+            if stage != self.stage:
+                self.stage=stage
+                self.best=math.inf
+                self.progress_at=now
+            if stage=='RELEASE':
+                remaining=max(0,260-gap)
+            elif stage=='ORBIT':
+                remaining=320*radial+150*angle+abs(gap-320)
         if remaining < self.best-15:
             self.best, self.progress_at = remaining, now
         if now > self.deadline:

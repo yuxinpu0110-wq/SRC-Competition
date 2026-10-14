@@ -61,6 +61,7 @@ class Tactics:
         self.target_time = -100.0
         self.last_pass_plans = []
         self.committed_ball = None
+        self.shot_after_receive_until = -math.inf
 
     def legal(self, p):
         """将进攻车目标限制在场内/禁区外；不保证整段轨迹或所有规则合法。"""
@@ -131,6 +132,16 @@ class Tactics:
         # 这是保守瞄点，不是未经标定的固定偏角补偿。
         half_goal = self.c['goal_width']/2-self.c.get('goal_margin', 160)
         points = [Point(self.c['field_length']/2, half_goal*i/4) for i in range(-4, 5)]
+        from reactive_policy import enabled
+        if enabled(self.c):
+            # 大斜角时整球越线的Y会继续偏移，不能只看门线上瞄点。
+            safe=[]
+            for p in points:
+                angle=math.atan2(p.y-ball.y,p.x-ball.x)
+                if math.cos(angle)>.05 and all(abs(ball.y+(p.x+21.5-ball.x)*math.tan(a))
+                        <self.c['goal_width']/2-70 for a in (angle-.025,angle+.025)):
+                    safe.append(p)
+            points=safe or [Point(self.c['field_length']/2,0)]
         def score(p):
             # 净空越大越好，线路越长略扣分。分数是启发式评分，不是成功率。
             return min(600, clearance(ball, p, obstacles))-distance(ball, p)*0.015
@@ -148,6 +159,38 @@ class Tactics:
         front = self.c['field_length']/2-self.c['defense_depth']-300
         candidates = [self.legal(Point(min(front,ball.x+dx), ball.y+dy))
                       for dx in (650, 1600, 2200, 2800) for dy in (-1500, -1100, -900, -600, 600, 900, 1100, 1500)]
+        from reactive_policy import enabled
+        if enabled(self.c):
+            # 短传推进/横向转移。只用粗距离，不依赖预估飞行时间；先等接应车就位。
+            near_goal=distance(ball,Point(self.c['field_length']/2,0))<self.c['reactive_shot_max_mm']
+            offsets=(-650,-350,0,350,650) if near_goal else (0,350,650,1000,1200)
+            candidates=[self.legal(Point(ball.x+dx,ball.y+dy))
+                for dx in offsets for dy in (-1200,-900,-500,-250,250,500,900,1200)]
+            candidates=[p for p in candidates if 700<=distance(ball,p)<=self.c['reactive_pass_max_mm']
+                and clearance(ball,p,opponents)>220]
+            # 接触位/接应车实体也必须合法。门前不能选一个根本绕不到球后的侧传。
+            legal_candidates=[]
+            for p in candidates:
+                length=distance(ball,p);ux,uy=(p.x-ball.x)/length,(p.y-ball.y)/length
+                sender_pose=Point(ball.x-110*ux,ball.y-110*uy)
+                receiver_pose=Point(p.x+110*ux,p.y+110*uy)
+                if distance(sender_pose,self.legal(sender_pose))<1 and distance(receiver_pose,self.legal(receiver_pose))<1:
+                    legal_candidates.append(p)
+            candidates=legal_candidates
+            self.last_pass_plans=[]
+            def reactive_score(p):
+                incoming=math.atan2(ball.y-p.y,ball.x-p.x)
+                shot_angle=math.atan2(-p.y,self.c['field_length']/2-p.x)
+                turn=abs(math.atan2(math.sin(incoming-shot_angle),math.cos(incoming-shot_angle)))
+                # 近门优先回做/斜传，接球队员已经大致面向球门；远处才优先前传推进。
+                score=(0 if near_goal else (p.x-ball.x)*.35)+(500 if near_goal else 1000)*self.goal_opening(p)
+                score-=turn*(350 if near_goal else 50)
+                score+=min(400,clearance(ball,p,opponents))*.2
+                score-=distance(receiver,p)*.08 if receiver is not None else 0
+                if near_goal and distance(p,Point(self.c['field_length']/2,0))>self.c['reactive_shot_max_mm']-25:
+                    score-=2000
+                return score
+            return max(candidates,key=reactive_score) if candidates else None
         candidates = [p for p in candidates if 850 < distance(ball, p) < 3000
                       and clearance(ball, p, opponents) > 200]
         if receiver is not None and self.c.get('enable_reachable_pass', False):
@@ -223,6 +266,16 @@ class Tactics:
         if status:
             return choice
         own_score = self.shot(ball, opponents)[1]
+        from reactive_policy import enabled
+        if enabled(self.c):
+            far=distance(ball,self.target)>self.c['reactive_shot_max_mm']-25
+            blocked=clearance(ball,self.target,opponents)<self.c['reactive_shot_lane_margin_mm']
+            if (offer is not None and now-last_pass>self.c['reactive_pass_cooldown_s']
+                    and (far or (blocked and now>=self.shot_after_receive_until))):
+                choice.pass_target=offer
+            if far and choice.pass_target is None:
+                choice.phase='WAIT_SHORT_PASS'
+            return choice
         if (offer is not None and now-last_pass > 6
                 and distance(players[self.striker], ball) < 280
                 and own_score < self.c.get('pass_shot_threshold', 230)

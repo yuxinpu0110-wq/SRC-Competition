@@ -36,6 +36,7 @@ from keeper_model import KeeperModel
 from ball_flight import BallFlightObserver, FlightIdentity
 from ball_travel import load_ball_model
 from shot_opportunity import KickPlan, evaluate_kick
+import reactive_policy
 
 
 @dataclass
@@ -303,6 +304,7 @@ class NormalPlay(StateMachine):
         self.c = config
         self.v21 = uses_verified_control(config)
         self.range_gate = uses_range_gate(config)
+        self.reactive = reactive_policy.enabled(config)
         self.travel_model = None
         self.shot_opportunities = {}
         if self.range_gate:
@@ -436,6 +438,8 @@ class NormalPlay(StateMachine):
             self.pass_aborted += 1
             self.last_pass, self.pass_reason = self.frame.now, reason
         self.session = None
+        self.receive_previous = None
+        self.receive_velocity = None
 
     def hookBeforePlanTasks(self):
         """官方框架每帧在 getTasks() 前调用：观察→建议→安全检查。
@@ -464,6 +468,7 @@ class NormalPlay(StateMachine):
                     # 裁判重置/练习摆球后，不能继承上个球位的门角锁定。
                     self.tactics.target = None
                     self.tactics.committed_ball = None
+                    self.tactics.shot_after_receive_until = -math.inf
             if not f.new_capture:
                 for gate in self.shot_gates.values(): gate.new_observation = False
             tx = self.transactions.active
@@ -593,6 +598,8 @@ class NormalPlay(StateMachine):
         # 状态对象负责转换；Tactics 只判断“有没有值得尝试的传球目标”。
         d, f = self.choice, self.frame
         if d.pass_target is not None:
+            self.receive_previous = None
+            self.receive_velocity = None
             self.session = PassSession(d.striker, d.other, d.pass_target, f.ball, f.now)
             if self.c.get('enable_feint', False) and f.opponents:
                 # 只在对手封堵前方时佯攻；空门无需多等一次。
@@ -683,8 +690,15 @@ class NormalPlay(StateMachine):
         dx, dy = f.ball.x-robot.x, f.ball.y-robot.y
         contact = (dx*math.cos(heading)+dy*math.sin(heading),
                    abs(-dx*math.sin(heading)+dy*math.cos(heading)))
-        result = evaluate_kick(plan, f.ball, heading, actual_power, self.reset_epoch, f.now,
-                               self.travel_model, self.c, contact=contact)
+        if self.reactive:
+            if plan.purpose=='pass' and (self.session is None or not self.receiver_ready()
+                    or clearance(f.ball,plan.target,f.opponents)<180):
+                self.shot_opportunities[number]={'reachable':False,'reason':'REACTIVE_RECEIVER_OR_LANE'}
+                return False
+            result=reactive_policy.evaluate(plan,f.ball,heading,actual_power,self.reset_epoch,f.now,self.c)
+        else:
+            result = evaluate_kick(plan, f.ball, heading, actual_power, self.reset_epoch, f.now,
+                                   self.travel_model, self.c, contact=contact)
         self.shot_opportunities[number] = dict(result.diagnostics(), planned_power=plan.power,
                                                actual_setKick_power=None,
                                                clamped_power=actual_power, keeper_evaluation='NOT_IMPLEMENTED')
@@ -693,8 +707,9 @@ class NormalPlay(StateMachine):
     def receiver_ready(self):
         s = self.session
         angle = math.atan2(s.origin.y-s.target.y, s.origin.x-s.target.x)
-        return (distance(self.frame.players[s.receiver], self.receiver_position()) < 140
-                and abs(wrap(Player.direction(s.receiver)-angle)) < .2)
+        # 旧140mm“到附近了”会让球从车旁滚过。实验版要求接球车真正对准通道。
+        return (distance(self.frame.players[s.receiver], self.receiver_position()) < (45 if self.reactive else 140)
+                and abs(wrap(Player.direction(s.receiver)-angle)) < (.08 if self.reactive else .2))
 
     def sender_ready(self):
         s, f = self.session, self.frame
@@ -726,6 +741,10 @@ class NormalPlay(StateMachine):
             self.tactics.striker, self.tactics.changed, self.tactics.target = s.receiver, f.now, None
             self.last_pass, self.pass_reason = f.now, 'RECEIVER_NEAR_BALL'
             self.pass_completed += 1  # 视觉近球，不是红外控球认证。
+            if self.reactive:
+                # 已进入粗射程时先完成一次射门准备，不能0.8秒后又因门将附近而改传。
+                self.tactics.shot_after_receive_until=f.now+4.0
+                self.ball_controls[s.receiver].reset()
             self.session = None
             return True
         s.receive_since = None
@@ -741,6 +760,11 @@ class NormalPlay(StateMachine):
         if d.striker is not None:
             # 无带球推进；原地球远时也只射/传。间接球未有他车触球不能直接射。
             actions[d.striker] = ('aim' if d.pass_target is not None or self.restart_guard.requires_pass else 'shoot', d.aim)
+            if self.reactive:
+                if d.pass_target is not None:
+                    actions[d.striker]=('aim',d.pass_target)
+                elif d.phase=='WAIT_SHORT_PASS':
+                    actions[d.striker]=('stop',None)
         return self.tasks(actions, goalie=True)
 
     def receiving_tasks(self, chase):
@@ -748,7 +772,32 @@ class NormalPlay(StateMachine):
         s, f = self.session, self.frame
         retreat = self.tactics.legal(Point(s.origin.x-450, s.origin.y))
         target = self.receiver_position()
-        if chase and self.ball_speed < 1200:
+        if self.reactive and distance(f.ball,s.origin)>180:
+            # 用实际球路修正接应，最多挪动300mm；不无限追球/闯禁区。
+            old=getattr(self,'receive_previous',None)
+            sample_time=f.capture_time if f.capture_time is not None else f.now
+            if f.new_capture and old is not None and .06<=sample_time-old[0]<=.2:
+                vx=(f.ball.x-old[1].x)/(sample_time-old[0]);vy=(f.ball.y-old[1].y)/(sample_time-old[0])
+                speed=math.hypot(vx,vy)
+                self.receive_velocity=(sample_time,vx,vy) if 250<speed<6500 else None
+                self.receive_previous=(sample_time,f.ball)
+            elif f.new_capture and (old is None or not 0<=sample_time-old[0]<=.2):
+                self.receive_previous=(sample_time,f.ball)
+                self.receive_velocity=None
+            velocity=getattr(self,'receive_velocity',None)
+            if velocity is not None and 0<=sample_time-velocity[0]<=.2:
+                vx,vy=velocity[1:]
+                speed=math.hypot(vx,vy)
+                if 250<speed<6500:
+                    ux,uy=vx/speed,vy/speed
+                    along=(s.target.x-f.ball.x)*ux+(s.target.y-f.ball.y)*uy
+                    if along>0:
+                        intercept=Point(f.ball.x+along*ux,f.ball.y+along*uy)
+                        shift=distance(intercept,s.target)
+                        if shift<=self.c['reactive_receive_shift_mm']:
+                            target=self.receiver_position(intercept)
+        if chase and self.ball_speed < 1200 and (not self.reactive
+                or distance(f.ball,s.target)<=self.c['reactive_receive_shift_mm']):
             # 高速来球时守住接应点，不能提前冲向来球；慢球才小范围追接。
             target = self.receiver_position(f.ball)
         return self.tasks({s.sender:('move', retreat), s.receiver:('receive', target)}, goalie=True)
@@ -820,8 +869,11 @@ class NormalPlay(StateMachine):
                 kick_plan = None
                 if self.range_gate:
                     power = self.c['planned_shot_power_by_robot'][str(number)]
+                    if self.reactive:
+                        power=self.c['reactive_pass_power'] if action=='pass' else self.c['reactive_shot_power']
                     kick_plan = KickPlan(number, 'pass' if action == 'pass' else 'shot',
-                        f.ball, target, power, self.reset_epoch, f.now, self.travel_model.data.get('model_id'))
+                        f.ball, target, power, self.reset_epoch, f.now,
+                        reactive_policy.MODEL_ID if self.reactive else self.travel_model.data.get('model_id'))
                 # 使用统一力度映射，不能把这个参数直接当作物理球速。
                 skill = CompetitionSkills.TargetedKick(target, f.ball, power, self.tactics,
                         can_kick=action != 'aim', enable_dss=self.c.get('enable_dss', True),

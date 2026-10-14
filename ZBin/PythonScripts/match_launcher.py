@@ -80,14 +80,16 @@ class App:
         version = config.get('strategy_version',config.get('upgrade_version','V2'))
         tk.Label(window, text=f'比赛策略控制台（{version}·不带球）', font=('Microsoft YaHei', 16)).pack(pady=12)
         v22_development = uses_range_gate(config)
+        reactive = config.get('v22_mode')=='reactive-development'
         if v22_development:
             window.geometry('720x900')
-            tk.Label(window,text='V2.2 开发版：真实标定尚未完成，当前模型禁止出脚。\n不是可上场版本；配合与动态门将尚未实现。',
+            tk.Label(window,text=('V2.2 反应式实验版：粗距离限制＋短传接应，可以出脚。\n仅本机仿真；尚未通过强门将验收，不是比赛稳定版。' if reactive else
+                'V2.2 开发版：真实标定尚未完成，当前模型禁止出脚。\n不是可上场版本；配合与动态门将尚未实现。'),
                      fg='#a00000',justify='left').pack()
         tk.Label(window, text='默认：初赛 2 攻，蓝队 0 / 1 号；原练习目录不受影响。\n先关闭旧 Client / grSim / demo / Medusa，避免端口和控制权冲突。', justify='left').pack()
         self.pass_enabled = tk.BooleanVar(value=load_config(self.config_path).get('enable_pass', False))
         tk.Checkbutton(window, text='实验传球（重新启动策略后生效，尚未完成移动门将验收）',
-                       variable=self.pass_enabled,state='disabled' if v22_development else 'normal').pack(pady=4)
+                       variable=self.pass_enabled,state='disabled' if v22_development and not reactive else 'normal').pack(pady=4)
         self.feint_enabled = tk.BooleanVar(value=load_config(self.config_path).get('enable_feint', False))
         tk.Checkbutton(window, text='静止佯射后释放/绕后传球（需开启传球；重启生效）',
                        variable=self.feint_enabled,state='disabled' if v22_development else 'normal').pack(pady=4)

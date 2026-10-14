@@ -21,6 +21,7 @@ def main():
     parser.add_argument('--seconds',type=float,default=12)
     parser.add_argument('--config',type=Path,default=ROOT/'configs/v2.1-foundation.json')
     parser.add_argument('--starts',choices=('contact','approach','front'),default='contact')
+    parser.add_argument('--passing',choices=('on','off'),default='off')
     args=parser.parse_args()
     if not 1<=args.attempts<=12 or not 2<=args.seconds<=30: parser.error('Bounded attempts/duration required')
     output=ROOT/'验收记录'/('empty-goal-fix-'+time.strftime('%Y%m%d-%H%M%S'))
@@ -34,7 +35,7 @@ def main():
         folder.mkdir()
         command=[sys.executable,'-X','utf8',str(SCRIPTS/'benchmark_match.py'),
                  '--config',str(args.config.resolve()),'--seconds',str(args.seconds),
-                 '--goalie',args.goalie,'--starts',args.starts,'--passing','off','--frame-cycle','paired']
+                 '--goalie',args.goalie,'--starts',args.starts,'--passing',args.passing,'--frame-cycle','paired']
         timed_out=False
         attempt_started=time.time()
         with (folder/'console.txt').open('w',encoding='utf-8') as log:

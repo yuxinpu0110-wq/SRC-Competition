@@ -24,6 +24,8 @@ ZBIN = ROOT/'ZBin'
 def load_config(path):
     """配置不合法就拒绝启动；旧 direct 调度已移除，不允许静默回退。"""
     c = normalize_verified_contract(json.loads(Path(path).read_text(encoding='utf-8-sig')))
+    if c.get('v22_mode')=='reactive-development' and not uses_range_gate(c):
+        raise ValueError('Reactive development requires explicit V2.2 contract')
     if c['profile'] not in ('qualifier', 'full', 'goalie'):
         raise ValueError('profile must be qualifier, full or goalie')
     if c['team'] not in ('blue', 'yellow') or c['side'] not in ('left', 'right'):
@@ -92,12 +94,15 @@ def load_config(path):
     if c['defense_depth'] >= c['field_length']/2 or c['defense_width'] >= c['field_width'] or c['goal_width'] >= c['field_width']:
         raise ValueError('Inconsistent field dimensions')
     if uses_range_gate(c):
+        from reactive_policy import enabled as reactive_enabled, validate_config as validate_reactive
+        reactive = reactive_enabled(c)
+        validate_reactive(c)
         from ball_travel import load_ball_model
         from simulator_context import settings_path
         settings_path(c)  # Validate explicit source even for an inert developer model.
-        if c.get('v22_mode') not in ('development', 'candidate'):
+        if c.get('v22_mode') not in ('development', 'candidate', 'reactive-development'):
             raise ValueError('V2.2 requires explicit development or candidate mode')
-        if c.get('enable_pass') or c.get('calibration_mode'):
+        if (c.get('enable_pass') and not reactive) or c.get('calibration_mode'):
             raise ValueError('V2.2 calibrated cooperative plans are not implemented; use V2.1 calibration entry')
         if c.get('ball_radius_mm') != 21.5:
             raise ValueError('V2.2 full-crossing gate currently requires ball_radius_mm=21.5')
@@ -133,7 +138,11 @@ def main():
         if uses_range_gate(c):
             from ball_travel import load_ball_model
             model = load_ball_model(ROOT/c['ball_model_path'], ZBIN, c)
-            print('[CHECK] V2.2 development only; model usable_for_planning=%s; physical acceptance incomplete.' % model.data['usable_for_planning'])
+            from reactive_policy import enabled as reactive_enabled
+            if reactive_enabled(c):
+                print('[CHECK] REACTIVE LOCAL EXPERIMENT: coarse shot/pass bounds; NOT calibrated or competition accepted.')
+            else:
+                print('[CHECK] V2.2 development only; model usable_for_planning=%s; physical acceptance incomplete.' % model.data['usable_for_planning'])
         return
     os.environ.setdefault('SRC_MATCH_RUN_ID', uuid.uuid4().hex)
     if not args.check:

@@ -60,7 +60,13 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
         if uses_verified_control(geometry.c):
             if control.budget is None:
                 control.budget = ActionBudget()
-            failure = control.budget.update(now, robot, heading, ball, target, geometry.c)
+            # 接应车就位前，已静态对准的发球车可以等；等待总时长仍由 PassSetup 限制。
+            if geometry.c.get('v22_mode')=='reactive-development' and not can_kick and aligned and held:
+                control.budget = ActionBudget()
+                failure = None
+            else:
+                failure = control.budget.update(now, robot, heading, ball, target, geometry.c,
+                    stage=control.stage if geometry.c.get('v22_mode')=='reactive-development' else None)
             if failure:
                 # 不贴球换目标；本帧先停车，下一帧由官方 AbortRelease 状态退离。
                 skill = Skill.Stop()
