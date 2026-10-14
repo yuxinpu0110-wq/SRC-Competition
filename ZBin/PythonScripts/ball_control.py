@@ -46,6 +46,7 @@ class ActionBudget:
 @dataclass
 class BallControl:
     budget: ActionBudget | None = None
+    contact_anchor: Point | None = None
     held: bool = False
     direction: float | None = None
     updated: float | None = None
@@ -57,6 +58,7 @@ class BallControl:
 
     def reset(self):
         self.budget = None
+        self.contact_anchor = None
         self.held,self.direction,self.updated = False,None,None
         self.approaching = False
         self.releasing = False

@@ -80,15 +80,25 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
         flags = (0x08000000 if enable_dss else 0) | 0x200 | (0 if aligned else 0x10)
         forward = (ball.x-robot.x)*math.cos(heading)+(ball.y-robot.y)*math.sin(heading)
         lateral = abs(-(ball.x-robot.x)*math.sin(heading)+(ball.y-robot.y)*math.cos(heading))
-        # “允许申请出脚”的105mm上界不等于已经接触踢球器。停在104mm处会
-        # 反复空发请求；只在更近的接触带停车，外层仍缓慢靠近到配置目标。
-        settle_forward = min(98,geometry.c.get('contact_forward_max',105))
+        # 本机静态测量：原始球心距车心110mm可踢，120mm不能踢。
+        # 不能套用理论94.5mm：本机模型在这个距离已发生碰撞推球。
+        # SDK近车球心还有数厘米修正，所以接触判断用已验证原始球心。
+        # 原生规划存在约数毫米位置死区，运动目标100mm，进入110mm即锁位置。
+        # 111.6mm曾出现空发，不能把接触上限放宽代替实际碰到踢球器。
+        # 110mm仅是停车带；换方向仍须先退离球，不能携球转向。
+        settle_forward = min(110.,geometry.c.get('contact_forward_max',110))
         ready_geometry = (75 <= forward <= settle_forward
                           and lateral <= 10 and abs(math.atan2(math.sin(heading-angle),math.cos(heading-angle))) <= .018)
-        # 到达真实出脚几何后停车积累稳定窗口，避免每帧RushTo继续挤球/微摆。
+        # 出脚阶段保持位置，但继续使用可出球的运动技能。原生Stop是停车任务，
+        # 不能假定它与踢球请求组合后仍会正常发出球；也不继续向球内挤压。
         if geometry.c.get('settle_on_contact',False) and aligned and ready_geometry:
-            skill = Skill.Stop()
+            if control.contact_anchor is None:
+                control.contact_anchor = robot
+            anchor=C.CGeoPoint(control.contact_anchor.x,control.contact_anchor.y)
+            resources.append(anchor)
+            skill = Skill.RushTo(anchor,angle=angle,maxAcc=1200,flag=flags,needDribble=False)
         else:
+            control.contact_anchor = None
             skill = Skill.RushTo(point,angle=angle,maxAcc=1200 if aligned else 2200,
                                  flag=flags,needDribble=False)
         resources.extend((point,skill))
@@ -98,7 +108,7 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
                 and (authorize_kick is None or authorize_kick(executor))):
             # 力度不是实测球速；这里再限幅，物理6.5m/s还必须独立验证。
             kickStatus.setKick(executor,min(power,geometry.c['power_cap'],6000))
-            gate.fired(now)
+            gate.fired(now,geometry.c.get('kick_pulse_seconds',.18))
             phase = 'KICK'
             if on_kick is not None:
                 on_kick(executor,ball)

@@ -95,6 +95,9 @@ class KickTransactions:
         self.previous = None
         self.failed_origin = None
         self.failures = 0
+        self.failed_at = None
+        self.failed_robot = None
+        self.recovery_episodes = 0
 
     def emit(self, kind, now, **extra):
         tx = self.active
@@ -107,6 +110,7 @@ class KickTransactions:
         if tx is None:
             if self.failed_origin is not None and distance(ball, self.failed_origin) > 300:
                 self.failed_origin, self.failures = None, 0
+                self.failed_at,self.failed_robot,self.recovery_episodes = None,None,0
             if self.failures >= self.c.get('kick_max_attempts', 2):
                 return None
             self.sequence += 1
@@ -134,6 +138,7 @@ class KickTransactions:
         if tx.state == 'REQUESTED' and now > tx.deadline:
             tx.state = 'NO_DEPARTURE'
             self.failed_origin, self.failures = tx.start_ball, self.failures+1
+            self.failed_at,self.failed_robot = now,tx.robot
             self.emit('KICK_NO_DEPARTURE', now, pulse_count=tx.pulse_count)
             return
         if not new or tx.state not in ('REQUESTED', 'IN_FLIGHT'):
@@ -174,6 +179,7 @@ class KickTransactions:
             if tx.departure_samples >= 2 and capture_time-tx.departure_since >= .025:
                 tx.state, tx.departed_at = 'IN_FLIGHT', now
                 self.failures, self.failed_origin = 0, None
+                self.failed_at,self.failed_robot,self.recovery_episodes = None,None,0
                 self.emit('BALL_DEPARTED', now, speed_mm_s=speed, pulse_count=tx.pulse_count,
                           delay_s=now-tx.request_time, evidence='continuous_raw_associated_geometry')
         else:
@@ -187,6 +193,19 @@ class KickTransactions:
     def reset(self, now, reason):
         self.cancel(now, reason)
         self.failures, self.failed_origin = 0, None
+        self.failed_at,self.failed_robot,self.recovery_episodes = None,None,0
+
+    def rearm_after_release(self, now, ball, players):
+        """两次空发后先完成离球和冷却，再给有限的新接近机会，不静默永久Hold。"""
+        if (self.active is not None or self.failed_at is None or now-self.failed_at < 2
+                or self.recovery_episodes >= 2 or self.failed_robot not in players
+                or distance(players[self.failed_robot],ball) < 280):
+            return False
+        self.recovery_episodes += 1
+        self.failures,self.failed_origin = 0,None
+        self.failed_at = None
+        self.emit('KICK_REARMED_AFTER_RELEASE',now,episode=self.recovery_episodes)
+        return True
 
     def finish(self):
         self.active, self.previous = None, None
@@ -194,4 +213,5 @@ class KickTransactions:
     def diagnostics(self):
         return dict(active=asdict(self.active) if self.active else None,
                     no_departure_attempts=self.failures,
+                    recovery_episodes=self.recovery_episodes,
                     retry_exhausted=self.failures >= self.c.get('kick_max_attempts', 2))

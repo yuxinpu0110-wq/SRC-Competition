@@ -82,6 +82,18 @@ class Evidence:
         return asdict(self)
 
 
+def control_ball(fused, capture, evidence, side):
+    """接触几何用已关联的真实检测点，不把SDK近车修正点当物理球心。
+
+    仍先执行融合/原始关联；不能用未验证、过期或丢失的原始球绕过保护。
+    side=right 时与SDK保持同一攻向坐标系，不修改原始包或模拟器物理。
+    """
+    if capture is None or capture.ball is None or evidence is None or not evidence.fresh:
+        return fused
+    sign = -1 if side == 'right' else 1
+    return Point(sign*capture.ball.x, sign*capture.ball.y)
+
+
 def decode_detection(packet, received):
     """SSL 官方 detection.proto；confidence 低/数据非法的对象不参与关联。"""
     for tag, data in fields(packet):
@@ -106,7 +118,7 @@ def decode_detection(packet, received):
 
 class FreshnessGuard:
     def __init__(self, max_age=.2, tolerance=60, capture_clock='unix'):
-        if capture_clock not in ('unix','relative'):
+        if capture_clock not in ('unix','relative','simulation'):
             raise ValueError('Unknown raw capture clock domain')
         self.max_age, self.tolerance = max_age, tolerance
         self.capture_clock = capture_clock
@@ -128,7 +140,11 @@ class FreshnessGuard:
             return result('NO_CAPTURE_EVIDENCE')
         if not 0 <= now-capture.receive_time <= self.max_age:
             return result('STALE_RECEIVE')
-        if self.capture_clock == 'unix':
+        if self.capture_clock == 'simulation':
+            # grSim捕获时间是物理仿真时钟，暂停/低FPS时不保证与宿主同速。
+            # 本机链路以收到新包的年龄和捕获序列前进为依据，不能伪造Unix年龄。
+            age = now-capture.receive_time
+        elif self.capture_clock == 'unix':
             age = time.time()-capture.capture_time
         else:
             # 本机已测 grSim 使用启动后的相对秒数。按相机建立单调时钟关联，
@@ -258,7 +274,7 @@ class RelayVision:
             self.error = 'VISION_RELAY_NOT_RESPONDING'
             return
         self.error = None
-        self.captures = {c['camera']:Capture(c['camera'],c['frame_id'],c['capture_time'],
+        self.captures = {(c['camera'],c['frame_id']):Capture(c['camera'],c['frame_id'],c['capture_time'],
             c['receive_time'],None if c['ball'] is None else Point(*c['ball']),
             {(team,n):Point(x,y) for team,n,x,y in c['robots']})
             for c in response.get('captures',[])}
@@ -284,6 +300,8 @@ class MultiCameraGuard:
     def _age(self, c, now):
         if not math.isfinite(c.capture_time) or c.capture_time < 0:
             return math.inf
+        if self.capture_clock == 'simulation':
+            return now-c.receive_time
         if self.capture_clock == 'unix':
             return time.time()-c.capture_time
         offset = c.receive_time-c.capture_time

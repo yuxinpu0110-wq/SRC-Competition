@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\benchmark_match.py", line 406, in <module>
+    main()
+  File "E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\benchmark_match.py", line 340, in main
+    raise RuntimeError('No fresh raw-associated vision; trial INVALID, not a missed shot')
+RuntimeError: No fresh raw-associated vision; trial INVALID, not a missed shot

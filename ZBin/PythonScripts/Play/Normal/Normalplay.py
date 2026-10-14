@@ -391,7 +391,12 @@ class NormalPlay(StateMachine):
             if self.transactions.failures >= self.c.get('kick_max_attempts', 2):
                 origin = self.transactions.failed_origin
                 if origin is not None and distance(self.frame.ball, origin) <= 300:
-                    return 'Hold'
+                    if not (self.frame.new_capture and self.transactions.rearm_after_release(
+                            self.frame.now,self.frame.ball,self.frame.players)):
+                        self.phase = 'KICK_RETRY_COOLDOWN_OR_EXHAUSTED'
+                        return 'Hold'
+                    for control in self.ball_controls.values(): control.reset()
+                    self.tactics.target = None
                 self.transactions.failures, self.transactions.failed_origin = 0, None
         return 'Shoot'
 
@@ -426,6 +431,9 @@ class NormalPlay(StateMachine):
                 for control in self.ball_controls.values(): control.reset()
                 if f.mode in ('HALT','STOP','PREPARE','DEFEND_RESTART'):
                     self.transactions.reset(f.now, 'REFEREE_RESET')
+                    # 裁判重置/练习摆球后，不能继承上个球位的门角锁定。
+                    self.tactics.target = None
+                    self.tactics.committed_ball = None
             if not f.new_capture:
                 for gate in self.shot_gates.values(): gate.new_observation = False
             tx = self.transactions.active
@@ -578,10 +586,19 @@ class NormalPlay(StateMachine):
 
     def record_kick(self, number, ball, target, power, passing):
         """精确记录请求当帧方向，后续用球轨迹验证，而不是看截图猜补偿角。"""
+        from WorldModel import kickStatus
+        backend = {}
+        for key, method, arguments in (
+                ('native_force_closed', 'isForceClosed', ()),
+                ('native_need_kick', 'needKick', (number,)),
+                ('native_power', 'getKickPower', (number,))):
+            getter = getattr(kickStatus, method, None)
+            if callable(getter):
+                backend[key] = getter(*arguments)
         self.restart_guard.requested(number,ball,self.infrared)
         self.kick_events.append(dict(now=self.frame.now, frame_ball=[ball.x, ball.y],
             target=[target.x, target.y], robot=number, heading=Player.direction(number),
-            power=power, passing=passing))
+            power=power, passing=passing, **backend))
         if self.v21 and self.transactions.active is not None:
             self.kick_events[-1]["transaction_id"] = self.transactions.active.id
         self.kick_events[:] = self.kick_events[-32:]

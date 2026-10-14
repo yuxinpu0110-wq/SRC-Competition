@@ -1,0 +1,20 @@
+[MATCH] Python=E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\.venv\Scripts\python.exe
+[MATCH] config=E:\Yuxin\Projects\Vex Robotics\SRC\Competition\benchmark-targeted.json
+[MATCH] {'profile': 'qualifier', 'ruleset': 'src2026-v1-no-carry', 'goalie_skill': 'Goalie', 'contact_budget_mm': 300, 'team': 'blue', 'side': 'left', 'attackers': [0, 1], 'goalie': 2, 'shoot_skill': 'targeted', 'shoot_control': 'precision', 'task_dispatch': 'state_machine', 'complete_frame': True, 'enable_pass': False, 'enable_reachable_pass': True, 'enable_keeper_prediction': False, 'enable_feint': False, 'vision_stale_seconds': 0.15, 'pass_ball_speed_mm_s': 3000, 'shot_ball_speed_mm_s': 4500, 'shot_power_floor': 4500, 'goal_margin': 160, 'contact_distance': 85, 'contact_forward_max': 105, 'contact_trim': False, 'settle_on_contact': True, 'lock_contact_aim': True, 'pass_shot_threshold': 230, 'pass_score_gain': 60, 'advance_before_shoot': False, 'field_length': 9000, 'field_width': 6000, 'goal_width': 1000, 'defense_depth': 1000, 'defense_width': 2000, 'power_cap': 6000, 'upgrade_version': '2.1', 'vision_max_age_s': 0.2, 'vision_match_tolerance_mm': 60, 'raw_camera_id': -1, 'raw_capture_clock': 'simulation', 'kick_pulse_seconds': 0.18, 'kick_departure_timeout': 0.45, 'kick_max_attempts': 2, 'flight_observe_seconds': 1.5, 'action_no_progress_s': 0.65, 'action_align_timeout_s': 1.0, 'target_commit_timeout_s': 2.5, 'enable_one_touch': False, 'enable_dynamic_keeper': False, 'log_interval': 0.02, 'raw_vision_port': 10022}
+[MATCH] Waiting for Client processed vision. Start simulator and CONNECT Vision.
+Side : left, Color : blue is running...
+['E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312\\python312.zip', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312\\DLLs', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312\\Lib', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312', 'E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts\\.venv', 'E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts\\.venv\\Lib\\site-packages', 'E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts\\.venv\\Lib\\site-packages']
+启动参数:
+  isSimulation: True
+  isYellow: False
+  isRight: False
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] READY. Official NormalPlay states. HALT -> STOP GAME -> FORCE START.
+[MATCH] native frame=0 mode=WAIT_VISION_STABLE visible=[0, 1] tasks=2
+Windows fatal exception: code 0xc0000374
+
+Current thread 0x0000b738 (most recent call first):
+  File "E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\run_match.py", line 246 in main
+  File "E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\run_match.py", line 316 in <module>

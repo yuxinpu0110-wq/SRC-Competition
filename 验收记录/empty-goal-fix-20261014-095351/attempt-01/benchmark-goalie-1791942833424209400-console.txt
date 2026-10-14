@@ -1,0 +1,71 @@
+[MATCH] Python=E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\.venv\Scripts\python.exe
+[MATCH] config=E:\Yuxin\Projects\Vex Robotics\SRC\Competition\benchmark-goalie.json
+[MATCH] {'profile': 'goalie', 'team': 'yellow', 'side': 'right', 'ruleset': 'src2026-v1-no-carry', 'goalie_skill': 'Goalie', 'shoot_control': 'precision', 'advance_before_shoot': False, 'attackers': [0, 1], 'goalie': 2, 'shoot_skill': 'targeted', 'enable_pass': False, 'task_dispatch': 'state_machine', 'complete_frame': True, 'field_length': 9000, 'field_width': 6000, 'goal_width': 1000, 'defense_depth': 1000, 'defense_width': 2000, 'power_cap': 6000, 'log_interval': 0.02}
+[MATCH] Waiting for Client processed vision. Start simulator and CONNECT Vision.
+Side : right, Color : yellow is running...
+['E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312\\python312.zip', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312\\DLLs', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312\\Lib', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312', 'E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts\\.venv', 'E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts\\.venv\\Lib\\site-packages', 'E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts\\.venv\\Lib\\site-packages']
+启动参数:
+  isSimulation: True
+  isYellow: True
+  isRight: True
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] READY. Official NormalPlay states. HALT -> STOP GAME -> FORCE START.
+[MATCH] native frame=0 mode=WAIT_VISION_STABLE visible=[] tasks=0
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=WAIT_VISION_STABLE
+[MATCH] native frame=1 mode=WAIT_VISION_STABLE visible=[] tasks=0
+[MATCH] native frame=2 mode=WAIT_VISION_STABLE visible=[] tasks=0
+ pm : 0
+Protobuf Protocol: RefereeBox Command : S what : Stop
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+ pm : 1
+Protobuf Protocol: RefereeBox Command : s what : Start
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=PLAY state=Hold next=Goalkeeping phase=Hold
+[MATCH] mode=PLAY state=Goalkeeping next=Goalkeeping phase=Goalkeeping
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+ pm : 0
+Protobuf Protocol: RefereeBox Command : S what : Stop
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=STOP state=Prepare next=Prepare phase=STOP
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+ pm : 1
+Protobuf Protocol: RefereeBox Command : s what : Start
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=PLAY state=Hold next=Goalkeeping phase=Hold
+[MATCH] mode=PLAY state=Goalkeeping next=Goalkeeping phase=Goalkeeping
+[MATCH] mode=PLAY state=Hold next=Hold phase=BALL_OUT
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+ pm : 0
+Protobuf Protocol: RefereeBox Command : S what : Stop
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=STOP state=Prepare next=Prepare phase=STOP
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+ pm : 1
+Protobuf Protocol: RefereeBox Command : s what : Start
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=PLAY state=Hold next=Goalkeeping phase=Hold
+[MATCH] mode=PLAY state=Goalkeeping next=Goalkeeping phase=Goalkeeping
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0

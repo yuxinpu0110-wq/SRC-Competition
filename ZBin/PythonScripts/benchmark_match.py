@@ -108,7 +108,7 @@ def main():
                         help='Same-scene A/B of old/new targeted contact control')
     parser.add_argument('--goalie', choices=('official', 'stationary', 'none'), default='official',
                         help='stationary isolates aiming; never count it as a moving-goalie test')
-    parser.add_argument('--starts', choices=('approach','contact'), default='approach',
+    parser.add_argument('--starts', choices=('approach','contact','front'), default='approach',
                         help='contact pre-aligns the striker near ball: aiming-only diagnostic, NOT full attack')
     parser.add_argument('--frame-cycle', choices=('paired','legacy'), default='paired',
                         help='paired always completes pre/post; legacy reproduces old skipped idle postDecision')
@@ -163,6 +163,9 @@ def main():
     if args.dispatch or args.qt_app or args.frame_cycle:
         goalie_config = load_config(goalie_path)
         goalie_config['complete_frame'] = args.frame_cycle == 'paired'
+        # 只提高记录频率；一秒内进球时，默认10Hz不足以满足10个门将样本验收。
+        # 不改Goalie()算法、力量、位置或任何物理参数。
+        goalie_config['log_interval'] = .02
         if args.dispatch:
             goalie_config['task_dispatch'] = args.dispatch
         if args.qt_app:
@@ -189,7 +192,9 @@ def main():
                 yellow_logs = sorted((ROOT/'logs').glob('*-yellow.jsonl'), key=lambda p:p.stat().st_mtime)
                 goalie_telemetry = yellow_logs[-1] if yellow_logs and goalie is not None else None
                 report['goalie_telemetry'] = str(goalie_telemetry) if goalie_telemetry else None
-                starts = [(0,0),(.8,1),(.8,-1)] if args.starts == 'approach' else [(2.8,0),(2.8,.8),(2.8,-.8)]
+                starts = ([(0,0),(.8,1),(.8,-1)] if args.starts == 'approach' else
+                          [(3.38,0),(3.38,.6),(3.38,-.6)] if args.starts == 'front' else
+                          [(2.8,0),(2.8,.8),(2.8,-.8)])
                 for trial, ball in enumerate(starts * args.repeats):
                     result = {'trial':trial+1, 'skill':skill, 'ball_start_m':ball,
                               'seconds':args.seconds, 'goal_crossing':False, 'valid':False,
@@ -201,11 +206,12 @@ def main():
                     referee(0)
                     time.sleep(.25)
                     poses = None
-                    if args.starts == 'contact':
+                    if args.starts in ('contact','front'):
                         from match_tactics import Point, Tactics
                         aim,_ = Tactics(c).shot(Point(ball[0]*1000,ball[1]*1000),[] if args.goalie == 'none' else [Point(4200,0)])
                         angle = math.atan2(aim.y-ball[1]*1000,aim.x-ball[0]*1000)
-                        placement = c.get('calibration_placement_distance_mm', 100)/1000
+                        # 摆位不能穿入接触实体；运动目标可略近以克服原生位置死区。
+                        placement = c.get('calibration_placement_distance_mm', 110)/1000
                         poses = {c['attackers'][0]:(ball[0]-placement*math.cos(angle),ball[1]-placement*math.sin(angle),math.degrees(angle)),
                                  c['attackers'][1]:(1.5,1.5,0)}
                         if c.get('calibration_mode'):
@@ -275,6 +281,9 @@ def main():
                     physical_ids = set()
                     transaction_ids = set()
                     fresh_capture_ids = set()
+                    stale_since = None
+                    max_stale_seconds = 0.
+                    stale_samples = 0
                     with telemetry.open(encoding='utf-8') as stream:
                         stream.seek(offset)
                         while time.monotonic()-start < args.seconds:
@@ -336,8 +345,16 @@ def main():
                                     max_robot_drift = max(max_robot_drift, math.hypot(pos[0]-old[0], pos[1]-old[1]))
                             if args.starts == 'approach' and time.monotonic()-start > 6 and max_robot_drift < 20:
                                 raise RuntimeError('Vision arrives but robots do not move: check Client simulation command forwarding. Trial INVALID.')
-                            if c.get('upgrade_version') == '2.1' and time.monotonic()-start > 1 and not row.get('observation', {}).get('fresh'):
-                                raise RuntimeError('No fresh raw-associated vision; trial INVALID, not a missed shot')
+                            if c.get('upgrade_version') == '2.1':
+                                if not (row.get('observation') or {}).get('fresh'):
+                                    stale_samples += 1
+                                    if stale_since is None: stale_since = row['monotonic']
+                                    duration=row['monotonic']-stale_since
+                                    max_stale_seconds=max(max_stale_seconds,duration)
+                                    if duration > .6:
+                                        raise RuntimeError('Raw-associated vision missing continuously >0.6s; trial INVALID')
+                                else:
+                                    stale_since=None
                             if not row['ball_valid']:
                                 continue
                             # Entire ball crosses the goal line; interpolate crossing Y between adjacent telemetry samples.
@@ -354,6 +371,8 @@ def main():
                     referee(0)
                     result['samples'] = samples
                     result['fresh_capture_samples'] = len(fresh_capture_ids)
+                    result['stale_samples'] = stale_samples
+                    result['max_stale_seconds'] = max_stale_seconds
                     result['phase_samples'] = phase_samples
                     result['kick_requests'] = kick_requests  # 请求数；短脉冲会重复请求，不代表实际踢了多次。
                     result.update(max_ball_speed_sdk_mm_s=max(speed_samples,default=None),

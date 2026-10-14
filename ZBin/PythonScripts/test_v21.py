@@ -183,6 +183,8 @@ class ActionTests(unittest.TestCase):
         tactics.choose(.1,ball,players,[Point(4200,240)])
         self.assertEqual(tactics.target,old)
         tactics.choose(3,ball,players,[Point(4200,250)])
+        self.assertEqual(tactics.target_time,0)  # 近球不因计时器翻转射门角。
+        tactics.choose(3,ball,{0:Point(2100,0)},[Point(4200,250)])
         self.assertEqual(tactics.target_time,3)
         tactics.choose(3.1,Point(2801,0),players,[Point(4200,250)])
         self.assertEqual(tactics.target_time,3.1)

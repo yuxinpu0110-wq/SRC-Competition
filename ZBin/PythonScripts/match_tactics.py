@@ -66,9 +66,10 @@ class Tactics:
         c = self.c
         x = max(-c['field_length']/2+180, min(p.x, c['field_length']/2-180))
         y = max(-c['field_width']/2+180, min(p.y, c['field_width']/2-180))
-        edge = c['field_length']/2-c['defense_depth']-220
-        # 目标落在禁区附近时，把 X 推回禁区前沿外；220mm 是额外余量。
-        if abs(x) > edge and abs(y) < c['defense_width']/2+220:
+        # 与实体路径检查采用同一120mm膨胀量，额外2mm避免停在矩形边界上。
+        # 旧220mm目标限制会把球前3428mm的接触点3333mm错误推回3280mm。
+        edge = c['field_length']/2-c['defense_depth']-122
+        if abs(x) > edge and abs(y) < c['defense_width']/2+122:
             x = math.copysign(edge, x)
         return Point(x, y)
 
@@ -105,7 +106,7 @@ class Tactics:
             return self.legal(robot)
         if self.segment_legal(robot, target):
             return target
-        edge = self.c['field_length']/2-self.c['defense_depth']-220
+        edge = self.c['field_length']/2-self.c['defense_depth']-122
         candidates = [Point(math.copysign(edge, robot.x), robot.y),
                       Point(0, robot.y), Point(target.x, robot.y)]
         candidates = [self.legal(p) for p in candidates]
@@ -117,7 +118,11 @@ class Tactics:
             return 'NO_BALL'
         if abs(ball.x) > self.c['field_length']/2 or abs(ball.y) > self.c['field_width']/2:
             return 'BALL_OUT'
-        return 'WAIT_OUTSIDE_DEFENSE' if self.in_defense(ball) else ''
+        # 球的位置用真实禁区边界，机器人中心才需要按实体半径膨胀。
+        # 否则球在3380..3500的合法前沿就被直接转入永久等待状态。
+        inside = (abs(ball.x) >= self.c['field_length']/2-self.c['defense_depth']
+                  and abs(ball.y) <= self.c['defense_width']/2)
+        return 'WAIT_OUTSIDE_DEFENSE' if inside else ''
 
     def shot(self, ball, obstacles):
         """在门线上选 9 点，优先净空，略惩罚远距离；返回 (点, 分数)。"""
@@ -197,8 +202,10 @@ class Tactics:
             self.committed_ball = ball
         committed = self.c.get('lock_contact_aim',False) and self.committed_ball is not None
         expired = self.c.get('upgrade_version') == '2.1' and (
-            now-self.target_time > self.c.get('target_commit_timeout_s',2.5)
+            (not near_contact and now-self.target_time > self.c.get('target_commit_timeout_s',2.5))
             or (hasattr(self,'target_ball') and distance(ball,self.target_ball) > 100))
+        # 最后500mm内不能仅因计时器翻转门角。ActionBudget仍限制接近时长；
+        # 真正失败由AbortRelease离球后清空target再选，避免贴球左右重规划。
         if expired:
             committed = False
         if (self.target is None or expired or (not committed and now-self.target_time > .65

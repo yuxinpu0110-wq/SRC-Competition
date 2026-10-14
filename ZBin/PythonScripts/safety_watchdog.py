@@ -18,11 +18,13 @@ class DecisionWatchdog:
             stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,
             creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
 
-    def touch(self,now):
+    def touch(self,now, fresh=True):
         if self.process.poll() is not None:
             self.error='WATCHDOG_EXITED'
         else:
-            self.socket.sendto(b'fresh',('127.0.0.1',self.port))
+            # alive证明父进程存活；fresh才许可停止重复停车。视觉中断不退出
+            # worker，恢复后可以继续；只有父进程也消失才最终退出。
+            self.socket.sendto(b'fresh' if fresh else b'alive',('127.0.0.1',self.port))
 
     def close(self):
         self.socket.sendto(b'close',('127.0.0.1',self.port))
@@ -39,18 +41,19 @@ def worker(team,ids,timeout):
     with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as sock:
         sock.bind(('127.0.0.1',port))
         sock.settimeout(.025)
-        last=time.perf_counter()
+        last=alive=time.perf_counter()
         try:
             while True:
                 try:
                     data,_=sock.recvfrom(32)
                     if data==b'close': return
+                    if data in (b'fresh',b'alive'): alive=time.perf_counter()
                     if data==b'fresh': last=time.perf_counter()
                 except socket.timeout:
                     pass
                 age=time.perf_counter()-last
                 if age>timeout: stop_robots(team,ids)
-                if age>3: return
+                if time.perf_counter()-alive>3: return
         finally:
             stop_robots(team,ids)
 

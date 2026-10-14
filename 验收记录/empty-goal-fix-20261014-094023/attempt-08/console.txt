@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\benchmark_match.py", line 421, in <module>
+    main()
+  File "E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\benchmark_match.py", line 228, in main
+    raise RuntimeError('Goalkeeper exited during reset preflight; trial INVALID. Inspect goalie console.')
+RuntimeError: Goalkeeper exited during reset preflight; trial INVALID. Inspect goalie console.

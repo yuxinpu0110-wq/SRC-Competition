@@ -41,7 +41,7 @@
   "vision_max_age_s": 0.2,
   "vision_match_tolerance_mm": 60,
   "raw_camera_id": -1,
-  "raw_capture_clock": "relative",
+  "raw_capture_clock": "simulation",
   "kick_pulse_seconds": 0.18,
   "kick_departure_timeout": 0.45,
   "kick_max_attempts": 1,

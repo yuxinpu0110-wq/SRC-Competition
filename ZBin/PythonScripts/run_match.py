@@ -64,8 +64,8 @@ def load_config(path):
         if not isinstance(c[name], (int, float)) or not math.isfinite(c[name]) or c[name] <= 0:
             raise ValueError('Invalid field dimension: '+name)
     if c.get('upgrade_version') == '2.1':
-        if c.get('raw_capture_clock','unix') not in ('unix','relative'):
-            raise ValueError('raw_capture_clock must be unix or relative')
+        if c.get('raw_capture_clock','unix') not in ('unix','relative','simulation'):
+            raise ValueError('raw_capture_clock must be unix, relative or simulation')
         if not c.get('complete_frame', True):
             raise ValueError('V2.1 requires paired native pre/post decisions')
         for name, low, high in [('vision_max_age_s', .05, .5), ('vision_match_tolerance_mm', 5, 100),
@@ -214,6 +214,7 @@ def main():
                     if ready_frames < 20:
                         mode = 'WAIT_VISION_STABLE'
                 ball, valid_ball = xy(Ball.pos()), Ball.valid()
+                sdk_ball = ball
                 cycle_getter = getattr(vision, 'getCycle', None)
                 cycle = int(cycle_getter()) if callable(cycle_getter) else None
                 # players 含受控门将位置，供 STOP 退球；选主攻时只看配置里的 attackers。
@@ -231,11 +232,12 @@ def main():
                     players = {n:p for n,p in players.items() if n in trusted}
                     # visible 仍保留 SDK 确认存在的车，以便给未关联车分配原生 Stop；
                     # 它们不会进入可信 players 或进攻选择。
+                    watchdog.touch(now,fresh=evidence.fresh and evidence.new_capture)
                     if watchdog.error:
                         from observation import Evidence
                         evidence = Evidence(reason='SAFE_STOP_CHANNEL_FAILED')
-                    if evidence.fresh and evidence.new_capture:
-                        watchdog.touch(now)
+                    from observation import control_ball
+                    ball = control_ball(sdk_ball, associated, evidence, c['side'])
                 play.update_frame(now, ball, players, opponents, visible, mode, valid_ball,
                                   referee=message, cycle=cycle, opponent_players=opponent_players,
                                   native_motion=native_motion, observation=evidence)
@@ -261,6 +263,7 @@ def main():
                            'pass_attempts':play.pass_attempts, 'pass_completed':play.pass_completed,
                            'pass_aborted':play.pass_aborted, 'pass_reason':play.pass_reason,
                            'referee':message, 'ball':[ball.x, ball.y], 'ball_valid':valid_ball,
+                           'sdk_ball':[sdk_ball.x, sdk_ball.y],
                            'striker':play.tactics.striker, 'our_goals':vision.getOurGoal(), 'their_goals':vision.getTheirGoal(),
                            'shoot_control':c.get('shoot_control', 'precision'),
                            'ruleset':c['ruleset'], 'goalie_skill':'Goalie',

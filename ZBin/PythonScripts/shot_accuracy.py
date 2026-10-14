@@ -105,13 +105,13 @@ class ShotGate:
             ball_speed_mm_s=self.ball_speed if math.isfinite(self.ball_speed) else None)
         return reason == 'READY', reason
 
-    def fired(self, now):
+    def fired(self, now, pulse_seconds=.18):
         # 官方技能按帧请求出球；一次请求并不等于踢球器已经碰到球。
         # 几何/速度仍逐帧检查，在180ms窗口内重发，避免只发一帧后空等300ms。
         # 球离开、车头偏移或裁判停止都会由门控/状态机立即取消后续请求。
         if now > self.pulse_until:
             self.last_kick = now
-            self.pulse_until = now+.18
+            self.pulse_until = now+pulse_seconds
 
     def observe_native_velocity(self, speed, spin, ball_speed):
         """运行入口提供SDK滤波速度，避免把间歇跳变除以数毫秒循环间隔。

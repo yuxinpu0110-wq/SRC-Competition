@@ -11,6 +11,7 @@ import socket
 import subprocess
 import sys
 import time
+from collections import deque
 
 GROUP = '224.5.23.2'
 CONTROL_PORT = 45993
@@ -32,6 +33,11 @@ def status(timeout=.15, command=b'status'):
 
 def ensure_relay():
     found = status()
+    if found and found.get('schema_version',1) < 2:
+        status(command=b'stop')
+        until=time.perf_counter()+1
+        while status() and time.perf_counter()<until: time.sleep(.02)
+        found=None
     if found:
         return found
     root = Path(__file__).resolve().parents[2]
@@ -65,6 +71,7 @@ def serve():
                 sender.setsockopt(socket.IPPROTO_IP,socket.IP_MULTICAST_TTL,1)
                 packets = 0
                 captures = {}
+                histories = {}
                 from observation import decode_detection
                 last_packet = None
                 started = time.perf_counter()
@@ -73,6 +80,7 @@ def serve():
                     try:
                         data, address = control.recvfrom(256)
                         reply = dict(service='src-vision-relay-v1',pid=os.getpid(),packets=packets,
+                            schema_version=2,
                             input_port=INPUT_PORT,output_ports=OUTPUT_PORTS,
                             packet_age_s=None if last_packet is None else time.perf_counter()-last_packet)
                         if data == b'captures':
@@ -80,7 +88,7 @@ def serve():
                                 capture_time=c.capture_time,receive_time=c.receive_time,
                                 ball=None if c.ball is None else [c.ball.x,c.ball.y],
                                 robots=[[team,n,p.x,p.y] for (team,n),p in c.robots.items()])
-                                for c in captures.values()]
+                                for history in histories.values() for c in history]
                         control.sendto(json.dumps(reply).encode(),address)
                         if data == b'stop':
                             return
@@ -101,6 +109,11 @@ def serve():
                     try:
                         for capture in decode_detection(packet,last_packet):
                             captures[capture.camera] = capture
+                            history=histories.setdefault(capture.camera,deque(maxlen=6))
+                            if history and capture.capture_time < history[-1].capture_time-.2:
+                                history.clear()
+                            if not history or capture.frame_id != history[-1].frame_id:
+                                history.append(capture)
                     except (ValueError,TypeError):
                         pass
                     packets += 1

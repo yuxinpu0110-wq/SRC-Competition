@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\benchmark_match.py", line 421, in <module>
+    main()
+  File "E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\benchmark_match.py", line 225, in main
+    raise RuntimeError('Strategy exited during reset preflight')
+RuntimeError: Strategy exited during reset preflight
