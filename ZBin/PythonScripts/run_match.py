@@ -17,8 +17,7 @@ import uuid
 
 from strategy_contract import normalize_verified_contract, uses_verified_control, uses_range_gate
 
-ROOT = Path(__file__).resolve().parents[2]
-ZBIN = ROOT/'ZBin'
+from runtime_paths import ROOT, SOURCE_ZBIN as ZBIN, RUNTIME_ZBIN, dll_directories
 
 
 def load_config(path):
@@ -153,8 +152,8 @@ def main():
         if uses_verified_control(c):
             from vision_relay import ensure_relay
             ensure_relay()  # 必须早于 SDK 等待 Client 视觉，避免启动依赖环。
-    os.chdir(ZBIN)
-    dll_handle = os.add_dll_directory(str(ZBIN))  # 保留句柄，直到进程退出。
+    os.chdir(RUNTIME_ZBIN)
+    dll_handles = dll_directories()  # 句柄全程保留；源码不覆盖外部官方运行时。
     ini = configparser.ConfigParser(interpolation=None)
     ini.optionxform = str
     ini.read(ZBIN/'zss.ini', encoding='utf-8')
@@ -217,6 +216,8 @@ def main():
     def xy(point):
         return Point(point.x(), point.y())
     raw = watchdog = None
+    from raw_contact import RawContactTracker
+    contact_tracker=RawContactTracker()
     if uses_verified_control(c):
         from observation import RelayVision, MultiCameraGuard
         from safety_watchdog import DecisionWatchdog
@@ -279,11 +280,18 @@ def main():
                     if watchdog.error:
                         from observation import Evidence
                         evidence = Evidence(reason='SAFE_STOP_CHANNEL_FAILED')
-                    from observation import control_ball
+                    from observation import control_ball, capture_record
                     ball = control_ball(sdk_ball, associated, evidence, c['side'])
                 play.update_frame(now, ball, players, opponents, visible, mode, valid_ball,
                                   referee=message, cycle=cycle, opponent_players=opponent_players,
                                   native_motion=native_motion, observation=evidence)
+                play.raw_contact_samples={}
+                if mode in ('PLAY','OUR_RESTART','OUR_INDIRECT'):
+                    for number in c['attackers']:
+                        sample=contact_tracker.observe(associated,now,play.reset_epoch,number,c,evidence)
+                        if sample is not None:play.raw_contact_samples[number]=sample
+                else:
+                    contact_tracker.reset(play.reset_epoch)
                 if raw is not None:
                     play.flight_observer.consume(tuple(raw.captures.values()), now, play.reset_epoch,
                         halted=mode not in ('PLAY', 'OUR_RESTART', 'OUR_INDIRECT'))
@@ -310,6 +318,7 @@ def main():
                            'pass_aborted':play.pass_aborted, 'pass_reason':play.pass_reason,
                            'referee':message, 'ball':[ball.x, ball.y], 'ball_valid':valid_ball,
                            'sdk_ball':[sdk_ball.x, sdk_ball.y],
+                           'raw_contact':{str(n):d for n,d in contact_tracker.diagnostics.items()},
                            'striker':play.tactics.striker, 'our_goals':vision.getOurGoal(), 'their_goals':vision.getTheirGoal(),
                            'shoot_control':c.get('shoot_control', 'precision'),
                            'ruleset':c['ruleset'], 'goalie_skill':'Goalie',
@@ -334,7 +343,7 @@ def main():
                            'raw_vision_error':raw.error if raw else None,
                            'physical_events':list(play.transactions.events),
                            'kick_transaction':play.transactions.diagnostics(),
-                           'raw_capture':dict(camera=associated.camera,frame_id=associated.frame_id,capture_time=associated.capture_time,receive_time=associated.receive_time,ball=[associated.ball.x,associated.ball.y] if associated.ball else None) if associated else None,
+                           'raw_capture':capture_record(associated) if associated else None,
                            'match_events':list(play.events.events[-32:]),
                            'aim':[play.choice.aim.x, play.choice.aim.y] if play.choice.aim is not None else None,
                            'shot_gate':{str(n):g.diagnostics for n,g in play.shot_gates.items()},

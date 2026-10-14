@@ -17,6 +17,7 @@ GROUP = '224.5.23.2'
 CONTROL_PORT = 45993
 INPUT_PORT = 10021
 OUTPUT_PORTS = (10020, 10022)
+SCHEMA_VERSION = 3
 
 
 def status(timeout=.15, command=b'status'):
@@ -33,11 +34,9 @@ def status(timeout=.15, command=b'status'):
 
 def ensure_relay():
     found = status()
-    if found and found.get('schema_version',1) < 2:
-        status(command=b'stop')
-        until=time.perf_counter()+1
-        while status() and time.perf_counter()<until: time.sleep(.02)
-        found=None
+    if found and found.get('schema_version',1) < SCHEMA_VERSION:
+        # 旧进程可能属于其他任务；不在ensure里擅自停止。接手者核实归属后显式升级。
+        raise RuntimeError('Old vision relay lacks same-frame headings. Verify its owner and restart explicitly.')
     if found:
         return found
     root = Path(__file__).resolve().parents[2]
@@ -72,7 +71,7 @@ def serve():
                 packets = 0
                 captures = {}
                 histories = {}
-                from observation import decode_detection
+                from observation import decode_detection, capture_record
                 last_packet = None
                 started = time.perf_counter()
                 print('READY: vision 10021 -> 10020/10022',flush=True)
@@ -80,14 +79,11 @@ def serve():
                     try:
                         data, address = control.recvfrom(256)
                         reply = dict(service='src-vision-relay-v1',pid=os.getpid(),packets=packets,
-                            schema_version=2,
+                            schema_version=SCHEMA_VERSION, source_path=str(Path(__file__).resolve()),
                             input_port=INPUT_PORT,output_ports=OUTPUT_PORTS,
                             packet_age_s=None if last_packet is None else time.perf_counter()-last_packet)
                         if data == b'captures':
-                            reply['captures'] = [dict(camera=c.camera,frame_id=c.frame_id,
-                                capture_time=c.capture_time,receive_time=c.receive_time,
-                                ball=None if c.ball is None else [c.ball.x,c.ball.y],
-                                robots=[[team,n,p.x,p.y] for (team,n),p in c.robots.items()])
+                            reply['captures'] = [capture_record(c)
                                 for history in histories.values() for c in history]
                         control.sendto(json.dumps(reply).encode(),address)
                         if data == b'stop':

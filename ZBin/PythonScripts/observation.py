@@ -44,7 +44,7 @@ class ObservationClock:
 SDK 未暴露融合时间戳；原始帧只作为关联证据，绝不标成融合帧时间。
 选定单个 camera 的序列，避免把多相机同一时刻当作连续运动样本。
 """
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 import math
 import socket
 import threading
@@ -61,6 +61,9 @@ class Capture:
     receive_time: float
     ball: Point | None
     robots: dict
+    # 可选字段放最后，保留旧的六参数Capture调用；缺朝向不借用SDK。
+    headings: dict = field(default_factory=dict)
+    ambiguous_robots: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -99,7 +102,7 @@ def decode_detection(packet, received):
     for tag, data in fields(packet):
         if tag != 1 or not isinstance(data, bytes):
             continue
-        values, balls, robots = {}, [], {}
+        values, balls, robots, headings, ambiguous = {}, [], {}, {}, set()
         for number, value in fields(data):
             if number == 5:
                 obj = dict(fields(value))
@@ -108,12 +111,20 @@ def decode_detection(packet, received):
             elif number in (6, 7):
                 obj = dict(fields(value))
                 if obj.get(1, 0) > .5 and 2 in obj and all(math.isfinite(obj.get(i, math.nan)) for i in (3, 4)):
-                    robots[('yellow' if number == 6 else 'blue', obj[2])] = Point(obj[3], obj[4])
+                    key = ('yellow' if number == 6 else 'blue', obj[2])
+                    if key in robots:
+                        ambiguous.add(key)
+                    robots[key] = Point(obj[3], obj[4])
+                    # SSL_DetectionRobot.orientation，单位rad；不是像素坐标或SDK姿态。
+                    if 5 in obj and math.isfinite(obj[5]):
+                        headings[key] = math.atan2(math.sin(obj[5]), math.cos(obj[5]))
             else:
                 values[number] = value
         if all(n in values for n in (1, 2, 4)) and math.isfinite(values[2]):
+            for key in ambiguous:
+                headings.pop(key, None)
             yield Capture(values[4], values[1], values[2], received,
-                          balls[0] if len(balls) == 1 else None, robots)
+                          balls[0] if len(balls) == 1 else None, robots, headings, tuple(sorted(ambiguous)))
 
 
 class FreshnessGuard:
@@ -274,13 +285,29 @@ class RelayVision:
             self.error = 'VISION_RELAY_NOT_RESPONDING'
             return
         self.error = None
-        self.captures = {(c['camera'],c['frame_id']):Capture(c['camera'],c['frame_id'],c['capture_time'],
-            c['receive_time'],None if c['ball'] is None else Point(*c['ball']),
-            {(team,n):Point(x,y) for team,n,x,y in c['robots']})
-            for c in response.get('captures',[])}
+        self.captures = {(c['camera'],c['frame_id']):capture_from_record(c)
+                         for c in response.get('captures',[])}
 
     def close(self):
         pass  # 停止某队策略不能停止服务于 Client 的分流进程。
+
+
+def capture_record(capture):
+    """relay/原始记录共用编码；旧robots四列保持原样。"""
+    return dict(camera=capture.camera, frame_id=capture.frame_id,
+                capture_time=capture.capture_time, receive_time=capture.receive_time,
+                ball=None if capture.ball is None else [capture.ball.x,capture.ball.y],
+                robots=[[team,n,p.x,p.y] for (team,n),p in capture.robots.items()],
+                robot_headings=[[team,n,h] for (team,n),h in capture.headings.items()],
+                ambiguous_robots=[list(key) for key in capture.ambiguous_robots])
+
+
+def capture_from_record(record):
+    return Capture(record['camera'],record['frame_id'],record['capture_time'],record['receive_time'],
+                   None if record['ball'] is None else Point(*record['ball']),
+                   {(team,n):Point(x,y) for team,n,x,y in record['robots']},
+                   {(team,n):heading for team,n,heading in record.get('robot_headings',[])},
+                   tuple(tuple(key) for key in record.get('ambiguous_robots',[])))
 
 
 class MultiCameraGuard:
