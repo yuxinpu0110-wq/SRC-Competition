@@ -113,6 +113,21 @@ class FlightTests(unittest.TestCase):
         self.assertIsNone(control.active)
         self.assertIn('BALL_DEPARTED', self.kinds())
 
+    def test_unknown_identity_cannot_rearm_from_later_pulses(self):
+        self.consume(self.sample(.03,2820,ball=False))
+        self.observer.arm(self.identity,10.04,100.04,0,0,Point(2700,0),Point(4500,0),{0:Point(2600,0)})
+        self.consume(self.sample(.07,2820),self.sample(.1,2940))
+        self.assertIsNone(self.observer.active)
+        self.assertNotIn('BALL_DEPARTED',self.kinds())
+        self.assertEqual(self.kinds().count('UNKNOWN'),1)
+
+    def test_new_identity_can_arm_after_unknown(self):
+        self.consume(self.sample(.03,2820,ball=False))
+        identity=FlightIdentity('run-a',0,'kick-2','0',2)
+        self.observer.arm(identity,10.04,100.04,0,0,Point(2700,0),Point(4500,0),{0:Point(2600,0)})
+        self.consume(self.sample(.07,2820),self.sample(.1,2940))
+        self.assertEqual(next(e for e in self.observer.events if e['kind']=='BALL_DEPARTED')['transaction_id'],2)
+
     def test_cancel_preserves_requested_epoch(self):
         control = KickTransactions(self.config, 'run-a')
         control.request(10., 0, 'shot', Point(2700, 0), Point(4500, 0), Point(2600, 0))

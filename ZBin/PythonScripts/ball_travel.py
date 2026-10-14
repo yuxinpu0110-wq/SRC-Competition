@@ -10,6 +10,7 @@ import hashlib
 import json
 import math
 from pathlib import Path, PurePosixPath
+from simulator_context import capture_context, settings_path, validate_context
 
 
 def number(value, low=0):
@@ -40,10 +41,12 @@ class TravelResult:
 
 
 class BallTravelModel:
-    def __init__(self, data, runtime_hashes=None, field_settings=None):
+    def __init__(self, data, runtime_hashes=None, field_settings=None, simulator_context=None):
         self.data = deepcopy(data)
         self.runtime_hashes = dict(runtime_hashes or {})
         self.field_settings = dict(field_settings or {})
+        self.simulator_context = deepcopy(simulator_context)
+        self.context_reader = None
         self.validate()
 
     def validate(self):
@@ -56,6 +59,7 @@ class BallTravelModel:
             return
         if not isinstance(d.get('model_id'), str) or not d['model_id']:
             raise ValueError('Missing calibrated model_id')
+        validate_context(d.get('simulator_context'))
         hashes = d.get('runtime_hashes', {})
         required = {'PythonScripts/CppPackage/CppPackage.pyd', 'MedusaCore.dll',
                     'grSim.exe', 'ode_double.dll', 'zss_simulator.ini'}
@@ -122,6 +126,14 @@ class BallTravelModel:
         if (self.data['runtime_hashes'] != self.runtime_hashes
                 or self.data['field_settings'] != self.field_settings):
             return self.reject('MODEL_CONTEXT_MISMATCH')
+        current_context = self.simulator_context
+        if self.context_reader is not None:
+            try:
+                current_context = self.context_reader()
+            except (OSError, ValueError, SyntaxError):
+                return self.reject('MODEL_PHYSICS_CONTEXT_UNAVAILABLE')
+        if self.data['simulator_context'] != current_context:
+            return self.reject('MODEL_PHYSICS_CONTEXT_MISMATCH')
         if not number(distance_mm) or not number(sdk_power) or type(robot_id) is not int:
             return self.reject('INVALID_TRAVEL_INPUT')
         p = self.profile(robot_id, sdk_power, contact_mode)
@@ -168,11 +180,23 @@ def load_ball_model(path, runtime_root, config):
             with file.open('rb') as stream:
                 hashes[name] = hashlib.file_digest(stream, 'sha256').hexdigest()
     fields = {n: config[n] for n in ('field_length', 'field_width', 'goal_width', 'defense_depth', 'defense_width')}
-    model = BallTravelModel(data, hashes, fields)
-    if data['usable_for_planning']:
+    # Reject stale physical calibration at startup, not only after a robot has
+    # already approached the ball. An unmeasured developer model stays inert.
+    actual_context=None
+    if data.get('usable_for_planning') is True:
         report = data.get('acceptance_report_path')
         if not isinstance(report, str) or not report:
             raise ValueError('Missing calibration acceptance report file')
+        snapshot=capture_context(settings_path(config),runtime_root)
+        if snapshot['missing_profile_files']:
+            raise ValueError('Simulator selected robot profile unresolved; verify actual profile before physical calibration')
+        actual_context=snapshot['simulator_context']
+    model = BallTravelModel(data, hashes, fields, actual_context)
+    if data['usable_for_planning']:
+        if data['runtime_hashes'] != hashes or data['field_settings'] != fields:
+            raise ValueError('Calibration runtime/field context mismatch')
+        if data['simulator_context'] != actual_context:
+            raise ValueError('Calibration simulator physical context mismatch')
         report_path = Path(path).parent/report
         actual = hashlib.sha256(report_path.read_bytes()).hexdigest()
         if actual != data['acceptance_report_sha256']:
@@ -182,4 +206,11 @@ def load_ball_model(path, runtime_root, config):
                 or evidence.get('model_id') != data['model_id']
                 or evidence.get('runtime_hashes') != data['runtime_hashes']):
             raise ValueError('Calibration report has not accepted this physical model')
+        if (evidence.get('simulator_context') != data['simulator_context']
+                or evidence.get('field_settings') != data['field_settings']):
+            raise ValueError('Calibration report has not accepted this physical/field context')
+        # A simulator restart/saved setting edit while the strategy is alive
+        # must not reuse a stale model. Unsaved GUI changes remain unknowable.
+        saved_settings = settings_path(config).resolve()
+        model.context_reader = lambda: capture_context(saved_settings, runtime_root)['simulator_context']
     return model

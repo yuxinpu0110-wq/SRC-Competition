@@ -1,0 +1,2 @@
+[CHECK] Config valid. strategy=2.2 control_contract=2
+[CHECK] V2.2 development only; model usable_for_planning=False; physical acceptance incomplete.

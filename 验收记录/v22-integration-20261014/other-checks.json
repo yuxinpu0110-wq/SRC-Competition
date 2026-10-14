@@ -1,0 +1,28 @@
+{
+  "scope": "IMPORT_AND_OFFLINE_ONLY",
+  "physical_trials_run": 0,
+  "production_ready": false,
+  "frozen_v21": {
+    "source_ref": "before-v2.2-integration-20261014",
+    "source_commit": "43c21a8",
+    "directory": "../Competition-v2.1-before-v2.2-20261014",
+    "offline_tests": 208,
+    "offline_all_passed": true,
+    "native_check_exit_code": 0,
+    "native_motion_sent": false,
+    "runtime_copied_separately": true,
+    "python_environment_shared_via_junction": true
+  },
+  "integrated_v22": {
+    "native_check_exit_code": 0,
+    "native_motion_sent": false,
+    "hidden_panel_constructed": true,
+    "unimplemented_pass_and_feint_checkboxes_disabled": true,
+    "strategy_or_goalie_process_started": false
+  },
+  "limits": [
+    "Native module import does not verify a full preDecision/postDecision loop or fix heap corruption.",
+    "Saved simulator fingerprint does not verify unsaved live GUI physics or certify calibration.",
+    "V2.2 model remains uncalibrated and candidate startup remains blocked."
+  ]
+}

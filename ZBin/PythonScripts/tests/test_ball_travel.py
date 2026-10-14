@@ -26,6 +26,8 @@ def model_data(speed=(4500, 4800), deceleration=(500, 700), range_low=9000):
         min_goal_arrival_speed_mm_s=100, raw_attempts=40, clean_flights=30, holdout_flights=10,
         speed_limit_verified=True, holdout_validated=True) for n in (0, 1)]
     return dict(schema_version=1, model_id='SYNTHETIC_TEST_ONLY', usable_for_planning=True,
+                simulator_context=dict(schema_version=1,settings_source='grsim_varxml',
+                    physical_settings_sha256='c'*64,robot_profile_hashes={}),
                 runtime_hashes={key: 'a'*64 for key in
                     ('PythonScripts/CppPackage/CppPackage.pyd', 'MedusaCore.dll', 'grSim.exe',
                      'ode_double.dll', 'zss_simulator.ini')},
@@ -34,7 +36,7 @@ def model_data(speed=(4500, 4800), deceleration=(500, 700), range_low=9000):
 
 def test_model(**kwargs):
     data = model_data(**kwargs)
-    return BallTravelModel(data, data['runtime_hashes'], data['field_settings'])
+    return BallTravelModel(data, data['runtime_hashes'], data['field_settings'],data['simulator_context'])
 
 
 class TravelTests(unittest.TestCase):
@@ -74,6 +76,17 @@ class TravelTests(unittest.TestCase):
         self.assertTrue(model.evaluate(0, 4500, 1000, contact=(100, 0)).reachable)
         for contact in ((85, 0), (111, 0), (100, 11), (float('nan'), 0)):
             self.assertEqual(model.evaluate(0, 4500, 1000, contact=contact).reason, 'MODEL_CONTACT_OUT_OF_DOMAIN')
+
+    def test_changed_saved_simulator_physics_rejects(self):
+        data=model_data()
+        context=dict(data['simulator_context'],physical_settings_sha256='d'*64)
+        model=BallTravelModel(data,data['runtime_hashes'],data['field_settings'],context)
+        self.assertEqual(model.evaluate(0,4500,1000).reason,'MODEL_PHYSICS_CONTEXT_MISMATCH')
+
+    def test_usable_model_requires_physical_settings_binding(self):
+        data=model_data();data.pop('simulator_context')
+        with self.assertRaisesRegex(ValueError,'physical context'):
+            BallTravelModel(data)
 
     def test_unusable_and_unsafe_upper_speed_are_rejected(self):
         data = model_data()

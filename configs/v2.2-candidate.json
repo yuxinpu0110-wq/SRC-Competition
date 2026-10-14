@@ -57,6 +57,7 @@
   "v22_mode": "candidate",
   "ball_radius_mm": 21.5,
   "ball_model_path": "configs/calibration/v2.2-ball-model.json",
+  "simulator_settings_path": "@user-grsim",
   "planned_shot_power_by_robot": {
     "0": 4500,
     "1": 4500

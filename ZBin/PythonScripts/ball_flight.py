@@ -27,6 +27,9 @@ class BallFlightObserver:
         self.events = []
         self.seen = deque(maxlen=256)
         self.emitted = deque(maxlen=256)
+        # An UNKNOWN/finished identity is terminal. Subsequent pulses with that
+        # identity cannot create a fresh observation window or shorten delay.
+        self.closed = set()
 
     def emit(self, kind, now, **details):
         identity = self.active['identity'] if self.active else None
@@ -41,6 +44,8 @@ class BallFlightObserver:
                                 control_authority=False, **details))
 
     def arm(self, identity, now, capture_time, camera, robot, origin, target, players):
+        if identity in self.closed:
+            return
         if self.active and self.active['identity'] == identity:
             return  # Repeated SDK pulses cannot reset the trajectory or deadline.
         if self.active:
@@ -62,6 +67,7 @@ class BallFlightObserver:
     def invalidate(self, now, reason):
         if self.active:
             self.emit('UNKNOWN', now, reason=reason, evidence_grade='unknown')
+            self.closed.add(self.active['identity'])
         self.active = None
 
     def consume(self, captures, now, epoch, *, halted=False):

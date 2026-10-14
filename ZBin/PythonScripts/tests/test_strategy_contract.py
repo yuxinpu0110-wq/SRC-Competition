@@ -4,7 +4,7 @@ import tempfile
 import unittest
 
 from run_match import load_config
-from strategy_contract import normalize_verified_contract, uses_verified_control
+from strategy_contract import normalize_verified_contract, uses_verified_control, uses_range_gate
 import test_v21 as fixtures
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -18,6 +18,12 @@ class ContractTests(unittest.TestCase):
 
     def test_explicit_v22_inherits_verified_control(self):
         self.assertTrue(uses_verified_control({'strategy_version': '2.2', 'control_contract_version': 2}))
+
+    def test_null_label_cannot_disable_v22_range_gate(self):
+        c=normalize_verified_contract(dict(upgrade_version='2.2',strategy_version=None,control_contract_version=2))
+        self.assertEqual(c['strategy_version'],'2.2')
+        self.assertTrue(uses_range_gate(c))
+        self.assertTrue(uses_range_gate(dict(upgrade_version='2.2',strategy_version=None,control_contract_version=2)))
 
     def test_unknown_and_wrong_type_fail_closed(self):
         for config in ({'upgrade_version': '2.2'}, {'strategy_version': '2.2'},

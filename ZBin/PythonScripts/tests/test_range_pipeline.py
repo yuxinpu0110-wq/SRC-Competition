@@ -1,4 +1,7 @@
 import unittest
+import json
+from pathlib import Path
+import tempfile
 from match_tactics import Point
 from run_match import load_config
 from test_ball_travel import ROOT, test_model
@@ -6,6 +9,12 @@ import test_v21 as fixtures
 
 
 class RangePipelineTests(fixtures.V21IntegrationTests):
+    def load_overlay(self,data):
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/'config.json'
+            path.write_text(json.dumps(data),encoding='utf8')
+            return load_config(path)
+
     def setUp(self):
         super().setUp()
         self.c = load_config(ROOT/'configs/v2.2-development.json')
@@ -23,6 +32,20 @@ class RangePipelineTests(fixtures.V21IntegrationTests):
         self.assertFalse(any(call[0] == 'kick' for call in self.calls))
         self.assertIsNone(self.play.transactions.active)
         self.assertEqual(self.play.shot_opportunities[0]['reason'], 'MODEL_UNCALIBRATED')
+
+    def test_null_strategy_label_still_blocks_uncalibrated_sdk_kick(self):
+        data=dict(self.c,upgrade_version='2.2',strategy_version=None)
+        self.c=self.load_overlay(data)
+        self.play=self.NormalPlay(self.c)
+        self.ready()
+        self.assertTrue(self.play.range_gate)
+        self.assertFalse(any(call[0]=='kick' for call in self.calls))
+        self.assertEqual(self.play.shot_opportunities[0]['reason'],'MODEL_UNCALIBRATED')
+
+    def test_null_strategy_label_cannot_unlock_candidate(self):
+        data=dict(self.c,upgrade_version='2.2',strategy_version=None,v22_mode='candidate')
+        with self.assertRaisesRegex(ValueError,'candidate is not accepted'):
+            self.load_overlay(data)
 
     def test_unreachable_shot_never_requests_transaction_or_setKick(self):
         self.play.travel_model = test_model(speed=(1000, 1100), deceleration=(1000, 1100))

@@ -5,12 +5,14 @@
   "usable_for_planning": false,
   "runtime_hashes": {},
   "field_settings": {},
+  "simulator_context": null,
   "profiles": [],
   "acceptance_report_path": null,
   "acceptance_report_sha256": null,
   "missing": [
     "Two robots and mirrored physical release/rolling samples",
     "Independent holdout validation",
-    "Runtime/physics identity and speed limit evidence"
+    "Runtime/physics identity and speed limit evidence",
+    "Saved effective grSim XML/robot profiles fingerprint and matching acceptance report"
   ]
 }

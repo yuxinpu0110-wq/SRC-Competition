@@ -24,6 +24,9 @@ def main():
     temporary=ROOT/'tmp/v22-tests'
     temporary.mkdir(parents=True,exist_ok=True)
     environment=dict(os.environ,TEMP=str(temporary),TMP=str(temporary))
+    report_directory=args.output.resolve().parent
+    console_directory=temporary if report_directory.is_relative_to(ROOT/'tmp') else report_directory/'consoles'
+    console_directory.mkdir(parents=True,exist_ok=True)
     suites=[]
     commands=[['-m','unittest','test_match','test_v21'],['-m','unittest','discover','-s','tests'],
               ['run_match.py','--config',str(ROOT/'configs/v2.2-development.json'),'--check-config']]
@@ -31,20 +34,25 @@ def main():
         command=[sys.executable,'-X','utf8',*arguments]
         result=subprocess.run(command,cwd=SCRIPTS,env=environment,text=True,encoding='utf-8',
                               stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=60)
-        (temporary/f'suite-{index}.txt').write_text(result.stdout,encoding='utf-8')
+        console_path=console_directory/f'suite-{index}.txt'
+        console_path.write_text(result.stdout,encoding='utf-8')
         match=re.search(r'Ran (\d+) tests',result.stdout)
         suites.append(dict(arguments=arguments,exit_code=result.returncode,
-                           tests=int(match[1]) if match else None,console=f'tmp/v22-tests/suite-{index}.txt'))
+                           tests=int(match[1]) if match else None,
+                           console=console_path.relative_to(ROOT).as_posix() if console_path.is_relative_to(ROOT) else str(console_path)))
         print(result.stdout.strip())
     files=[p for p in SCRIPTS.rglob('*.py') if not any(part in ('__pycache__','.venv') for part in p.parts)]
     files += list((ROOT/'configs').rglob('*.json'))+list((ROOT/'tools').glob('*.py'))
     git=subprocess.run(['git','rev-parse','HEAD'],cwd=ROOT,capture_output=True,text=True,check=True)
+    status=subprocess.run(['git','status','--short'],cwd=ROOT,capture_output=True,text=True,check=True)
     report=dict(schema_version=1,scope='OFFLINE_ONLY',date_utc=datetime.now(timezone.utc).isoformat(),
                 base_or_current_commit=git.stdout.strip(),python=sys.version, suites=suites,
                 all_passed=all(s['exit_code']==0 for s in suites),
                 total_tests=sum(s['tests'] or 0 for s in suites), physical_trials_run=0,
                 physical_acceptance_passed=False,production_ready=False,
                 synthetic_models_are_test_only=True,
+                worktree_status_at_verification=status.stdout.splitlines(),
+                identity_note='Commit is HEAD at verification; source/config hashes identify the exact tested working files, including uncommitted integration fixes.',
                 source_and_config_sha256={p.relative_to(ROOT).as_posix():sha(p) for p in sorted(files)})
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

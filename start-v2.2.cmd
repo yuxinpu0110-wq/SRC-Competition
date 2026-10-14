@@ -1,7 +1,11 @@
 @echo off
 cd /d "%~dp0"
 set "PYTHON=ZBin\PythonScripts\.venv\Scripts\python.exe"
-if not exist "%PYTHON%" set "PYTHON=python"
+if not exist "%PYTHON%" (
+  echo Matching .venv interpreter missing. Configure the supplied Python 3.12 environment first.
+  pause
+  exit /b 1
+)
 "%PYTHON%" -X utf8 "ZBin\PythonScripts\run_match.py" --config "configs\v2.2-development.json" --check-config
 if errorlevel 1 (
   pause

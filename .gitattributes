@@ -1,4 +1,7 @@
 # Normalize only the new text reports, never the official SDK assets.
+**/v22-integration-20261014/**/*.json text eol=lf
+**/v22-integration-20261014/**/*.txt text eol=lf
+**/v22-integration-20261014/*.json text eol=lf
 **/empty-goal-fix-*/**/*.json text eol=lf
 **/empty-goal-fix-*/**/*.jsonl text eol=lf
 **/empty-goal-fix-*/**/*.txt text eol=lf

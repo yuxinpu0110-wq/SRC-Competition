@@ -20,6 +20,11 @@ def normalize_verified_contract(config):
         config['control_contract_version'] = 2
     elif upgrade == '2.2' or strategy is not None:
         raise ValueError('Versioned strategy requires explicit control_contract_version=2')
+    # JSON null is not a different strategy. Canonicalize once so startup,
+    # SDK execution and telemetry cannot disagree about the active range gate.
+    effective = strategy if strategy is not None else upgrade
+    if effective is not None:
+        config['strategy_version'] = effective
     return config
 
 
@@ -28,4 +33,5 @@ def uses_verified_control(config):
 
 
 def uses_range_gate(config):
-    return config.get('strategy_version', config.get('upgrade_version')) == '2.2'
+    normalized = normalize_verified_contract(dict(config))
+    return normalized.get('strategy_version') == '2.2'

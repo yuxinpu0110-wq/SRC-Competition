@@ -93,6 +93,8 @@ def load_config(path):
         raise ValueError('Inconsistent field dimensions')
     if uses_range_gate(c):
         from ball_travel import load_ball_model
+        from simulator_context import settings_path
+        settings_path(c)  # Validate explicit source even for an inert developer model.
         if c.get('v22_mode') not in ('development', 'candidate'):
             raise ValueError('V2.2 requires explicit development or candidate mode')
         if c.get('enable_pass') or c.get('calibration_mode'):
