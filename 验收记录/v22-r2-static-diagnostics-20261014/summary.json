@@ -1,0 +1,1373 @@
+{
+  "schema_version": 1,
+  "status": "DIAGNOSTIC_ONLY",
+  "physical_acceptance_passed": false,
+  "usable_for_planning": false,
+  "holdout_validated": false,
+  "strong_goalkeeper_tested": false,
+  "batches": [
+    {
+      "directory": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\v21-calibration-20261014-141316",
+      "summary_sha256": "75f8e32179c4d56f523dc820992c40449c701dd8aa04609b459d6dd0e6da76df",
+      "stage": "static_near_goal_release_diagnostic",
+      "complete": false,
+      "attempts": [
+        {
+          "robot": 0,
+          "sdk_power": 3500,
+          "exit_code": 1,
+          "timed_out": false,
+          "benchmark_complete": false,
+          "report_sha256": "9351663b5a6019cc286d12e15b5e174f4fc39d5796f1c3e9b4b8d196a90063e8",
+          "error": "Strategy exited during reset preflight",
+          "config_sha256": "6b7c59c9c27ce8c97ddcd36ae14d5d00142ceff5e94e12121d647607e3746a9e",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "049c2b37fc3723dac45a1b6c59c07fc38168ccc97731c1ccb0818b05f82192dd"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": false,
+              "goal_crossing": false,
+              "seconds": 3.0,
+              "ball_start_m": [
+                2.8,
+                0
+              ],
+              "physical_departures": 0,
+              "kick_requests": null,
+              "last_ball_mm": null,
+              "max_ball_speed_sdk_mm_s": null,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\v21-calibration-20261014-141609",
+      "summary_sha256": "898d0a226a0ba7952e5e9cb40fb7c7eafe1c145442dfbf343911d8352c618951",
+      "stage": "static_near_goal_release_diagnostic",
+      "complete": true,
+      "attempts": [
+        {
+          "robot": 0,
+          "sdk_power": 3500,
+          "exit_code": 0,
+          "timed_out": false,
+          "benchmark_complete": true,
+          "report_sha256": "2f1f9b7c9134c908719d1d296a3fd6895137134df107aa1e062afb1f6cae4b9f",
+          "error": null,
+          "config_sha256": "6b7c59c9c27ce8c97ddcd36ae14d5d00142ceff5e94e12121d647607e3746a9e",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "049c2b37fc3723dac45a1b6c59c07fc38168ccc97731c1ccb0818b05f82192dd"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 3.0,
+              "ball_start_m": [
+                2.8,
+                0
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 3,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                3934.531494140625,
+                3.3539265115178907e-12
+              ],
+              "max_ball_speed_sdk_mm_s": 1404.165283203125,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1134.531494140625,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 2,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 3.0,
+              "ball_start_m": [
+                2.8,
+                0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                3893.399169921875,
+                505.58184814453125
+              ],
+              "max_ball_speed_sdk_mm_s": 1391.197522754204,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1132.3443791214029,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 3,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 3.0,
+              "ball_start_m": [
+                2.8,
+                -0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 4,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                3892.562255859375,
+                -505.818603515625
+              ],
+              "max_ball_speed_sdk_mm_s": 1400.4982276706676,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1131.4746912618168,
+              "end_displacement_is_certified_range": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\v21-calibration-20261014-141928",
+      "summary_sha256": "ecc9eeb23be32bbac96a4809a7603417d8e81979100f23ab198c34afce9a610e",
+      "stage": "static_near_goal_release_diagnostic",
+      "complete": false,
+      "attempts": [
+        {
+          "robot": 0,
+          "sdk_power": 4500,
+          "exit_code": 0,
+          "timed_out": false,
+          "benchmark_complete": true,
+          "report_sha256": "b288ead4fcc4ddba2a6cb05fb9e9ebc8f499a03dd721c2718a544a6f2acbeda3",
+          "error": null,
+          "config_sha256": "2d6db484ada7154c35d79c8f9ddff88660aa2a6ddd44ae4790e22beba127debf",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "049c2b37fc3723dac45a1b6c59c07fc38168ccc97731c1ccb0818b05f82192dd"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 1.906,
+              "ball_start_m": [
+                2.8,
+                0
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4516.64892578125,
+                -5.539918899536133
+              ],
+              "max_ball_speed_sdk_mm_s": 1853.2392357558956,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1716.6578648896038,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 2,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 2.375,
+              "ball_start_m": [
+                2.8,
+                0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4517.869140625,
+                340.1171569824219
+              ],
+              "max_ball_speed_sdk_mm_s": 1852.499738473647,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1778.3606534147134,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 3,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 2.0,
+              "ball_start_m": [
+                2.8,
+                -0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4511.88037109375,
+                -339.22430419921875
+              ],
+              "max_ball_speed_sdk_mm_s": 1848.8787623097448,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1772.808124636383,
+              "end_displacement_is_certified_range": false
+            }
+          ]
+        },
+        {
+          "robot": 0,
+          "sdk_power": 6000,
+          "exit_code": 0,
+          "timed_out": false,
+          "benchmark_complete": true,
+          "report_sha256": "130075d472b8ac0deb432dcaf66427a523dde7603e6d8338fc37f289f37f75c9",
+          "error": null,
+          "config_sha256": "dd79ba4c2451cb73193138309d9d9213a84999fd6ce6354d0bc3a1f26d573b7c",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "049c2b37fc3723dac45a1b6c59c07fc38168ccc97731c1ccb0818b05f82192dd"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 1.203,
+              "ball_start_m": [
+                2.8,
+                0
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 1,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4499.05224609375,
+                0.3362550139427185
+              ],
+              "max_ball_speed_sdk_mm_s": 2530.5722946892665,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1699.0522793674277,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 2,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 1.203,
+              "ball_start_m": [
+                2.8,
+                0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 1,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4435.75537109375,
+                352.8189697265625
+              ],
+              "max_ball_speed_sdk_mm_s": 2519.98972392765,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1695.7790268482697,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 3,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 1.172,
+              "ball_start_m": [
+                2.8,
+                -0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4507.302734375,
+                -343.6060791015625
+              ],
+              "max_ball_speed_sdk_mm_s": 2524.5444020770833,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1767.2515491116144,
+              "end_displacement_is_certified_range": false
+            }
+          ]
+        },
+        {
+          "robot": 1,
+          "sdk_power": 4500,
+          "exit_code": 1,
+          "timed_out": false,
+          "benchmark_complete": false,
+          "report_sha256": "713614f7e34906b2ea78af793483fd0177a7c0f784d5391d3dca197b00327a05",
+          "error": "Reset not confirmed by vision: PREFLIGHT_CONDITIONS_NOT_MET. Trial INVALID.",
+          "config_sha256": "29d682e7545892a464da0dc252191cb0d6d39a4ca0915a7322a0eb9606c845db",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "049c2b37fc3723dac45a1b6c59c07fc38168ccc97731c1ccb0818b05f82192dd"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": false,
+              "goal_crossing": false,
+              "seconds": 5.0,
+              "ball_start_m": [
+                2.8,
+                0
+              ],
+              "physical_departures": 0,
+              "kick_requests": null,
+              "last_ball_mm": null,
+              "max_ball_speed_sdk_mm_s": null,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\v21-calibration-20261014-142131",
+      "summary_sha256": "769391d238914b6504a0702a73921225ee6087d1eaef736ee8c4bef0a67fd444",
+      "stage": "static_near_goal_release_diagnostic",
+      "complete": false,
+      "attempts": [
+        {
+          "robot": 1,
+          "sdk_power": 4500,
+          "exit_code": 1,
+          "timed_out": false,
+          "benchmark_complete": false,
+          "report_sha256": "ce576f72c10f1f8535997c3cd820292a39a716d4b4f4bed5c424511cfb52fa68",
+          "error": "Strategy exited before telemetry: pid=28684, code=3221226356",
+          "config_sha256": "29d682e7545892a464da0dc252191cb0d6d39a4ca0915a7322a0eb9606c845db",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "049c2b37fc3723dac45a1b6c59c07fc38168ccc97731c1ccb0818b05f82192dd"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": []
+        }
+      ]
+    },
+    {
+      "directory": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\v21-calibration-20261014-142348",
+      "summary_sha256": "906857bf2eb1f4dfc9838eaa8988de2c529412c305b91ef958e026fe3b4d8fc1",
+      "stage": "static_near_goal_release_diagnostic",
+      "complete": true,
+      "attempts": [
+        {
+          "robot": 1,
+          "sdk_power": 4500,
+          "exit_code": 0,
+          "timed_out": false,
+          "benchmark_complete": true,
+          "report_sha256": "7f52c1c9f74b13574e72388bb4b9967b852281e831cb35760b4e3ab02e743fb8",
+          "error": null,
+          "config_sha256": "29d682e7545892a464da0dc252191cb0d6d39a4ca0915a7322a0eb9606c845db",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "049c2b37fc3723dac45a1b6c59c07fc38168ccc97731c1ccb0818b05f82192dd"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 1.875,
+              "ball_start_m": [
+                2.8,
+                0
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4516.658203125,
+                1.5036583089766964e-11
+              ],
+              "max_ball_speed_sdk_mm_s": 1853.4053955078125,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1716.658203125,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 2,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 2.047,
+              "ball_start_m": [
+                2.8,
+                0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4520.71923828125,
+                330.3442687988281
+              ],
+              "max_ball_speed_sdk_mm_s": 1840.8448892624037,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1783.6623006727793,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 3,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 2.266,
+              "ball_start_m": [
+                2.8,
+                -0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 3,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4511.87841796875,
+                -339.2157897949219
+              ],
+              "max_ball_speed_sdk_mm_s": 1848.1133855760697,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1772.8084516612357,
+              "end_displacement_is_certified_range": false
+            }
+          ]
+        },
+        {
+          "robot": 1,
+          "sdk_power": 6000,
+          "exit_code": 0,
+          "timed_out": false,
+          "benchmark_complete": true,
+          "report_sha256": "0d9105910035186667acd71307b0f3f14059aff885055624b1ed6c3231164ad1",
+          "error": null,
+          "config_sha256": "d0221619637baa111c927fb854d7380f2e440121b815092f7bd40d866b466c5c",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "049c2b37fc3723dac45a1b6c59c07fc38168ccc97731c1ccb0818b05f82192dd"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 1.188,
+              "ball_start_m": [
+                2.8,
+                0
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4474.88037109375,
+                -9.489937782287598
+              ],
+              "max_ball_speed_sdk_mm_s": 2527.865687189988,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1674.9072560575553,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 2,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 1.219,
+              "ball_start_m": [
+                2.8,
+                0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 1,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4505.62646484375,
+                337.64959716796875
+              ],
+              "max_ball_speed_sdk_mm_s": 2499.981613277485,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1767.1812393114435,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 3,
+              "valid": true,
+              "goal_crossing": true,
+              "seconds": 4.687,
+              "ball_start_m": [
+                2.8,
+                -0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 3,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                4506.90771484375,
+                -340.4479675292969
+              ],
+              "max_ball_speed_sdk_mm_s": 2534.6033530682757,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "telemetry_end_displacement_mm": 1767.6883259050694,
+              "end_displacement_is_certified_range": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\v21-calibration-20261014-142741",
+      "summary_sha256": "7dcb62035a73f8385fc588a1b231e257f682d6d2140b059972b2d9d9fc168fd1",
+      "stage": "static_rolling_diagnostic",
+      "complete": true,
+      "attempts": [
+        {
+          "robot": 0,
+          "sdk_power": 6000,
+          "exit_code": 0,
+          "timed_out": false,
+          "benchmark_complete": true,
+          "report_sha256": "c661b4387dbdea85bb09aba9ea5b8a8820e18b7ddbd96b66aac396da92ec4718",
+          "error": null,
+          "config_sha256": "dd79ba4c2451cb73193138309d9d9213a84999fd6ce6354d0bc3a1f26d573b7c",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "c8e5e319ddc1669d27d7239035257bf375e471f9635482536adc1c24dfd0ad14"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                0
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                3720.25439453125,
+                -0.18910962343215942
+              ],
+              "max_ball_speed_sdk_mm_s": 2541.3022460958605,
+              "independent_raw_samples": 1866,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": true,
+              "raw_evidence": {
+                "path": "raw-calibration-19dd5be4ab5545cea1a8d4b8cf60fb87-1.jsonl",
+                "sha256": "d8021edd87ba50b9202049f1c9e78a5b52419f84fb397fb3034d38d6ce6c1d0d",
+                "bytes": 359118
+              },
+              "telemetry_end_displacement_mm": 3720.254399337702,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 2,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 1,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                3594.059814453125,
+                435.2981262207031
+              ],
+              "max_ball_speed_sdk_mm_s": 2575.457072040263,
+              "independent_raw_samples": 1814,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": true,
+              "raw_evidence": {
+                "path": "raw-calibration-19dd5be4ab5545cea1a8d4b8cf60fb87-2.jsonl",
+                "sha256": "db6b6bfee18ec717001792ddc29eec5c2fd77fb7efbf40ecc739464ac80baa06",
+                "bytes": 300829
+              },
+              "telemetry_end_displacement_mm": 3612.5162154106606,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 3,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                -0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 4,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                3590.0322265625,
+                -436.62237548828125
+              ],
+              "max_ball_speed_sdk_mm_s": 2529.0889140423396,
+              "independent_raw_samples": 1977,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": true,
+              "raw_evidence": {
+                "path": "raw-calibration-19dd5be4ab5545cea1a8d4b8cf60fb87-3.jsonl",
+                "sha256": "c305546107bad0a013661516cc2e45f66d3b68d60888263cdd79aec18dc625de",
+                "bytes": 327181
+              },
+              "telemetry_end_displacement_mm": 3608.3756298025683,
+              "end_displacement_is_certified_range": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\v21-calibration-20261014-143054",
+      "summary_sha256": "72a8d8847ccccaac19cbc39cad223310e4b95b8ee5ec00221f199ff92154d7c2",
+      "stage": "static_rolling_diagnostic",
+      "complete": false,
+      "attempts": [
+        {
+          "robot": 1,
+          "sdk_power": 4500,
+          "exit_code": 1,
+          "timed_out": false,
+          "benchmark_complete": false,
+          "report_sha256": "123b81182309829de41bcd3f491454a0afdec9774669a089760b85c9e8bd79b0",
+          "error": "Strategy exited before telemetry: pid=41084, code=3221226356",
+          "config_sha256": "29d682e7545892a464da0dc252191cb0d6d39a4ca0915a7322a0eb9606c845db",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "c8e5e319ddc1669d27d7239035257bf375e471f9635482536adc1c24dfd0ad14"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": []
+        }
+      ]
+    },
+    {
+      "directory": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\v21-calibration-20261014-143404",
+      "summary_sha256": "20bfc719915509fb7c2eda7cdca986ca6757136eefef6e0fddd23e14ac5c5c18",
+      "stage": "static_rolling_diagnostic",
+      "complete": true,
+      "attempts": [
+        {
+          "robot": 1,
+          "sdk_power": 4500,
+          "exit_code": 0,
+          "timed_out": false,
+          "benchmark_complete": true,
+          "report_sha256": "d861814450beb0078f306f7484a24860368c5b4759dbc5d86990b8420bc41eae",
+          "error": null,
+          "config_sha256": "29d682e7545892a464da0dc252191cb0d6d39a4ca0915a7322a0eb9606c845db",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "c8e5e319ddc1669d27d7239035257bf375e471f9635482536adc1c24dfd0ad14"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                0
+              ],
+              "physical_departures": 2,
+              "kick_requests": {
+                "shot": 5,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                3597.004150390625,
+                6.568498134613037
+              ],
+              "max_ball_speed_sdk_mm_s": 1879.997901118868,
+              "independent_raw_samples": 1994,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "range_rejection_reason": "MULTIPLE_KICKS_IN_ONE_SCENE",
+              "raw_evidence": {
+                "path": "raw-calibration-abf336ba72d84aebad74b13f882f6e0f-1.jsonl",
+                "sha256": "ddd7db41bd9c675fc2f014b80f44948c6032b8631593aef09aa4675dc9a3121e",
+                "bytes": 381530
+              },
+              "telemetry_end_displacement_mm": 3597.010147760933,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 2,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                0.8
+              ],
+              "physical_departures": 2,
+              "kick_requests": {
+                "shot": 4,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                3847.363037109375,
+                411.959228515625
+              ],
+              "max_ball_speed_sdk_mm_s": 1901.2966791835147,
+              "independent_raw_samples": 1998,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "range_rejection_reason": "MULTIPLE_KICKS_IN_ONE_SCENE",
+              "raw_evidence": {
+                "path": "raw-calibration-abf336ba72d84aebad74b13f882f6e0f-2.jsonl",
+                "sha256": "75e986c43be73324c4a228faf9abb31a2c0af16a2362dc86a4ddf2f84a9bb42f",
+                "bytes": 330324
+              },
+              "telemetry_end_displacement_mm": 3866.882204004883,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 3,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                -0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 3,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                2397.34423828125,
+                -575.9418334960938
+              ],
+              "max_ball_speed_sdk_mm_s": 1863.656767464235,
+              "independent_raw_samples": 1998,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": true,
+              "raw_evidence": {
+                "path": "raw-calibration-abf336ba72d84aebad74b13f882f6e0f-3.jsonl",
+                "sha256": "0f8ff89e65dfe1efc106344d6541fbabe4d96c19d6323012f3fcf7a734c2739d",
+                "bytes": 330836
+              },
+              "telemetry_end_displacement_mm": 2407.7918221468813,
+              "end_displacement_is_certified_range": false
+            }
+          ]
+        },
+        {
+          "robot": 1,
+          "sdk_power": 6000,
+          "exit_code": 0,
+          "timed_out": false,
+          "benchmark_complete": true,
+          "report_sha256": "1eb019424e9ec3e4906b344562696ef0b6beb5f08d21dad1a252fcffc1e6edbf",
+          "error": null,
+          "config_sha256": "d0221619637baa111c927fb854d7380f2e440121b815092f7bd40d866b466c5c",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "39b356321348db0e4a91d612e02244abae0dd92527be0342108e7fe40c0797df",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "c8e5e319ddc1669d27d7239035257bf375e471f9635482536adc1c24dfd0ad14"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                0
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 3,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                3892.906982421875,
+                -20.275068283081055
+              ],
+              "max_ball_speed_sdk_mm_s": 2551.314167127455,
+              "independent_raw_samples": 1989,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": true,
+              "raw_evidence": {
+                "path": "raw-calibration-2ef67ec3c8bd4cb4a477051c9dd00c4e-1.jsonl",
+                "sha256": "0ea3688c976e476f671665265d7dc0c615db9ec0781241590fefe13f478d0e66",
+                "bytes": 379107
+              },
+              "telemetry_end_displacement_mm": 3892.9597804476316,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 2,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                3662.539794921875,
+                424.9565734863281
+              ],
+              "max_ball_speed_sdk_mm_s": 2576.9160083886745,
+              "independent_raw_samples": 1974,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": true,
+              "raw_evidence": {
+                "path": "raw-calibration-2ef67ec3c8bd4cb4a477051c9dd00c4e-2.jsonl",
+                "sha256": "ddabf942a9a41b8262e384b377b67a365dbb00e5b48db658805a619ac998387c",
+                "bytes": 325531
+              },
+              "telemetry_end_displacement_mm": 3681.6919101355406,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 3,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                -0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 1,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                3925.06103515625,
+                -390.05487060546875
+              ],
+              "max_ball_speed_sdk_mm_s": 2523.992654793022,
+              "independent_raw_samples": 1993,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": true,
+              "raw_evidence": {
+                "path": "raw-calibration-2ef67ec3c8bd4cb4a477051c9dd00c4e-3.jsonl",
+                "sha256": "5c8b6b49aeebf36696b7a059639169ac23e88d1dd02c8a86c1ce866a5ef01c37",
+                "bytes": 329319
+              },
+              "telemetry_end_displacement_mm": 3946.4109186469864,
+              "end_displacement_is_certified_range": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\v21-calibration-20261014-144427",
+      "summary_sha256": "1d664fad4332cf2974f6d2744858f1a05f279c176d676f97e9c605f18a2ea08e",
+      "stage": "static_rolling_diagnostic",
+      "complete": false,
+      "attempts": [
+        {
+          "robot": 1,
+          "sdk_power": 4500,
+          "exit_code": 1,
+          "timed_out": false,
+          "benchmark_complete": false,
+          "report_sha256": "96af5d9b808edd37904152530139149b984081e6d706da6e8b0f0c82e5d7939b",
+          "error": "Processed vision/decision heartbeat stalled for 2.5 seconds; trial INVALID",
+          "config_sha256": "29d682e7545892a464da0dc252191cb0d6d39a4ca0915a7322a0eb9606c845db",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "e0b570a4b5f06bb52d13b063a61002c4ca48a7501949a12d047a0350b078ca9e",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "c8e5e319ddc1669d27d7239035257bf375e471f9635482536adc1c24dfd0ad14"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": false,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                0
+              ],
+              "physical_departures": 0,
+              "kick_requests": null,
+              "last_ball_mm": [
+                0.0,
+                0.0
+              ],
+              "max_ball_speed_sdk_mm_s": null,
+              "independent_raw_samples": null,
+              "raw_poll_failures": null,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": false,
+              "raw_evidence": {
+                "path": "raw-calibration-44acc5bb9fc44a6dad9451085e0963e2-1.jsonl",
+                "sha256": "531618351fa580a79906b1c37a3d92447b18f0ec3eab03bc0d1f960625604a13",
+                "bytes": 142705
+              },
+              "telemetry_end_displacement_mm": 0.0,
+              "end_displacement_is_certified_range": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\v21-calibration-20261014-144725",
+      "summary_sha256": "4904f2107dd57077ed984ffa6201068ba1b943ca9ffbce8f90e00206d589cc74",
+      "stage": "static_rolling_diagnostic",
+      "complete": false,
+      "attempts": [
+        {
+          "robot": 1,
+          "sdk_power": 4500,
+          "exit_code": 1,
+          "timed_out": false,
+          "benchmark_complete": false,
+          "report_sha256": "559d482bc2eb04c14f9136bb13c9626ec3cab5715ffca99be8ef9c7aa873e68f",
+          "error": "Strategy exited before telemetry: pid=48588, code=3221226356",
+          "config_sha256": "29d682e7545892a464da0dc252191cb0d6d39a4ca0915a7322a0eb9606c845db",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "f42750013ae1c06d83effce4ea759c2bd6331ba922dbe6529503fabde128cf0d",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "c8e5e319ddc1669d27d7239035257bf375e471f9635482536adc1c24dfd0ad14"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": []
+        }
+      ]
+    },
+    {
+      "directory": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\v21-calibration-20261014-145145",
+      "summary_sha256": "7e7c0f464aa681f9ceafcbd9eacdad38a481c743303ef3d6322a6213011515a1",
+      "stage": "static_rolling_diagnostic",
+      "complete": true,
+      "attempts": [
+        {
+          "robot": 1,
+          "sdk_power": 4500,
+          "exit_code": 0,
+          "timed_out": false,
+          "benchmark_complete": true,
+          "report_sha256": "77ff7db22af479e93958567879428f901cf186e1a0f3f4c2f1bb4b3f76eabc16",
+          "error": null,
+          "config_sha256": "29d682e7545892a464da0dc252191cb0d6d39a4ca0915a7322a0eb9606c845db",
+          "source_sha256": {
+            "run_match.py": "6026ac5c5ac17de3790a2d3554a3dc760098a39a79ea993769589e500ea2e766",
+            "match_tactics.py": "c18d5fb6a20e7b5e1a79ac068759e4d7f690134183bb46f228cedd72d2e74edf",
+            "Play/Normal/Normalplay.py": "f42750013ae1c06d83effce4ea759c2bd6331ba922dbe6529503fabde128cf0d",
+            "RoleMatch_LuaStyle/Skills/CompetitionSkills.py": "7a7a20920005f1e816b0a81229c72a10e75ae8b348a44d212b037117c236cc34",
+            "shot_accuracy.py": "970eb409d7e29ad51e685f20595bab94e8648ce3e9e6a07242095d28934fc41a",
+            "ball_control.py": "0a8f52c65a97cda2d8a115398e7398e63c2316c03b3539b3fab681b4038a2276",
+            "competition_rules.py": "49deace46723a8731a64537fb86521982c0f7da1388ec879f4b74c46d3c5f379",
+            "sim_tools.py": "f308d3f1ac73706c1feaec275694f201fe25ad106e2690879da62af973cbdcb9",
+            "benchmark_match.py": "c8e5e319ddc1669d27d7239035257bf375e471f9635482536adc1c24dfd0ad14"
+          },
+          "runtime_sha256": {
+            "MedusaCore.dll": "7f4a2c3ce235b03bf39147d85a6c856cac92ae50baec3401dabc2dc5a4b571f1",
+            "ode_double.dll": "a80e796419a0bc11511065ef1390e4c6a726bcdbbaa8184d0c075026e8d9b695",
+            "grSim.exe": "27878881cd226b44b845787865081fd92e1f660563fffaab85fe6d6f1465d989",
+            "zss_simulator.ini": "2c441e89590ae714aaecc8046734153b4970fed4f916fb8123fad0c76ae462c8"
+          },
+          "pyd_sha256": "6805d7d50eae13c481b9a4326064e86eb632782a5e59ee105855f96b6892c974",
+          "trials": [
+            {
+              "trial": 1,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                0
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                1904.94580078125,
+                -5.842915197717957e-05
+              ],
+              "max_ball_speed_sdk_mm_s": 1885.965820312501,
+              "independent_raw_samples": 1998,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": true,
+              "raw_evidence": {
+                "path": "raw-calibration-a1da4f22dca14eb6b4171d5be2fe2721-1.jsonl",
+                "sha256": "eb8b73b4569b0187b581bc5b388d5422c35ca1c1e9cf23e9edb5fb71b816dfa5",
+                "bytes": 388817
+              },
+              "telemetry_end_displacement_mm": 1904.945800781251,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 2,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 1,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                1895.0767822265625,
+                605.2598266601562
+              ],
+              "max_ball_speed_sdk_mm_s": 1901.676354433047,
+              "independent_raw_samples": 1998,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": true,
+              "raw_evidence": {
+                "path": "raw-calibration-a1da4f22dca14eb6b4171d5be2fe2721-2.jsonl",
+                "sha256": "05ea0a2fac59f50a598814346e66b86e0dc6b600e2e4a464a77fbce5d81e0550",
+                "bytes": 331619
+              },
+              "telemetry_end_displacement_mm": 1905.0563628529774,
+              "end_displacement_is_certified_range": false
+            },
+            {
+              "trial": 3,
+              "valid": true,
+              "goal_crossing": false,
+              "seconds": 8.0,
+              "ball_start_m": [
+                0,
+                -0.8
+              ],
+              "physical_departures": 1,
+              "kick_requests": {
+                "shot": 2,
+                "pass": 0
+              },
+              "last_ball_mm": [
+                1895.8997802734375,
+                -609.5496215820312
+              ],
+              "max_ball_speed_sdk_mm_s": 1842.4766760117498,
+              "independent_raw_samples": 1994,
+              "raw_poll_failures": 0,
+              "sdk_speed_is_release_calibration": false,
+              "single_kick_raw_diagnostic": true,
+              "raw_evidence": {
+                "path": "raw-calibration-a1da4f22dca14eb6b4171d5be2fe2721-3.jsonl",
+                "sha256": "d9f23f3052c11b91e7c343e1c3896bb5300a4858c277e3be50058af2a636de7a",
+                "bytes": 332141
+              },
+              "telemetry_end_displacement_mm": 1905.4415035577492,
+              "end_displacement_is_certified_range": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -20,5 +20,7 @@ client-inspect.png
 tmp/
 match-selected.json
 opponent-selected.json
+# Full calibration captures stay local; compact hashed evidence is committed separately.
+验收记录/v21-calibration-*/
 !验收记录/
 !验收记录/*.json

@@ -26,7 +26,7 @@
   "contact_distance": 100,
   "contact_forward_max": 110,
   "contact_trim": false,
-  "settle_on_contact": false,
+  "settle_on_contact": true,
   "lock_contact_aim": true,
   "pass_shot_threshold": 230,
   "pass_score_gain": 60,
@@ -55,5 +55,5 @@
   "raw_vision_port": 10022,
   "calibration_mode": true,
   "calibration_power": 3500,
-  "calibration_placement_distance_mm": 100
+  "calibration_placement_distance_mm": 110
 }

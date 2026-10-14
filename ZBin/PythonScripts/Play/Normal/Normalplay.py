@@ -311,6 +311,8 @@ class NormalPlay(StateMachine):
         self.transactions = KickTransactions(config, os.environ.get('SRC_MATCH_RUN_ID'))
         self.flight_observer = BallFlightObserver(config)
         self.reset_epoch = 0
+        # 标定每次摆球只允许一个出脚事务；短脉冲可以重复，不能追上停球再踢。
+        self.calibration_transaction = None
         self.in_reset = False
         self.release_until = -math.inf
         # config 来自 match.json。这里只保存配置，不在构造函数里驱动车辆。
@@ -396,6 +398,14 @@ class NormalPlay(StateMachine):
 
     def normal_state(self):
         """普通情况下应该进入哪个状态？只返回名字，不在这里执行任务。"""
+        if (self.c.get('calibration_mode') and self.calibration_transaction is not None
+                and self.calibration_transaction[0] == self.reset_epoch):
+            tx = self.transactions.active
+            if tx is not None and tx.state == 'IN_FLIGHT':
+                return 'ObserveFlight'
+            if tx is None or tx.state != 'REQUESTED':
+                self.phase = 'CALIBRATION_SINGLE_KICK_COMPLETE'
+                return 'Hold'
         if not self.can_attack or self.choice.phase in ('NO_BALL', 'BALL_OUT'):
             return 'Hold'
         if self.c['profile'] == 'goalie':
@@ -646,8 +656,16 @@ class NormalPlay(StateMachine):
         f = self.frame
         if not self.can_attack or not f.new_capture or number not in f.players:
             return False
-        return self.transactions.request(f.now, number, 'pass' if passing else 'shot', f.ball,
-                target, f.players[number], self.ball_speed if math.isfinite(self.ball_speed) else 0) is not None
+        if (self.c.get('calibration_mode') and self.calibration_transaction is not None
+                and self.calibration_transaction[0] == self.reset_epoch):
+            tx = self.transactions.active
+            if tx is None or tx.id != self.calibration_transaction[1] or tx.state != 'REQUESTED':
+                return False
+        tx = self.transactions.request(f.now, number, 'pass' if passing else 'shot', f.ball,
+                target, f.players[number], self.ball_speed if math.isfinite(self.ball_speed) else 0)
+        if tx is not None and self.c.get('calibration_mode'):
+            self.calibration_transaction = (self.reset_epoch, tx)
+        return tx is not None
 
     def receiver_position(self, ball=None):
         """target 是球的落点；车心应在落点后105mm，车头朝来球方向。"""

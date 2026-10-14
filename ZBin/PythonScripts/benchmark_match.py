@@ -109,7 +109,7 @@ def main():
                         help='Same-scene A/B of old/new targeted contact control')
     parser.add_argument('--goalie', choices=('official', 'stationary', 'none'), default='official',
                         help='stationary isolates aiming; never count it as a moving-goalie test')
-    parser.add_argument('--starts', choices=('approach','contact','front'), default='approach',
+    parser.add_argument('--starts', choices=('approach','contact','front','rolling'), default='approach',
                         help='contact pre-aligns the striker near ball: aiming-only diagnostic, NOT full attack')
     parser.add_argument('--frame-cycle', choices=('paired','legacy'), default='paired',
                         help='paired always completes pre/post; legacy reproduces old skipped idle postDecision')
@@ -122,6 +122,8 @@ def main():
         raise RuntimeError('Benchmark requires ONE connected Client and ONE simulator')
     (ROOT/'logs').mkdir(exist_ok=True)
     c = load_config(args.config)
+    if args.starts == 'rolling' and (not c.get('calibration_mode') or args.goalie != 'none'):
+        parser.error('rolling is calibration-only and requires --goalie none')
     if args.contact_trim:
         c['contact_trim'] = True
     if args.contact_distance is not None:
@@ -195,6 +197,7 @@ def main():
                 report['goalie_telemetry'] = str(goalie_telemetry) if goalie_telemetry else None
                 starts = ([(0,0),(.8,1),(.8,-1)] if args.starts == 'approach' else
                           [(3.38,0),(3.38,.6),(3.38,-.6)] if args.starts == 'front' else
+                          [(0,0),(0,.8),(0,-.8)] if args.starts == 'rolling' else
                           [(2.8,0),(2.8,.8),(2.8,-.8)])
                 for trial, ball in enumerate(starts * args.repeats):
                     result = {'trial':trial+1, 'skill':skill, 'ball_start_m':ball,
@@ -207,7 +210,7 @@ def main():
                     referee(0)
                     time.sleep(.25)
                     poses = None
-                    if args.starts in ('contact','front'):
+                    if args.starts in ('contact','front','rolling'):
                         from match_tactics import Point, Tactics
                         aim,_ = Tactics(c).shot(Point(ball[0]*1000,ball[1]*1000),[] if args.goalie == 'none' else [Point(4200,0)])
                         angle = math.atan2(aim.y-ball[1]*1000,aim.x-ball[0]*1000)
@@ -285,9 +288,15 @@ def main():
                     stale_since = None
                     max_stale_seconds = 0.
                     stale_samples = 0
-                    with telemetry.open(encoding='utf-8') as stream:
+                    from raw_trial_recorder import RawTrialRecorder
+                    raw_path=ROOT/'logs'/f'raw-calibration-{p.run_id}-{trial+1}.jsonl' if c.get('calibration_mode') else None
+                    if raw_path is not None:
+                        report.setdefault('raw_capture_logs',[]).append(str(raw_path))
+                        result['raw_capture_log']=str(raw_path)
+                    with telemetry.open(encoding='utf-8') as stream, RawTrialRecorder(raw_path) as raw_audit:
                         stream.seek(offset)
                         while time.monotonic()-start < args.seconds:
+                            raw_audit.poll()
                             if p.poll() is not None or (goalie is not None and goalie.poll() is not None):
                                 result.update(attacker_exit_code=p.poll(),goalie_exit_code=goalie.poll() if goalie else None)
                                 raise RuntimeError('Strategy process exited during trial')
@@ -369,6 +378,8 @@ def main():
                             result['last_ball_mm'] = [x,y]
                             result['last_phase'] = row['phase']
                             result['last_shot_gate'] = row.get('shot_gate', {})
+                    result['independent_raw_samples']=raw_audit.samples
+                    result['raw_poll_failures']=raw_audit.poll_failures
                     referee(0)
                     result['samples'] = samples
                     result['fresh_capture_samples'] = len(fresh_capture_ids)

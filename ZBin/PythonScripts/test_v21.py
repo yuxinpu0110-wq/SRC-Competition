@@ -269,6 +269,21 @@ class V21IntegrationTests(OfficialPlayTests):
             self.assertEqual(self.play.executed_state,'Hold')
             self.assertFalse(any(c[0]=='kick' for c in self.calls))
 
+    def test_calibration_allows_pulses_but_not_second_transaction(self):
+        self.c['calibration_mode']=True
+        self.tick(0)
+        target=Point(4500,0)
+        self.assertTrue(self.play.authorize_kick(0,target,False))
+        first=self.play.transactions.active.id
+        self.assertTrue(self.play.authorize_kick(0,target,False))
+        self.assertEqual(first,self.play.transactions.active.id)
+        self.play.transactions.finish()
+        self.assertFalse(self.play.authorize_kick(0,target,False))
+        self.assertEqual(self.play.normal_state(),'Hold')
+        self.tick(.1,mode='HALT')
+        self.tick(.2)
+        self.assertTrue(self.play.authorize_kick(0,target,False))
+
     def test_v21_duplicate_does_not_emit_or_advance_stability(self):
         self.tick(0)
         self.tick(.02)
