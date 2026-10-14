@@ -35,10 +35,27 @@ def latest_complete_row(path):
     return None
 
 
+def v21_status(row):
+    """面板显示证据状态；发出命令不能显示成球已离脚。"""
+    observation = row.get('observation') or {}
+    if not observation.get('fresh'):
+        return '视觉证据不足，进攻暂停（'+observation.get('reason','UNKNOWN')+'）'
+    transaction = row.get('kick_transaction') or {}
+    active = transaction.get('active') or {}
+    state = active.get('state')
+    if state == 'REQUESTED':
+        return f'出脚请求已发送，等待离脚证据；脉冲 {active.get("pulse_count",0)} 次。'
+    if state == 'IN_FLIGHT':
+        return '已确认球离脚，正在观察飞行。'
+    if transaction.get('retry_exhausted'):
+        return '未离脚重试预算已用尽；等待新球或场景重置。'
+    return 'V2.1 状态：'+row.get('phase',row.get('state','WAIT'))
+
+
 class App:
     def __init__(self, window, config_path=None):
         self.window = window
-        self.config_path = Path(config_path) if config_path is not None else ROOT/'match.json'
+        self.config_path = Path(config_path) if config_path is not None else ROOT/'configs/v2.1-foundation.json'
         self.process = None
         self.output = None
         self.c = None
@@ -54,7 +71,7 @@ class App:
         self.opponent_telemetry = None
         window.title('SRC 比赛策略 · 本机仿真')
         window.geometry('720x830')
-        tk.Label(window, text='比赛策略控制台（V1.0规则修正·不带球）', font=('Microsoft YaHei', 16)).pack(pady=12)
+        tk.Label(window, text='比赛策略控制台（V2.1集成·不带球）', font=('Microsoft YaHei', 16)).pack(pady=12)
         tk.Label(window, text='默认：初赛 2 攻，蓝队 0 / 1 号；原练习目录不受影响。\n先关闭旧 Client / grSim / demo / Medusa，避免端口和控制权冲突。', justify='left').pack()
         self.pass_enabled = tk.BooleanVar(value=load_config(self.config_path).get('enable_pass', False))
         tk.Checkbutton(window, text='实验传球（重新启动策略后生效，尚未完成移动门将验收）',
@@ -90,6 +107,8 @@ class App:
         window.after(500, self.poll)
 
     def open_gui(self):
+        from vision_relay import ensure_relay
+        ensure_relay()
         # Windows GUI tools are intentionally visible for the operator.
         for name in ('Client.exe',):
             # Do not spawn duplicates from this panel. An existing external instance is operator-owned.
@@ -273,6 +292,13 @@ class App:
                     useful = [s for s in lines[-30:] if '[MATCH]' in s or 'Error' in s]
                     if useful:
                         self.status.set(useful[-1])
+                    if self.c.get('upgrade_version') == '2.1':
+                        candidates=sorted((ROOT/'logs').glob(f'*-{self.c["team"]}.jsonl'),key=lambda p:p.stat().st_mtime,reverse=True)
+                        for telemetry in candidates[:3]:
+                            row=latest_complete_row(telemetry)
+                            if row and row.get('process_id') == self.process.pid:
+                                self.status.set(v21_status(row))
+                                break
                 except OSError:
                     pass
         self.window.after(500, self.poll)
@@ -284,10 +310,14 @@ class App:
         self.window.destroy()
 
 
-if __name__ == '__main__':
+def main(argv=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default=str(ROOT/'match.json'))
-    args = parser.parse_args()
+    parser.add_argument('--config', default=str(ROOT/'configs/v2.1-foundation.json'))
+    args = parser.parse_args(argv)
     root = tk.Tk()
-    app = App(root, Path(args.config).resolve())
+    app = App(root, config_path=Path(args.config).resolve())
     root.mainloop()
+
+
+if __name__ == '__main__':
+    main()

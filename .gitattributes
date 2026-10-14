@@ -1,2 +1,3 @@
 # Normalize only the new text reports, never the official SDK assets.
+ZBin/zss_simulator.ini text eol=lf
 验收记录/*.json text eol=lf

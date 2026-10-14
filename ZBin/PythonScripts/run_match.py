@@ -40,7 +40,7 @@ def load_config(path):
     if c.get('goalie_skill','Goalie') != 'Goalie':
         raise ValueError('This ruleset tests the official Goalie skill, not Goalie2022')
     for name in ('enable_pass', 'enable_feint', 'enable_reachable_pass', 'enable_keeper_prediction',
-                 'settle_on_contact', 'lock_contact_aim',
+                 'settle_on_contact', 'lock_contact_aim', 'calibration_mode', 'enable_one_touch', 'enable_dynamic_keeper',
                  'contact_trim', 'advance_before_shoot', 'enable_dss', 'qt_application', 'complete_frame'):
         if name in c and type(c[name]) is not bool:
             raise ValueError(name+' must be true or false (not a string)')
@@ -63,6 +63,29 @@ def load_config(path):
     for name in ('field_length', 'field_width', 'goal_width', 'defense_depth', 'defense_width'):
         if not isinstance(c[name], (int, float)) or not math.isfinite(c[name]) or c[name] <= 0:
             raise ValueError('Invalid field dimension: '+name)
+    if c.get('upgrade_version') == '2.1':
+        if c.get('raw_capture_clock','unix') not in ('unix','relative'):
+            raise ValueError('raw_capture_clock must be unix or relative')
+        if not c.get('complete_frame', True):
+            raise ValueError('V2.1 requires paired native pre/post decisions')
+        for name, low, high in [('vision_max_age_s', .05, .5), ('vision_match_tolerance_mm', 5, 100),
+                ('kick_pulse_seconds', .02, .2), ('kick_departure_timeout', .2, .5),
+                ('flight_observe_seconds', .3, 3), ('action_no_progress_s', .3, 2),
+                ('action_align_timeout_s', .5, 3), ('target_commit_timeout_s', .5, 5)]:
+            value = c.get(name)
+            if type(value) not in (int, float) or not math.isfinite(value) or not low <= value <= high:
+                raise ValueError('Invalid V2.1 parameter: '+name)
+        if type(c.get('raw_camera_id')) is not int or not -1 <= c['raw_camera_id'] <= 15:
+            raise ValueError('raw_camera_id must be -1 (safe camera selection) or 0..15')
+        if type(c.get('kick_max_attempts')) is not int or not 1 <= c['kick_max_attempts'] <= 2:
+            raise ValueError('V2.1 permits at most one reapproach after no departure')
+        if c.get('enable_feint') or c.get('enable_one_touch') or c.get('enable_dynamic_keeper'):
+            raise ValueError('V2.1 foundation has not passed physical calibration for advanced features')
+        if c.get('calibration_mode'):
+            if type(c.get('calibration_power')) is not int or not 1000 <= c['calibration_power'] <= c['power_cap']:
+                raise ValueError('Invalid calibration SDK power input')
+            if c.get('enable_pass') or c.get('profile') != 'qualifier':
+                raise ValueError('Calibration isolates two attackers, without passing')
     if c['defense_depth'] >= c['field_length']/2 or c['defense_width'] >= c['field_width'] or c['goal_width'] >= c['field_width']:
         raise ValueError('Inconsistent field dimensions')
     return c
@@ -70,7 +93,7 @@ def load_config(path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default=str(ROOT/'match.json'))
+    parser.add_argument('--config', default=str(ROOT/'configs/v2.1-foundation.json'))
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--frames', type=int, default=0)
     parser.add_argument('--telemetry', help='Explicit JSONL output for an owned benchmark process')
@@ -84,6 +107,9 @@ def main():
     if not args.check:
         from match_processes import check_duplicates
         check_duplicates()
+        if c.get('upgrade_version') == '2.1':
+            from vision_relay import ensure_relay
+            ensure_relay()  # 必须早于 SDK 等待 Client 视觉，避免启动依赖环。
     os.chdir(ZBIN)
     dll_handle = os.add_dll_directory(str(ZBIN))  # 保留句柄，直到进程退出。
     ini = configparser.ConfigParser(interpolation=None)
@@ -141,10 +167,21 @@ def main():
     log_path = (Path(args.telemetry) if args.telemetry else
                 log_dir/(time.strftime('%Y%m%d-%H%M%S')+f"-{c['team']}.jsonl"))
     log_path.parent.mkdir(parents=True,exist_ok=True)
+    from runtime_manifest import manifest
+    log_path.with_suffix('.manifest.json').write_text(json.dumps(manifest(args.config),indent=2),encoding='utf-8')
     frames, last_label, last_log, armed = 0, None, 0.0, False
     ready_frames = 0
     def xy(point):
         return Point(point.x(), point.y())
+    raw = watchdog = None
+    if c.get('upgrade_version') == '2.1':
+        from observation import RelayVision, MultiCameraGuard
+        from safety_watchdog import DecisionWatchdog
+        from vision_relay import ensure_relay
+        ensure_relay()
+        raw = RelayVision()
+        freshness = MultiCameraGuard(c['vision_max_age_s'], c['vision_match_tolerance_mm'], c.get('raw_capture_clock','relative'))
+        watchdog = DecisionWatchdog(c['team'],ids,c['vision_max_age_s'])
     print('[MATCH] READY. Official NormalPlay states. HALT -> STOP GAME -> FORCE START.', flush=True)
     try:
         with log_path.open('w', encoding='utf-8') as log:
@@ -185,9 +222,23 @@ def main():
                 opponent_players = {n:xy(Enemy.pos(n)) for n in range(16) if Enemy.valid(n)}
                 opponents = list(opponent_players.values())
                 native_motion = {n:(Player.velMod(n), Player.rotVel(n), Ball.velMod()) for n in visible}
+                evidence = associated = None
+                if raw is not None:
+                    raw.poll()
+                    evidence, associated = freshness.evaluate_all(tuple(raw.captures.values()), now, ball, players, c['team'], c['side'], cycle)
+                    # 各车分别验证；远端支持车缺失时不驱动它，也不阻断有效主攻。
+                    trusted = set(evidence.trusted_robots or ())
+                    players = {n:p for n,p in players.items() if n in trusted}
+                    # visible 仍保留 SDK 确认存在的车，以便给未关联车分配原生 Stop；
+                    # 它们不会进入可信 players 或进攻选择。
+                    if watchdog.error:
+                        from observation import Evidence
+                        evidence = Evidence(reason='SAFE_STOP_CHANNEL_FAILED')
+                    if evidence.fresh and evidence.new_capture:
+                        watchdog.touch(now)
                 play.update_frame(now, ball, players, opponents, visible, mode, valid_ball,
                                   referee=message, cycle=cycle, opponent_players=opponent_players,
-                                  native_motion=native_motion)
+                                  native_motion=native_motion, observation=evidence)
                 play.planTasks()  # 唯一调度入口：官方 State.run → Task.run → Skill。
                 Global.isPlaySwitched = False
                 if play.motion_ids or c.get('complete_frame', True):
@@ -219,6 +270,13 @@ def main():
                            'vision_cycle':cycle, 'vision_fresh':play.frame.fresh,
                            'vision_age_seconds':play.frame.vision_age,
                            'monotonic':now, 'kick_events':list(play.kick_events),
+                           'process_id':os.getpid(), 'run_id':os.environ.get('SRC_MATCH_RUN_ID'),
+                           'version':c.get('upgrade_version','v2'),
+                           'observation':evidence.diagnostics() if evidence else None,
+                           'raw_vision_error':raw.error if raw else None,
+                           'physical_events':list(play.transactions.events),
+                           'kick_transaction':play.transactions.diagnostics(),
+                           'raw_capture':dict(camera=associated.camera,frame_id=associated.frame_id,capture_time=associated.capture_time,receive_time=associated.receive_time,ball=[associated.ball.x,associated.ball.y] if associated.ball else None) if associated else None,
                            'match_events':list(play.events.events[-32:]),
                            'aim':[play.choice.aim.x, play.choice.aim.y] if play.choice.aim is not None else None,
                            'shot_gate':{str(n):g.diagnostics for n,g in play.shot_gates.items()},
@@ -233,9 +291,10 @@ def main():
                                                  play.keeper_prediction.position.y,
                                                  play.keeper_prediction.uncertainty]
                                                 if play.keeper_prediction is not None else None),
-                           'robots':{str(n):[players[n].x, players[n].y] for n in visible}}
+                           'robots':{str(n):[p.x,p.y] for n,p in players.items()}}
                     log.write(json.dumps(row)+'\n')
                     log.flush()
+                    play.transactions.events.clear()
                     play.kick_events.clear()  # 每次请求只记录一次；高频请求保存在两次日志之间。
                     (ROOT/f'heartbeat-{c["team"]}.txt').write_text(str(time.time()), encoding='ascii')
                     last_log = now
@@ -244,6 +303,8 @@ def main():
     finally:
         # 原生崩溃不保证执行 finally，故这不是经过认证的急停机制。
         kickStatus.clearAll()
+        if watchdog is not None: watchdog.close()
+        if raw is not None: raw.close()
         for _ in range(3):
             stop_robots(c['team'], ids)
         lock.close()

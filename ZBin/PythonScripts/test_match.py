@@ -456,7 +456,9 @@ class OfficialPlayTests(unittest.TestCase):
         from RoleMatch_LuaStyle import State,StateMachine
         self.assertTrue(issubclass(self.NormalPlay,StateMachine))
         self.assertTrue(all(isinstance(s,State) for s in self.play.states.values()))
-        self.assertEqual(len(self.play.states),10)
+        self.assertEqual(len(self.play.states),12)
+        self.assertIn('AbortRelease',self.play.states)
+        self.assertIn('ObserveFlight',self.play.states)
         self.assertNotIn('Advance',self.play.states)
         self.assertTrue(Path(sys.modules[StateMachine.__module__].__file__).name == 'StateMachine.py')
 

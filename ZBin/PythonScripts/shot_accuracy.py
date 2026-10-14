@@ -20,19 +20,29 @@ class ShotGate:
         self.last_kick = -math.inf
         self.pulse_until = -math.inf
         self.diagnostics = {'reason': 'NO_SAMPLE'}
+        self.capture_id = None
+        self.new_observation = False
+        self.capture_time = None
 
-    def observe(self, now, robot, heading, ball):
+    def reset(self):
+        self.__init__()
+
+    def observe(self, now, robot, heading, ball, *, frame_id=None):
         """由相邻视觉帧估算速度；断帧后重新站稳，不沿用之前的稳定计时。"""
         if not all(math.isfinite(v) for v in (now, robot.x, robot.y, heading, ball.x, ball.y)):
             self.previous = None
             self.speed = self.spin = self.ball_speed = math.inf
             self.stable_since = None
             return
+        self.new_observation = False
+        if frame_id is not None and frame_id == self.capture_id:
+            return
         old = self.previous
         # Windows低分辨率时钟/重复回调可能得到相同时间；不是视觉断帧。
         # 不覆盖上一个有效样本，也不把已经积累的稳定时间清零。
         if old is not None and 0 <= now-old[0] < .001:
             return
+        self.capture_id, self.capture_time, self.new_observation = frame_id, now, True
         self.previous = (now, robot, heading, ball)
         if old is None or not 0.001 <= now-old[0] <= .25:
             self.speed = self.spin = self.ball_speed = math.inf
@@ -75,12 +85,15 @@ class ShotGate:
         if self.previous_target is not None and distance(target, self.previous_target) > 40:
             self.stable_since = None
         self.previous_target = target
+        evidence_time = self.capture_time if self.capture_time is not None else now
         if reason != 'READY':
             self.stable_since = None
+        elif not self.new_observation:
+            reason = 'NO_NEW_CAPTURE'
         else:
             if self.stable_since is None:
-                self.stable_since = now
-            if now-self.stable_since < .08:
+                self.stable_since = evidence_time
+            if evidence_time-self.stable_since < .08:
                 reason = 'SETTLE'
             elif now > self.pulse_until and now-self.last_kick < .3:
                 reason = 'COOLDOWN'

@@ -9,6 +9,8 @@ import hashlib
 import math
 import itertools
 import json
+import os
+import uuid
 from pathlib import Path
 import subprocess
 import sys
@@ -63,16 +65,35 @@ def complete_rows(path):
 
 def launch(config, label):
     f = (ROOT/'logs'/f'benchmark-{label}-{time.time_ns()}-console.txt').open('w', encoding='utf-8')
-    telemetry = ROOT/'logs'/f'benchmark-{label}-{time.time_ns()}.jsonl'
-    p = subprocess.Popen([sys.executable, '-X', 'utf8', '-X', 'faulthandler', '-u', str(ZBIN/'PythonScripts'/'run_match.py'), '--config', str(config), '--telemetry',str(telemetry)],
-                         cwd=ZBIN, stdout=f, stderr=subprocess.STDOUT)
-    p.telemetry_path = telemetry
+    run_id=uuid.uuid4().hex
+    env=dict(os.environ,SRC_MATCH_RUN_ID=run_id)
+    p = subprocess.Popen([sys.executable, '-X', 'utf8', '-X', 'faulthandler', '-u', str(ZBIN/'PythonScripts'/'run_match.py'), '--config', str(config)],
+                         cwd=ZBIN, stdout=f, stderr=subprocess.STDOUT,env=env)
+    p.run_id=run_id
     return p, f
+
+
+def wait_for_telemetry(process, team, started_at, timeout=15):
+    """等本次子进程真正发布遥测；不以固定2秒或旧日志作为启动成功。"""
+    from match_launcher import latest_complete_row
+    deadline=time.monotonic()+timeout
+    while time.monotonic()<deadline:
+        code=process.poll()
+        if code is not None:
+            raise RuntimeError(f'Strategy exited before telemetry: pid={process.pid}, code={code}')
+        paths=sorted((ROOT/'logs').glob(f'*-{team}.jsonl'),key=lambda p:p.stat().st_mtime,reverse=True)
+        for path in paths:
+            row=latest_complete_row(path)
+            if (row and row.get('run_id')==getattr(process,'run_id',None) and row.get('run_id') is not None and row.get('time',0)>=started_at
+                    and time.time()-row['time']<.5):
+                return path
+        time.sleep(.05)
+    raise RuntimeError(f'No telemetry from this strategy within {timeout}s; Client vision or native init stalled')
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config',default=str(ROOT/'match.json'),help='Explicit candidate config; does not modify match.json')
+    parser.add_argument('--config', type=Path, default=ROOT/'configs/v2.1-foundation.json')
     parser.add_argument('--seconds', type=float, default=20)
     parser.add_argument('--contact-distance',type=float, help='Diagnostic target contact distance in mm (75..110)')
     parser.add_argument('--contact-trim',action='store_true',help='Bounded lateral contact correction diagnostic')
@@ -85,7 +106,7 @@ def main():
     parser.add_argument('--qt-app', action='store_true', help='Diagnostic explicit Qt application in both controllers')
     parser.add_argument('--shoot-control', choices=('precision',), default='precision',
                         help='Same-scene A/B of old/new targeted contact control')
-    parser.add_argument('--goalie', choices=('official', 'stationary'), default='official',
+    parser.add_argument('--goalie', choices=('official', 'stationary', 'none'), default='official',
                         help='stationary isolates aiming; never count it as a moving-goalie test')
     parser.add_argument('--starts', choices=('approach','contact'), default='approach',
                         help='contact pre-aligns the striker near ball: aiming-only diagnostic, NOT full attack')
@@ -99,7 +120,7 @@ def main():
     if process_count('Client.exe') != 1 or process_count('grSim.exe') != 1:
         raise RuntimeError('Benchmark requires ONE connected Client and ONE simulator')
     (ROOT/'logs').mkdir(exist_ok=True)
-    c = load_config(Path(args.config).resolve())
+    c = load_config(args.config)
     if args.contact_trim:
         c['contact_trim'] = True
     if args.contact_distance is not None:
@@ -132,6 +153,8 @@ def main():
                                              'RoleMatch_LuaStyle/Skills/CompetitionSkills.py', 'shot_accuracy.py',
                                              'ball_control.py', 'competition_rules.py', 'sim_tools.py', 'benchmark_match.py']}, 'trials': []}
     report_path = ROOT/'logs'/'benchmark-report.json'
+    from runtime_manifest import manifest
+    report['runtime_manifest'] = manifest(args.config)
     report_path.write_text(json.dumps(report, indent=2), encoding='utf-8')
     practice = PracticeReferee()
     referee = practice.set
@@ -156,21 +179,21 @@ def main():
             path = ROOT/f'benchmark-{skill}.json'
             path.write_text(json.dumps(cfg, indent=2), encoding='utf-8')
             p, output = launch(path, skill)
+            launched_at=time.time()
             report.setdefault('attacker_consoles', []).append(output.name)
             try:
-                time.sleep(2)
+                telemetry=wait_for_telemetry(p,c['team'],launched_at)
                 if p.poll() is not None or (goalie is not None and goalie.poll() is not None):
                     raise RuntimeError('A strategy failed; inspect logs/benchmark-*-console.txt')
-                if not p.telemetry_path.exists():
-                    raise RuntimeError('No telemetry: connect Client Vision first')
-                telemetry = p.telemetry_path
                 report.setdefault('attacker_telemetries',[]).append(str(telemetry))
-                goalie_telemetry = goalie.telemetry_path if goalie is not None else None
+                yellow_logs = sorted((ROOT/'logs').glob('*-yellow.jsonl'), key=lambda p:p.stat().st_mtime)
+                goalie_telemetry = yellow_logs[-1] if yellow_logs and goalie is not None else None
                 report['goalie_telemetry'] = str(goalie_telemetry) if goalie_telemetry else None
                 starts = [(0,0),(.8,1),(.8,-1)] if args.starts == 'approach' else [(2.8,0),(2.8,.8),(2.8,-.8)]
                 for trial, ball in enumerate(starts * args.repeats):
                     result = {'trial':trial+1, 'skill':skill, 'ball_start_m':ball,
-                              'seconds':args.seconds, 'goal_crossing':False, 'valid':False}
+                              'seconds':args.seconds, 'goal_crossing':False, 'valid':False,
+                              'rule_compliance_verified':False, 'physical_departures':0}
                     report['trials'].append(result)
                     # 先STOP再HALT，后摆车；不能贴球摆好后再让Prepare退球破坏初态。
                     referee(1)
@@ -180,11 +203,15 @@ def main():
                     poses = None
                     if args.starts == 'contact':
                         from match_tactics import Point, Tactics
-                        aim,_ = Tactics(c).shot(Point(ball[0]*1000,ball[1]*1000),[Point(4200,0)])
+                        aim,_ = Tactics(c).shot(Point(ball[0]*1000,ball[1]*1000),[] if args.goalie == 'none' else [Point(4200,0)])
                         angle = math.atan2(aim.y-ball[1]*1000,aim.x-ball[0]*1000)
-                        poses = {c['attackers'][0]:(ball[0]-.095*math.cos(angle),ball[1]-.095*math.sin(angle),math.degrees(angle)),
+                        placement = c.get('calibration_placement_distance_mm', 100)/1000
+                        poses = {c['attackers'][0]:(ball[0]-placement*math.cos(angle),ball[1]-placement*math.sin(angle),math.degrees(angle)),
                                  c['attackers'][1]:(1.5,1.5,0)}
-                    reset_scene(ball=ball, attackers=c['attackers'], goalie=c['goalie'],attacker_poses=poses)
+                        if c.get('calibration_mode'):
+                            poses.pop(c['attackers'][1])  # 空门单车，排除其他触球者。
+                    reset_scene(ball=ball, attackers=c['attackers'][:1] if c.get('calibration_mode') else c['attackers'],
+                                goalie=None if args.goalie == 'none' else c['goalie'],attacker_poses=poses)
                     expected_poses = poses or {c['attackers'][0]:(-1,-.7,0),c['attackers'][1]:(-1.5,1.2,0)}
                     from match_launcher import latest_complete_row
                     deadline = time.monotonic()+8
@@ -203,7 +230,10 @@ def main():
                             and not scene_error(goalie_start,(-ball[0],-ball[1]),{c['goalie']:(-4.2,0,0)},150)
                             and opponents_match(goalie_start,[[-p[0]*1000,-p[1]*1000] for p in expected_poses.values()])))
                         if (last and time.time()-last['time'] < .3 and not scene_error(last,ball,expected_poses)
-                                and opponents_match(last,[[4200,0]]) and goalie_ready):
+                                and (c.get('upgrade_version') != '2.1' or (last.get('observation') or {}).get('fresh'))
+                                and (not last.get('opponents') if args.goalie == 'none' else opponents_match(last,[[4200,0]]))
+                                and (not c.get('calibration_mode') or math.dist(last['ball'],[ball[0]*1000,ball[1]*1000]) <= 8)
+                                and goalie_ready):
                             if confirmed_since is None:
                                 confirmed_since = time.monotonic()
                             elif time.monotonic()-confirmed_since >= .2:
@@ -212,7 +242,15 @@ def main():
                             confirmed_since = None
                         time.sleep(.05)
                     else:
-                        result.update(reset_error=scene_error(last,ball,expected_poses) or 'GOALIE_START_NOT_CONFIRMED',
+                        details = dict(
+                            scene_error=scene_error(last,ball,expected_poses),
+                            observation=(last or {}).get('observation'),
+                            opponents=(last or {}).get('opponents'),
+                            expected_opponents=[] if args.goalie == 'none' else [[4200,0]],
+                            ball_placement_error_mm=math.dist(last['ball'],[ball[0]*1000,ball[1]*1000]) if last else None,
+                            calibration_placement_tolerance_mm=8 if c.get('calibration_mode') else None,
+                            goalie_required=args.goalie == 'official', goalie_ready=bool(goalie_ready))
+                        result.update(reset_error='PREFLIGHT_CONDITIONS_NOT_MET', preflight_details=details,
                                       observed_start=last,observed_goalie_start=goalie_start)
                         raise RuntimeError('Reset not confirmed by vision: '+result['reset_error']+'. Trial INVALID.')
                     result['verified_start'] = dict(ball=last['ball'],robots=last['robots'],angles=last['angles'])
@@ -234,6 +272,9 @@ def main():
                     rule_releases = 0
                     phase_samples = {}
                     kick_requests = {'shot':0,'pass':0}
+                    physical_ids = set()
+                    transaction_ids = set()
+                    fresh_capture_ids = set()
                     with telemetry.open(encoding='utf-8') as stream:
                         stream.seek(offset)
                         while time.monotonic()-start < args.seconds:
@@ -257,12 +298,26 @@ def main():
                             except json.JSONDecodeError:
                                 continue
                             x, y = row['ball']
+                            ev = row.get('observation') or {}
+                            if ev.get('fresh') and ev.get('new_capture') and ev.get('frame_id'):
+                                fresh_capture_ids.add(tuple(ev['frame_id']))
                             phase_samples[row['phase']] = phase_samples.get(row['phase'],0)+1
                             for event in row.get('kick_events',[]):
                                 kick_requests['pass' if event.get('passing') else 'shot'] += 1
+                            for event in row.get('physical_events', []):
+                                if event.get('kind') == 'KICK_REQUESTED':
+                                    transaction_ids.add(event['transaction_id'])
+                                elif event.get('kind') == 'BALL_DEPARTED':
+                                    physical_ids.add(event['transaction_id'])
+                                elif event.get('kind') == 'KICK_CANCELLED' and event.get('reason') == 'RESET_OR_SPEED_LIMIT':
+                                    raise RuntimeError('Unobserved jump or speed limit violation; trial INVALID')
+                            result['physical_departures'] = len(physical_ids)
+                            result['kick_transactions'] = len(transaction_ids)
                             speed = row.get('ball_speed_sdk_mm_s')
                             if speed is not None and math.isfinite(speed):
                                 speed_samples.append(speed)
+                                if c.get('calibration_mode') and speed > 6500:
+                                    raise RuntimeError('Calibration speed limit exceeded; stop this combination')
                             for guard in row.get('contact_guard',{}).values():
                                 max_near_ball_path = max(max_near_ball_path,guard['robot_path_mm'],guard['ball_path_mm'])
                             rule_releases += row['phase'].startswith('RULE_')
@@ -281,6 +336,8 @@ def main():
                                     max_robot_drift = max(max_robot_drift, math.hypot(pos[0]-old[0], pos[1]-old[1]))
                             if args.starts == 'approach' and time.monotonic()-start > 6 and max_robot_drift < 20:
                                 raise RuntimeError('Vision arrives but robots do not move: check Client simulation command forwarding. Trial INVALID.')
+                            if c.get('upgrade_version') == '2.1' and time.monotonic()-start > 1 and not row.get('observation', {}).get('fresh'):
+                                raise RuntimeError('No fresh raw-associated vision; trial INVALID, not a missed shot')
                             if not row['ball_valid']:
                                 continue
                             # Entire ball crosses the goal line; interpolate crossing Y between adjacent telemetry samples.
@@ -296,6 +353,7 @@ def main():
                             result['last_shot_gate'] = row.get('shot_gate', {})
                     referee(0)
                     result['samples'] = samples
+                    result['fresh_capture_samples'] = len(fresh_capture_ids)
                     result['phase_samples'] = phase_samples
                     result['kick_requests'] = kick_requests  # 请求数；短脉冲会重复请求，不代表实际踢了多次。
                     result.update(max_ball_speed_sdk_mm_s=max(speed_samples,default=None),
@@ -313,6 +371,8 @@ def main():
                         result['moving_goalie_observed'] = len(poses) >= 10 and result['goalie_max_displacement_mm'] > 20
                     if samples < 10:
                         raise RuntimeError('Insufficient telemetry: trial is INVALID, not a failed shot')
+                    if c.get('upgrade_version') == '2.1' and len(fresh_capture_ids) < 10:
+                        raise RuntimeError('Insufficient distinct captures; trial INVALID')
                     result['valid'] = True
                     (ROOT/'logs'/'benchmark-report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
                     print(json.dumps(result), flush=True)

@@ -8,6 +8,7 @@ from RoleMatch_LuaStyle.Skills import Skill
 from Vision import Player
 from WorldModel import kickStatus
 from match_tactics import Point, distance
+from ball_control import ActionBudget
 
 
 def MoveTo(target, ball, *, slow=False, receive=False, enable_dss=True, facing=None):
@@ -33,7 +34,7 @@ def MoveTo(target, ball, *, slow=False, receive=False, enable_dss=True, facing=N
 
 def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
                  enable_dss=True, on_kick=None, report_phase=None, gate=None, now=0,
-                 shooting=True, control=None):
+                 shooting=True, control=None, authorize_kick=None):
     """静态接触后射/传；瞄准改变时先脱离球再绕后，不做携球假动作。"""
     if carry:
         raise ValueError('No-carry ruleset forbids TargetedKick(carry=True)')
@@ -53,7 +54,28 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
             return
         dest,angle,aligned,held,phase = control.plan(now,robot,heading,ball,target,
             contact=geometry.c.get('contact_distance',85),trim=geometry.c.get('contact_trim',False))
+        if geometry.c.get('upgrade_version') == '2.1':
+            if control.budget is None:
+                control.budget = ActionBudget()
+            failure = control.budget.update(now, robot, heading, ball, target, geometry.c)
+            if failure:
+                # 不贴球换目标；本帧先停车，下一帧由官方 AbortRelease 状态退离。
+                skill = Skill.Stop()
+                resources.append(skill)
+                skill[0](executor)
+                if report_phase is not None:
+                    report_phase(failure)
+                return
         dest = geometry.legal(dest)
+        if geometry.c.get('upgrade_version') == '2.1':
+            dest = geometry.safe_waypoint(robot, dest)
+            if dest is None:
+                skill = Skill.Stop()
+                resources.append(skill)
+                skill[0](executor)
+                if report_phase is not None:
+                    report_phase('ILLEGAL_APPROACH_PATH')
+                return
         point = C.CGeoPoint(dest.x,dest.y)
         flags = (0x08000000 if enable_dss else 0) | 0x200 | (0 if aligned else 0x10)
         forward = (ball.x-robot.x)*math.cos(heading)+(ball.y-robot.y)*math.sin(heading)
@@ -72,7 +94,8 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
         resources.extend((point,skill))
         skill[0](executor)
         allowed,reason = gate.allow(now,robot,heading,ball,target,geometry.c,shooting=shooting)
-        if aligned and distance(robot,ball) < 150 and can_kick and allowed:
+        if (aligned and distance(robot,ball) < 150 and can_kick and allowed
+                and (authorize_kick is None or authorize_kick(executor))):
             # 力度不是实测球速；这里再限幅，物理6.5m/s还必须独立验证。
             kickStatus.setKick(executor,min(power,geometry.c['power_cap'],6000))
             gate.fired(now)

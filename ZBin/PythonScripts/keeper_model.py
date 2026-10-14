@@ -23,6 +23,8 @@ class KeeperModel:
         if self.sample is not None:
             old_time, old = self.sample
             dt = now-old_time
+            if 0 <= dt < .015:
+                return  # 积累足够时间再差分，不能每5ms覆盖基准而永远估不出速度。
             if .015 <= dt <= .4:
                 velocity = Point((position.x-old.x)/dt, (position.y-old.y)/dt)
                 speed = math.hypot(velocity.x, velocity.y)

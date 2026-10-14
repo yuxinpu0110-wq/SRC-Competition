@@ -55,3 +55,143 @@ class MatchEvents:
     def departed(self, sequence):
         return any(e['kind'] == 'ball_departed' and e['sequence'] == sequence for e in self.events)
 
+
+
+"""一次事务至多确认一次离脚；脉冲次数与物理事件分开计数。"""
+from dataclasses import asdict, dataclass
+import hashlib
+import json
+import math
+from match_tactics import Point, distance
+
+
+@dataclass
+class KickTransaction:
+    id: int
+    robot: int
+    purpose: str
+    start_ball: Point
+    target: Point
+    request_time: float
+    pulse_end: float
+    deadline: float
+    config_hash: str
+    start_gap: float
+    initial_speed: float
+    state: str = 'REQUESTED'
+    pulse_count: int = 0
+    departed_at: float | None = None
+    departure_samples: int = 0
+    departure_since: float | None = None
+
+
+class KickTransactions:
+    def __init__(self, config):
+        self.c = config
+        self.config_hash = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
+        self.active = None
+        self.sequence = 0
+        self.events = []
+        self.previous = None
+        self.failed_origin = None
+        self.failures = 0
+
+    def emit(self, kind, now, **extra):
+        tx = self.active
+        self.events.append(dict(kind=kind, now=now, transaction_id=tx.id if tx else None,
+                                robot=tx.robot if tx else None, purpose=tx.purpose if tx else None,
+                                **extra))
+
+    def request(self, now, robot, purpose, ball, target, robot_pos, initial_speed=0):
+        tx = self.active
+        if tx is None:
+            if self.failed_origin is not None and distance(ball, self.failed_origin) > 300:
+                self.failed_origin, self.failures = None, 0
+            if self.failures >= self.c.get('kick_max_attempts', 2):
+                return None
+            self.sequence += 1
+            tx = self.active = KickTransaction(self.sequence, robot, purpose, ball, target, now,
+                now+self.c.get('kick_pulse_seconds', .18),
+                now+self.c.get('kick_departure_timeout', .45), self.config_hash,
+                distance(ball, robot_pos), initial_speed)
+            self.previous = None
+            self.emit('KICK_REQUESTED', now, power_units='sdk_input', start_ball=asdict(ball),
+                      target=asdict(target), config_hash=tx.config_hash)
+        if tx.state != 'REQUESTED' or tx.robot != robot or tx.purpose != purpose or distance(target, tx.target) > 40:
+            return None
+        if now > tx.pulse_end or now > tx.deadline:
+            return None
+        tx.pulse_count += 1
+        return tx.id
+
+    def observe(self, now, capture_time, frame_id, ball, players, *, fresh=True, new=True, reset=False):
+        tx = self.active
+        if tx is None:
+            return
+        if reset or not fresh or tx.robot not in players:
+            self.cancel(now, 'RESET' if reset else 'VISION_OR_ROBOT_LOST')
+            return
+        if tx.state == 'REQUESTED' and now > tx.deadline:
+            tx.state = 'NO_DEPARTURE'
+            self.failed_origin, self.failures = tx.start_ball, self.failures+1
+            self.emit('KICK_NO_DEPARTURE', now, pulse_count=tx.pulse_count)
+            return
+        if not new or tx.state not in ('REQUESTED', 'IN_FLIGHT'):
+            return
+        old = self.previous
+        if old and frame_id == old[0]:
+            return
+        self.previous = (frame_id, capture_time, ball)
+        if not old or not .001 <= capture_time-old[1] <= .2:
+            tx.departure_samples, tx.departure_since = 0, None
+            return
+        dt = capture_time-old[1]
+        step = distance(ball, old[2])
+        speed = step/dt
+        # 快于规则上限的跳变不能用作可信离脚证据；场景摆位也不能补确认。
+        if speed > 6500 or step > 450:
+            self.cancel(now, 'RESET_OR_SPEED_LIMIT')
+            return
+        if tx.state == 'IN_FLIGHT':
+            if now-tx.departed_at > self.c.get('flight_observe_seconds', 1.5):
+                tx.state = 'FINISHED'
+                self.emit('FLIGHT_OBSERVATION_ENDED', now, outcome='UNCLASSIFIED')
+            return
+        dx, dy = tx.target.x-tx.start_ball.x, tx.target.y-tx.start_ball.y
+        length = max(1, math.hypot(dx, dy))
+        forward = ((ball.x-tx.start_ball.x)*dx+(ball.y-tx.start_ball.y)*dy)/length
+        lateral = abs((ball.x-tx.start_ball.x)*dy-(ball.y-tx.start_ball.y)*dx)/length
+        forward_speed = ((ball.x-old[2].x)*dx+(ball.y-old[2].y)*dy)/(length*dt)
+        gap = distance(ball, players[tx.robot])
+        valid = (forward >= self.c.get('departure_min_distance_mm', 70)
+                 and gap > max(180, tx.start_gap+80) and lateral < max(40, forward*.25)
+                 and forward_speed > self.c.get('departure_min_speed_mm_s', 500)
+                 and speed > tx.initial_speed+200)
+        if valid:
+            tx.departure_samples += 1
+            if tx.departure_since is None:
+                tx.departure_since = capture_time
+            if tx.departure_samples >= 2 and capture_time-tx.departure_since >= .025:
+                tx.state, tx.departed_at = 'IN_FLIGHT', now
+                self.failures, self.failed_origin = 0, None
+                self.emit('BALL_DEPARTED', now, speed_mm_s=speed, pulse_count=tx.pulse_count,
+                          delay_s=now-tx.request_time, evidence='continuous_raw_associated_geometry')
+        else:
+            tx.departure_samples, tx.departure_since = 0, None
+
+    def cancel(self, now, reason):
+        if self.active is not None:
+            self.emit('KICK_CANCELLED', now, reason=reason)
+        self.active, self.previous = None, None
+
+    def reset(self, now, reason):
+        self.cancel(now, reason)
+        self.failures, self.failed_origin = 0, None
+
+    def finish(self):
+        self.active, self.previous = None, None
+
+    def diagnostics(self):
+        return dict(active=asdict(self.active) if self.active else None,
+                    no_departure_attempts=self.failures,
+                    retry_exhausted=self.failures >= self.c.get('kick_max_attempts', 2))
