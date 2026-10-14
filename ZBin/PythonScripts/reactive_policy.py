@@ -10,7 +10,7 @@ MODEL_ID='reactive-local-v1-not-calibrated'
 
 
 def enabled(config):
-    return config.get('strategy_version')=='2.2' and config.get('v22_mode')=='reactive-development'
+    return config.get('strategy_version') in ('2.2','2.3') and config.get('v22_mode')=='reactive-development'
 
 
 def validate_config(c):
@@ -42,7 +42,11 @@ def evaluate(plan,ball,heading,power,epoch,now,c):
         return result(False,'REACTIVE_HEADING_CHANGED')
     length=math.hypot(dx,dy)
     if plan.purpose=='pass':
-        ok=power==c['reactive_pass_power'] and 650<=length<=c['reactive_pass_max_mm']
+        limit=c['reactive_pass_max_mm']
+        expected=c['reactive_pass_power']
+        if c.get('strategy_version')=='2.3' and length>limit:
+            limit=c['v23_advance_pass_max_mm'];expected=c['v23_advance_pass_power']
+        ok=power==expected and 650<=length<=limit
         return result(ok,'REACTIVE_SHORT_PASS_BOUND' if ok else 'REACTIVE_PASS_TOO_LONG')
     if plan.purpose!='shot' or power!=c['reactive_shot_power']:
         return result(False,'REACTIVE_UNSUPPORTED_KICK')

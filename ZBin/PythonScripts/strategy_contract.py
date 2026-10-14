@@ -8,7 +8,7 @@ only the original configuration without a version remains a legacy comparison.
 def normalize_verified_contract(config):
     upgrade = config.get('upgrade_version')
     strategy = config.get('strategy_version')
-    if upgrade not in (None, '2.1', '2.2') or strategy not in (None, '2.1', '2.2'):
+    if upgrade not in (None, '2.1', '2.2', '2.3') or strategy not in (None, '2.1', '2.2', '2.3'):
         raise ValueError('Unsupported strategy version')
     if upgrade is not None and strategy is not None and upgrade != strategy:
         raise ValueError('Conflicting upgrade_version and strategy_version')
@@ -18,7 +18,7 @@ def normalize_verified_contract(config):
             raise ValueError('Unsupported verified-control contract (requires integer 2)')
     elif upgrade == '2.1' and strategy != '2.2':
         config['control_contract_version'] = 2
-    elif upgrade == '2.2' or strategy is not None:
+    elif upgrade in ('2.2','2.3') or strategy is not None:
         raise ValueError('Versioned strategy requires explicit control_contract_version=2')
     # JSON null is not a different strategy. Canonicalize once so startup,
     # SDK execution and telemetry cannot disagree about the active range gate.
@@ -34,4 +34,4 @@ def uses_verified_control(config):
 
 def uses_range_gate(config):
     normalized = normalize_verified_contract(dict(config))
-    return normalized.get('strategy_version') == '2.2'
+    return normalized.get('strategy_version') in ('2.2','2.3')

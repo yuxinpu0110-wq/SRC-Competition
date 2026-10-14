@@ -24,6 +24,8 @@ ZBIN = ROOT/'ZBin'
 def load_config(path):
     """配置不合法就拒绝启动；旧 direct 调度已移除，不允许静默回退。"""
     c = normalize_verified_contract(json.loads(Path(path).read_text(encoding='utf-8-sig')))
+    from attack_plan import validate_config as validate_attack_plan
+    validate_attack_plan(c)
     if c.get('v22_mode')=='reactive-development' and not uses_range_gate(c):
         raise ValueError('Reactive development requires explicit V2.2 contract')
     if c['profile'] not in ('qualifier', 'full', 'goalie'):
@@ -323,6 +325,11 @@ def main():
                            'reset_epoch':play.reset_epoch,
                            'flight_audit_events':list(play.flight_observer.events),
                            'flight_audit':play.flight_observer.diagnostics(),
+                           'attack_plan_events':list(play.plan_events),
+                           'attack_plan':({'id':play.active_plan.id,'kind':play.active_plan.kind,
+                               'leg':play.plan_leg,'deadline':play.active_plan.deadline,
+                               'time_low_s':play.active_plan.time_low_s,'time_high_s':play.active_plan.time_high_s,
+                               'evidence':play.active_plan.evidence} if play.active_plan is not None else None),
                            'observation':evidence.diagnostics() if evidence else None,
                            'raw_vision_error':raw.error if raw else None,
                            'physical_events':list(play.transactions.events),
@@ -349,6 +356,7 @@ def main():
                     play.transactions.events.clear()
                     play.flight_observer.events.clear()
                     play.kick_events.clear()  # 每次请求只记录一次；高频请求保存在两次日志之间。
+                    play.plan_events.clear()
                     (ROOT/f'heartbeat-{c["team"]}.txt').write_text(str(time.time()), encoding='ascii')
                     last_log = now
     except KeyboardInterrupt:

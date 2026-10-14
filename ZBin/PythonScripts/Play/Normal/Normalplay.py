@@ -271,7 +271,7 @@ class PassFlight(MatchState):
     def transFunction(self):
         p, session = self.play, self.play.session
         if p.finish_pass_if_near():
-            return p.normal_state()
+            return p.receive_next_state()
         if distance(p.frame.ball, session.target) < 550 and distance(p.frame.ball, session.origin) > 350:
             return 'Receive'
         return ''
@@ -283,7 +283,7 @@ class Receive(MatchState):
         return self.play.receiving_tasks(chase=True)
 
     def transFunction(self):
-        return self.play.normal_state() if self.play.finish_pass_if_near() else ''
+        return self.play.receive_next_state() if self.play.finish_pass_if_near() else ''
 
 
 class Goalkeeping(MatchState):
@@ -295,8 +295,31 @@ class Goalkeeping(MatchState):
         return self.play.normal_state()
 
 
+class TerminalPrepare(MatchState):
+    """V2.3明确的普通终结，不冒充动态快接；不在接应后反复改传。"""
+    def getTasks(self):
+        p=self.play;plan=p.active_plan
+        if plan is None:return p.tasks({})
+        actions={plan.terminal_shooter:('shoot',plan.terminal_target)}
+        other=next((n for n in p.c['attackers'] if n!=plan.terminal_shooter),None)
+        if other in p.frame.players:
+            target=retreat_target(p.frame.players[other],p.frame.ball,p.tactics)
+            if target is not None:actions[other]=('retreat',target)
+        return p.tasks(actions,goalie=True)
+    def transFunction(self):
+        p=self.play;tx=p.transactions.active
+        if tx is not None and tx.purpose=='shot' and tx.state=='IN_FLIGHT':return 'ObserveFlight'
+        if p.active_plan is None:return p.normal_state()
+        prepare=max(p.c['v23_terminal_timeout_s'],p.active_plan.legs[p.plan_leg].prepare_high_s)
+        if p.frame.now>min(p.active_plan.deadline,p.terminal_started+prepare):
+            p.plan_events.append(dict(kind='TERMINAL_TIMEOUT',now=p.frame.now,plan_id=p.active_plan.id))
+            p.active_plan=None;p.terminal_started=None;p.terminal_requested=None;p.terminal_plan_id=None;p.release_until=p.frame.now+.25
+            return 'AbortRelease'
+        return ''
+
+
 @declare_state_machine(Hold, Prepare, Shoot, ObserveFlight, AbortRelease, WaitOutsideDefense,
-                       PassSetup, FakeShot, PassKick, PassFlight, Receive, Goalkeeping)
+                       PassSetup, FakeShot, PassKick, PassFlight, Receive, Goalkeeping, TerminalPrepare)
 class NormalPlay(StateMachine):
     """唯一的战术状态机；runner 每帧只更新观察并调用 planTasks()。"""
     def __init__(self, config):
@@ -305,6 +328,12 @@ class NormalPlay(StateMachine):
         self.v21 = uses_verified_control(config)
         self.range_gate = uses_range_gate(config)
         self.reactive = reactive_policy.enabled(config)
+        self.v23=config.get('strategy_version')=='2.3'
+        from attack_plan import EpisodeBudget
+        self.episode_budget=EpisodeBudget(config.get('v23_episode_seconds',10))
+        self.active_plan=None;self.plan_sequence=0;self.plan_leg=0
+        self.plan_events=[];self.terminal_started=None;self.terminal_requested=None
+        self.terminal_plan_id=None
         self.travel_model = None
         self.shot_opportunities = {}
         if self.range_gate:
@@ -400,6 +429,7 @@ class NormalPlay(StateMachine):
 
     def normal_state(self):
         """普通情况下应该进入哪个状态？只返回名字，不在这里执行任务。"""
+        if self.v23 and self.choice.phase=='EPISODE_TIMEOUT':return 'Hold'
         if (self.c.get('calibration_mode') and self.calibration_transaction is not None
                 and self.calibration_transaction[0] == self.reset_epoch):
             tx = self.transactions.active
@@ -440,6 +470,10 @@ class NormalPlay(StateMachine):
         self.session = None
         self.receive_previous = None
         self.receive_velocity = None
+        if self.v23 and self.active_plan is not None:
+            self.plan_events.append(dict(kind='PLAN_ABORTED',now=self.frame.now,
+                plan_id=self.active_plan.id,reason=reason))
+            self.active_plan=None;self.terminal_started=None;self.terminal_requested=None;self.terminal_plan_id=None
 
     def hookBeforePlanTasks(self):
         """官方框架每帧在 getTasks() 前调用：观察→建议→安全检查。
@@ -479,9 +513,10 @@ class NormalPlay(StateMachine):
                 self.current_state, self.isStateSwitched = self.states['AbortRelease'], True
             elif tx is not None and tx.state == 'FINISHED':
                 self.transactions.finish()
+                if self.v23 and tx.purpose=='shot':self.active_plan=None
             elif tx is not None and tx.state == 'IN_FLIGHT':
                 # 离脚证据已到，本帧安全抢占旧接近任务，避免再向飞行中的球冲一帧。
-                if tx.purpose == 'shot' and self.current_state.state_name == 'Shoot':
+                if tx.purpose == 'shot' and self.current_state.state_name in ('Shoot','TerminalPrepare'):
                     self.current_state, self.isStateSwitched = self.states['ObserveFlight'], True
                 elif tx.purpose == 'pass' and self.session is not None and self.current_state.state_name == 'PassKick':
                     self.session.flight_started = tx.departed_at
@@ -538,7 +573,30 @@ class NormalPlay(StateMachine):
             self.keeper_prediction = None
         # 传球途中锁住主攻权；球只是靠近接球车还不够，必须由完成条件交接。
         self.choice = self.tactics.choose(f.now, f.ball, f.players, tactical_opponents, self.last_pass,
-                                          freeze_striker=self.session is not None)
+                                          freeze_striker=self.session is not None or (self.v23 and self.active_plan is not None))
+        if self.v23 and self.can_attack and f.fresh:
+            expired=self.episode_budget.observe(f.now,f.ball,self.reset_epoch)
+            if self.active_plan is not None and self.episode_budget.deadline>self.active_plan.deadline:
+                # 只有observe确认明显球位推进/新epoch才产生新预算；重规划本身不延期。
+                from dataclasses import replace
+                self.active_plan=replace(self.active_plan,deadline=self.episode_budget.deadline)
+            if not expired and self.active_plan is None and self.session is None and self.tactics.proposed_plan is not None:
+                self.plan_sequence+=1;self.plan_leg=0
+                self.active_plan=self.tactics.proposed_plan.freeze(
+                    f'{self.transactions.run_id}-p{self.plan_sequence}',self.reset_epoch,f.now,self.episode_budget.deadline)
+                self.plan_events.append(dict(kind='PLAN_SELECTED',now=f.now,plan_id=self.active_plan.id,
+                    plan_kind=self.active_plan.kind,time_low_s=self.active_plan.time_low_s,
+                    time_high_s=self.active_plan.time_high_s,evidence=self.active_plan.evidence))
+            if self.active_plan is not None and self.session is None:
+                if self.current_state.state_name=='TerminalPrepare':
+                    self.choice.pass_target=None;self.choice.aim=self.active_plan.terminal_target
+                elif self.active_plan.legs[0].purpose=='pass':
+                    self.choice.pass_target=self.active_plan.legs[0].contact_point
+                else:
+                    self.choice.pass_target=None;self.choice.aim=self.active_plan.terminal_target
+            if expired:
+                self.cancel_pass('EPISODE_TIMEOUT');self.active_plan=None
+                self.choice.pass_target=None;self.choice.phase='EPISODE_TIMEOUT'
         if self.restart_guard.requires_pass and self.session is None:
             # 间接任意球只能先传给队友；无合法接应点则保守等待。
             self.choice.pass_target = (self.tactics.receiving_point(f.ball,f.opponents,
@@ -556,7 +614,11 @@ class NormalPlay(StateMachine):
             forced, reason = self.normal_state(), self.choice.phase
         elif Global.isPlaySwitched:
             forced, reason = 'Hold', 'PLAY_SWITCHED'
+        elif self.v23 and self.choice.phase=='EPISODE_TIMEOUT':
+            forced,reason='Hold','EPISODE_TIMEOUT'
         if forced is not None:
+            if self.v23:
+                self.active_plan=None;self.terminal_started=None;self.terminal_requested=None;self.terminal_plan_id=None
             self.transactions.cancel(f.now, reason)
             self.cancel_pass(reason)
             for control in self.ball_controls.values():
@@ -601,6 +663,7 @@ class NormalPlay(StateMachine):
             self.receive_previous = None
             self.receive_velocity = None
             self.session = PassSession(d.striker, d.other, d.pass_target, f.ball, f.now)
+            if self.v23 and self.active_plan is not None:self.plan_leg=0
             if self.c.get('enable_feint', False) and f.opponents:
                 # 只在对手封堵前方时佯攻；空门无需多等一次。
                 if clearance(f.ball, d.aim, f.opponents) < 250:
@@ -641,7 +704,7 @@ class NormalPlay(StateMachine):
         if self.v21 and self.transactions.active is not None:
             tx = self.transactions.active
             identity = FlightIdentity(self.transactions.run_id, self.reset_epoch,
-                                      f'kick-{tx.id}', '0', tx.id)
+                                      tx.plan_id, tx.leg_id, tx.id)
             from dataclasses import asdict
             self.kick_events[-1].update(asdict(identity))
             # This audit remains independent when the command transaction is cancelled.
@@ -652,6 +715,12 @@ class NormalPlay(StateMachine):
                                      camera, number, ball, target, possible)
         self.kick_events[:] = self.kick_events[-32:]
         sequence = self.events.request_kick(self.frame.now, number, ball, target, passing)
+        if (self.v23 and not passing and self.terminal_started is not None and self.terminal_requested is None
+                and self.active_plan is not None and self.active_plan.id==self.terminal_plan_id):
+            self.terminal_requested=self.frame.now
+            self.plan_events.append(dict(kind='TERMINAL_REQUESTED',now=self.frame.now,
+                plan_id=self.active_plan.id if self.active_plan else None,
+                receive_to_request_s=self.frame.now-self.terminal_started,evidence='request_not_departure'))
         if passing:
             self.note_kick(number, ball)
             if self.session is not None:
@@ -668,8 +737,13 @@ class NormalPlay(StateMachine):
             tx = self.transactions.active
             if tx is None or tx.id != self.calibration_transaction[1] or tx.state != 'REQUESTED':
                 return False
+        plan=self.active_plan if self.v23 else None
+        leg=plan.legs[self.plan_leg] if plan is not None and self.plan_leg<len(plan.legs) else None
+        if leg is not None and (leg.sender!=number or leg.purpose!=('pass' if passing else 'shot')):
+            return False
         tx = self.transactions.request(f.now, number, 'pass' if passing else 'shot', f.ball,
-                target, f.players[number], self.ball_speed if math.isfinite(self.ball_speed) else 0)
+                target, f.players[number], self.ball_speed if math.isfinite(self.ball_speed) else 0,
+                plan_id=plan.id if plan else None,leg_id=leg.id if leg else None)
         if tx is not None and self.c.get('calibration_mode'):
             self.calibration_transaction = (self.reset_epoch, tx)
         return tx is not None
@@ -745,10 +819,25 @@ class NormalPlay(StateMachine):
                 # 已进入粗射程时先完成一次射门准备，不能0.8秒后又因门将附近而改传。
                 self.tactics.shot_after_receive_until=f.now+4.0
                 self.ball_controls[s.receiver].reset()
+            if self.v23:
+                tx=self.transactions.active
+                if tx is not None and tx.purpose=='pass':
+                    self.transactions.emit('PASS_CONTROL_FINISHED',f.now,evidence='tactical_geometry_not_rule_touch')
+                    self.transactions.finish()
+                plan=self.active_plan
+                self.plan_events.append(dict(kind='TACTICAL_RECEIVE',now=f.now,
+                    plan_id=plan.id if plan else None,evidence='geometry_only',receiver=s.receiver))
+                if plan is not None and plan.terminal_shooter==s.receiver:
+                    self.plan_leg=1;self.terminal_started=f.now;self.terminal_requested=None
+                    self.terminal_plan_id=plan.id
+                else:self.active_plan=None
             self.session = None
             return True
         s.receive_since = None
         return False
+
+    def receive_next_state(self):
+        return 'TerminalPrepare' if self.v23 and self.active_plan is not None and self.plan_leg==1 else self.normal_state()
 
     def attacking_tasks(self):
         # d 是 AttackChoice：striker=主攻车号，other=另一辆进攻车号。
@@ -871,6 +960,8 @@ class NormalPlay(StateMachine):
                     power = self.c['planned_shot_power_by_robot'][str(number)]
                     if self.reactive:
                         power=self.c['reactive_pass_power'] if action=='pass' else self.c['reactive_shot_power']
+                    if self.v23 and action=='pass' and distance(f.ball,target)>self.c['reactive_pass_max_mm']:
+                        power=self.c['v23_advance_pass_power']
                     kick_plan = KickPlan(number, 'pass' if action == 'pass' else 'shot',
                         f.ball, target, power, self.reset_epoch, f.now,
                         reactive_policy.MODEL_ID if self.reactive else self.travel_model.data.get('model_id'))

@@ -62,6 +62,7 @@ class Tactics:
         self.last_pass_plans = []
         self.committed_ball = None
         self.shot_after_receive_until = -math.inf
+        self.proposed_plan = None
 
     def legal(self, p):
         """将进攻车目标限制在场内/禁区外；不保证整段轨迹或所有规则合法。"""
@@ -106,6 +107,10 @@ class Tactics:
         """无禁区穿越的下一段；已有非法位置只允许朝禁区外释放。"""
         if self.in_defense(robot):
             return self.legal(robot)
+        if self.c.get('strategy_version')=='2.3':
+            from legal_path import route
+            path=route(self,robot,target)
+            return path[1] if path is not None else None
         if self.segment_legal(robot, target):
             return target
         edge = self.c['field_length']/2-self.c['defense_depth']-122
@@ -164,9 +169,12 @@ class Tactics:
             # 短传推进/横向转移。只用粗距离，不依赖预估飞行时间；先等接应车就位。
             near_goal=distance(ball,Point(self.c['field_length']/2,0))<self.c['reactive_shot_max_mm']
             offsets=(-650,-350,0,350,650) if near_goal else (0,350,650,1000,1200)
-            candidates=[self.legal(Point(ball.x+dx,ball.y+dy))
-                for dx in offsets for dy in (-1200,-900,-500,-250,250,500,900,1200)]
-            candidates=[p for p in candidates if 700<=distance(ball,p)<=self.c['reactive_pass_max_mm']
+            v23=self.c.get('strategy_version')=='2.3'
+            if v23 and not near_goal:
+                offsets=(650,1200,1600,2050)
+            lateral=(-1200,-900,-500,-250,0,250,500,900,1200) if v23 else (-1200,-900,-500,-250,250,500,900,1200)
+            candidates=[self.legal(Point(ball.x+dx,ball.y+dy)) for dx in offsets for dy in lateral]
+            candidates=[p for p in candidates if (650 if v23 else 700)<=distance(ball,p)<=(self.c['v23_advance_pass_max_mm'] if v23 else self.c['reactive_pass_max_mm'])
                 and clearance(ball,p,opponents)>220]
             # 接触位/接应车实体也必须合法。门前不能选一个根本绕不到球后的侧传。
             legal_candidates=[]
@@ -178,6 +186,18 @@ class Tactics:
                     legal_candidates.append(p)
             candidates=legal_candidates
             self.last_pass_plans=[]
+            if v23 and getattr(self,'planning_players',None):
+                from attack_plan import pass_plan
+                other=next((n for n in self.c['attackers'] if n!=self.striker and n in self.planning_players),None)
+                plans=[pass_plan(ball,p,self.striker,other,self.planning_players,self.shot(p,opponents)[0],self,self.c)
+                       for p in candidates] if other is not None else []
+                plans=[p for p in plans if p is not None]
+                if not plans:return None
+                # 远处按真实推进收益/完整成本选；近门按终结完整成本选，不只看门口角度。
+                chosen=max(plans,key=lambda p: ((p.legs[0].contact_point.x-ball.x)/max(.1,p.time_high_s)
+                    if not near_goal else -p.time_high_s))
+                self.proposed_plan=chosen
+                return chosen.legs[0].contact_point
             def reactive_score(p):
                 incoming=math.atan2(ball.y-p.y,ball.x-p.x)
                 shot_angle=math.atan2(-p.y,self.c['field_length']/2-p.x)
@@ -218,6 +238,8 @@ class Tactics:
     def choose(self, now, ball, players, opponents, last_pass=-100.0, freeze_striker=False):
         """给官方状态机提供选人/目标建议；没有 SETUP/KICK 等字符串状态赋值。"""
         players = {n:p for n,p in players.items() if finite(p)}
+        self.planning_players=players
+        self.proposed_plan=None
         opponents = [p for p in opponents if finite(p)]
         status = self.ball_status(ball)
         if status in ('NO_BALL', 'BALL_OUT'):
@@ -270,6 +292,20 @@ class Tactics:
         if enabled(self.c):
             far=distance(ball,self.target)>self.c['reactive_shot_max_mm']-25
             blocked=clearance(ball,self.target,opponents)<self.c['reactive_shot_lane_margin_mm']
+            if self.c.get('strategy_version')=='2.3':
+                from attack_plan import direct_plan
+                direct=direct_plan(ball,self.target,self.striker,players,self.c)
+                cooperative=self.proposed_plan
+                # 普通停球+转身比可执行直射更慢时，不因门将附近就强制传球。
+                worth_pass=far or (blocked and cooperative is not None
+                    and cooperative.kind=='TRAP_SHOT' and cooperative.time_high_s<direct.time_high_s+.75)
+                if offer is not None and worth_pass and now-last_pass>self.c['reactive_pass_cooldown_s']:
+                    choice.pass_target=offer
+                elif far:
+                    choice.phase='WAIT_SHORT_PASS';self.proposed_plan=None
+                else:
+                    self.proposed_plan=direct
+                return choice
             if (offer is not None and now-last_pass>self.c['reactive_pass_cooldown_s']
                     and (far or (blocked and now>=self.shot_after_receive_until))):
                 choice.pass_target=offer

@@ -456,7 +456,8 @@ class OfficialPlayTests(unittest.TestCase):
         from RoleMatch_LuaStyle import State,StateMachine
         self.assertTrue(issubclass(self.NormalPlay,StateMachine))
         self.assertTrue(all(isinstance(s,State) for s in self.play.states.values()))
-        self.assertEqual(len(self.play.states),12)
+        self.assertEqual(len(self.play.states),13)  # V2.3新增官方注册的TerminalPrepare，非旁路状态机。
+        self.assertIn('TerminalPrepare',self.play.states)
         self.assertIn('AbortRelease',self.play.states)
         self.assertIn('ObserveFlight',self.play.states)
         self.assertNotIn('Advance',self.play.states)

@@ -115,7 +115,7 @@ class KickTransactions:
                                 plan_id=tx.plan_id if tx else None, leg_id=tx.leg_id if tx else '0',
                                 **extra))
 
-    def request(self, now, robot, purpose, ball, target, robot_pos, initial_speed=0):
+    def request(self, now, robot, purpose, ball, target, robot_pos, initial_speed=0, *, plan_id=None,leg_id=None):
         tx = self.active
         if tx is None:
             if self.failed_origin is not None and distance(ball, self.failed_origin) > 300:
@@ -130,6 +130,8 @@ class KickTransactions:
                 distance(ball, robot_pos), initial_speed, run_id=self.run_id,
                 reset_epoch=self.reset_epoch, plan_id=f'kick-{self.sequence}')
             self.previous = None
+            if plan_id is not None:tx.plan_id=plan_id
+            if leg_id is not None:tx.leg_id=leg_id
             self.emit('KICK_REQUESTED', now, power_units='sdk_input', start_ball=asdict(ball),
                       target=asdict(target), config_hash=tx.config_hash)
         if tx.state != 'REQUESTED' or tx.robot != robot or tx.purpose != purpose or distance(target, tx.target) > 40:
