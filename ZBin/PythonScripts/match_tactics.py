@@ -4,6 +4,7 @@
 这里只保留选人、站位、射门评分等可离线检查的辅助算法。
 距离为毫米；己方归一化坐标中朝正 X 进攻；now 为单调时钟秒数。
 """
+from strategy_contract import uses_verified_control
 from dataclasses import dataclass
 import math
 from pass_planner import evaluate_pass
@@ -201,7 +202,7 @@ class Tactics:
         if self.c.get('lock_contact_aim',False) and near_contact and self.committed_ball is None:
             self.committed_ball = ball
         committed = self.c.get('lock_contact_aim',False) and self.committed_ball is not None
-        expired = self.c.get('upgrade_version') == '2.1' and (
+        expired = uses_verified_control(self.c) and (
             (not near_contact and now-self.target_time > self.c.get('target_commit_timeout_s',2.5))
             or (hasattr(self,'target_ball') and distance(ball,self.target_ball) > 100))
         # 最后500mm内不能仅因计时器翻转门角。ActionBudget仍限制接近时长；

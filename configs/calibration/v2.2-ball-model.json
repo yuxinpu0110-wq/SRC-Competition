@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "model_id": "v22-unmeasured",
+  "status": "NO_PHYSICAL_CALIBRATION",
+  "usable_for_planning": false,
+  "runtime_hashes": {},
+  "field_settings": {},
+  "profiles": [],
+  "acceptance_report_path": null,
+  "acceptance_report_sha256": null,
+  "missing": [
+    "Two robots and mirrored physical release/rolling samples",
+    "Independent holdout validation",
+    "Runtime/physics identity and speed limit evidence"
+  ]
+}

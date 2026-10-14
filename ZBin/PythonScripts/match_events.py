@@ -62,6 +62,7 @@ from dataclasses import asdict, dataclass
 import hashlib
 import json
 import math
+import uuid
 from match_tactics import Point, distance
 
 
@@ -78,6 +79,10 @@ class KickTransaction:
     config_hash: str
     start_gap: float
     initial_speed: float
+    run_id: str = ''
+    reset_epoch: int = 0
+    plan_id: str = ''
+    leg_id: str = '0'
     state: str = 'REQUESTED'
     pulse_count: int = 0
     departed_at: float | None = None
@@ -86,8 +91,10 @@ class KickTransaction:
 
 
 class KickTransactions:
-    def __init__(self, config):
+    def __init__(self, config, run_id=None):
         self.c = config
+        self.run_id = run_id or uuid.uuid4().hex
+        self.reset_epoch = 0
         self.config_hash = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
         self.active = None
         self.sequence = 0
@@ -103,6 +110,9 @@ class KickTransactions:
         tx = self.active
         self.events.append(dict(kind=kind, now=now, transaction_id=tx.id if tx else None,
                                 robot=tx.robot if tx else None, purpose=tx.purpose if tx else None,
+                                run_id=tx.run_id if tx else self.run_id,
+                                reset_epoch=tx.reset_epoch if tx else self.reset_epoch,
+                                plan_id=tx.plan_id if tx else None, leg_id=tx.leg_id if tx else '0',
                                 **extra))
 
     def request(self, now, robot, purpose, ball, target, robot_pos, initial_speed=0):
@@ -117,7 +127,8 @@ class KickTransactions:
             tx = self.active = KickTransaction(self.sequence, robot, purpose, ball, target, now,
                 now+self.c.get('kick_pulse_seconds', .18),
                 now+self.c.get('kick_departure_timeout', .45), self.config_hash,
-                distance(ball, robot_pos), initial_speed)
+                distance(ball, robot_pos), initial_speed, run_id=self.run_id,
+                reset_epoch=self.reset_epoch, plan_id=f'kick-{self.sequence}')
             self.previous = None
             self.emit('KICK_REQUESTED', now, power_units='sdk_input', start_ball=asdict(ball),
                       target=asdict(target), config_hash=tx.config_hash)
@@ -155,6 +166,10 @@ class KickTransactions:
         speed = step/dt
         # 快于规则上限的跳变不能用作可信离脚证据；场景摆位也不能补确认。
         if speed > 6500 or step > 450:
+            if speed > 6500:
+                self.emit('SPEED_LIMIT_SUSPECT', now, speed_mm_s=speed,
+                          capture_interval=[old[1], capture_time],
+                          evidence='raw_associated_suspect_not_adjudicated')
             self.cancel(now, 'RESET_OR_SPEED_LIMIT')
             return
         if tx.state == 'IN_FLIGHT':

@@ -2,6 +2,7 @@
 
 执行链仍是State→Task→Skill.RushTo/kickStatus，不绕过SDK直接遥控仿真。
 """
+from strategy_contract import uses_verified_control, uses_range_gate
 import math
 import CppPackage as C
 from RoleMatch_LuaStyle.Skills import Skill
@@ -34,12 +35,14 @@ def MoveTo(target, ball, *, slow=False, receive=False, enable_dss=True, facing=N
 
 def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
                  enable_dss=True, on_kick=None, report_phase=None, gate=None, now=0,
-                 shooting=True, control=None, authorize_kick=None):
+                 shooting=True, control=None, authorize_kick=None, validate_plan=None):
     """静态接触后射/传；瞄准改变时先脱离球再绕后，不做携球假动作。"""
     if carry:
         raise ValueError('No-carry ruleset forbids TargetedKick(carry=True)')
     if gate is None or control is None:
         raise ValueError('Ruleset requires precision gate and static contact planner')
+    if uses_range_gate(geometry.c) and validate_plan is None:
+        raise ValueError('V2.2 requires an execution-time calibrated kick plan gate')
     match_point = C.CGeoPoint(ball.x,ball.y)
     resources = [match_point]
     def execute(executor):
@@ -54,7 +57,7 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
             return
         dest,angle,aligned,held,phase = control.plan(now,robot,heading,ball,target,
             contact=geometry.c.get('contact_distance',85),trim=geometry.c.get('contact_trim',False))
-        if geometry.c.get('upgrade_version') == '2.1':
+        if uses_verified_control(geometry.c):
             if control.budget is None:
                 control.budget = ActionBudget()
             failure = control.budget.update(now, robot, heading, ball, target, geometry.c)
@@ -67,7 +70,7 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
                     report_phase(failure)
                 return
         dest = geometry.legal(dest)
-        if geometry.c.get('upgrade_version') == '2.1':
+        if uses_verified_control(geometry.c):
             dest = geometry.safe_waypoint(robot, dest)
             if dest is None:
                 skill = Skill.Stop()
@@ -104,10 +107,14 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
         resources.extend((point,skill))
         skill[0](executor)
         allowed,reason = gate.allow(now,robot,heading,ball,target,geometry.c,shooting=shooting)
+        actual_power = min(power, geometry.c['power_cap'], 6000)
+        if aligned and can_kick and allowed and validate_plan is not None:
+            if not validate_plan(executor, actual_power, robot, heading):
+                allowed, reason = False, 'SHOT_OPPORTUNITY_REJECTED'
         if (aligned and distance(robot,ball) < 150 and can_kick and allowed
                 and (authorize_kick is None or authorize_kick(executor))):
             # 力度不是实测球速；这里再限幅，物理6.5m/s还必须独立验证。
-            kickStatus.setKick(executor,min(power,geometry.c['power_cap'],6000))
+            kickStatus.setKick(executor,actual_power)
             gate.fired(now,geometry.c.get('kick_pulse_seconds',.18))
             phase = 'KICK'
             if on_kick is not None:
