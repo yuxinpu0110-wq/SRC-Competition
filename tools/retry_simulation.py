@@ -60,7 +60,8 @@ def main():
         record=dict(number=number,exit_code=code,timed_out=timed_out,complete=report.get('complete',False),
             valid_trials=sum(bool(t.get('valid')) for t in report.get('trials',[])),
             goals=sum(bool(t.get('goal_crossing')) for t in report.get('trials',[]) if t.get('valid')),
-            error=report.get('error'),report=str(folder/'report.json'))
+            error=report.get('error') or ('BOUNDED_ATTEMPT_TIMEOUT' if timed_out else None),
+            elapsed_s=time.time()-attempt_started,report=str(folder/'report.json'))
         summary['attempts'].append(record)
         summary['complete']=bool(code==0 and report.get('complete'))
         (output/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

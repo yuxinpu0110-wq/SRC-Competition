@@ -27,13 +27,13 @@ class DecisionWatchdog:
             self.socket.sendto(b'fresh' if fresh else b'alive',('127.0.0.1',self.port))
 
     def close(self):
-        self.socket.sendto(b'close',('127.0.0.1',self.port))
         try:
-            self.process.wait(timeout=1)
-        except subprocess.TimeoutExpired:
-            self.process.terminate()
-            self.process.wait(timeout=1)
-        self.socket.close()
+            self.socket.sendto(b'close',('127.0.0.1',self.port))
+        finally:
+            self.socket.close()
+            # 通知发送失败时仍让独立 worker 按原3秒失联期限停车退出。
+            # 不强杀它来掩盖主进程的通信/原生异常。
+            self.process.wait(timeout=3.5)
 
 
 def worker(team,ids,timeout):

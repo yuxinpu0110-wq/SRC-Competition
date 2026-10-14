@@ -11,6 +11,7 @@ import time
 import tkinter as tk
 from tkinter import messagebox
 from run_match import load_config, ROOT, ZBIN
+from runtime_paths import RUNTIME_ZBIN
 from sim_tools import stop_robots, reset_scene, referee, PracticeReferee
 
 
@@ -129,7 +130,8 @@ class App:
             running = subprocess.run(['tasklist', '/FI', f'IMAGENAME eq {name}', '/FO', 'CSV', '/NH'],
                                      capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW)
             if name.lower().encode() not in running.stdout.lower():
-                self.gui[name] = subprocess.Popen([str(ZBIN / name)], cwd=ZBIN)
+                # 使用分支自带 CMD；源码留在仓库，官方 Client 从显式运行库目录启动。
+                self.gui[name] = subprocess.Popen(['cmd', '/c', str(ZBIN/'open-client.cmd')], cwd=RUNTIME_ZBIN)
         self.status.set('Client 中 ZSimulator 选 Show 后播放；连接 Simulation 视觉，勾前4个摄像头。只启动一份 grSim，不点 Medusa。')
 
     def start(self):

@@ -9,6 +9,7 @@ import sys
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'ZBin/PythonScripts'))
 from simulator_context import capture_context,settings_path
+from runtime_paths import RUNTIME_ZBIN
 
 
 def main():
@@ -17,7 +18,7 @@ def main():
     parser.add_argument('--output',type=Path,default=ROOT/'tmp/v22-simulator-context.json')
     args=parser.parse_args()
     config=json.loads(args.config.read_text(encoding='utf-8-sig'))
-    result=capture_context(settings_path(config),ROOT/'ZBin')
+    result=capture_context(settings_path(config),RUNTIME_ZBIN)
     result.update(physical_acceptance_passed=False,usable_for_planning=False)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf8')

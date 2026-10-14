@@ -20,11 +20,15 @@ def main():
             if path.is_file():
                 r=json.loads(path.read_text(encoding='utf8'));m=r.get('runtime_manifest',{})
                 item.update(report_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+                    goalie_mode=r.get('goalie_mode'),start_mode=r.get('start_mode'),
+                    runtime_sha256={k:v for k,v in m.get('runtime',{}).items()
+                        if k in ('Client.exe','grSim.exe','MedusaCore.dll')},
                     config=r.get('config'),config_sha256=m.get('config_sha256'),
                     source_sha256={k:v for k,v in m.get('sources',{}).items() if k.endswith(('.py','.pyd'))
                         and any(s in k for s in ('reactive_policy','Normalplay','CompetitionSkills','match_tactics',
                             'run_match','ball_control','shot_accuracy','CppPackage','benchmark_match',
-                            'attack_plan','redirect_gate','strategy_contract'))},
+                            'attack_plan','redirect_gate','strategy_contract','observation','vision_relay',
+                            'raw_contact','runtime_paths','safety_watchdog','match_shutdown','match_processes'))},
                     trials=[{k:t.get(k) for k in ('trial','valid','goal_crossing','seconds','ball_start_m',
                         'physical_departures','pass_attempts','pass_completed_proximity','pass_aborted',
                         'last_ball_mm','last_phase','moving_goalie_observed','goalie_max_displacement_mm')}

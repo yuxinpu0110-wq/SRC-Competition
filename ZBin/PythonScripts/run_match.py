@@ -372,13 +372,19 @@ def main():
         print('[MATCH] Ctrl+C received.', flush=True)
     finally:
         # 原生崩溃不保证执行 finally，故这不是经过认证的急停机制。
-        kickStatus.clearAll()
-        if watchdog is not None: watchdog.close()
-        if raw is not None: raw.close()
-        for _ in range(3):
-            stop_robots(c['team'], ids)
-        lock.close()
+        from match_shutdown import cleanup
+        failed_before_cleanup=sys.exc_info()[0] is not None
+        actions=[('local_stop',lambda:stop_robots(c['team'],ids)) for _ in range(3)]
+        actions.append(('clear_kicks',kickStatus.clearAll))
+        if watchdog is not None:actions.append(('watchdog',watchdog.close))
+        if raw is not None:actions.append(('raw_vision',raw.close))
+        actions.append(('control_lock',lock.close))
+        cleanup_errors=cleanup(actions)
+        for name,error in cleanup_errors:
+            print(f'[MATCH] Cleanup failed: {name}: {error}',file=sys.stderr,flush=True)
         print(f'[MATCH] Exit after {frames} frames; log={log_path}', flush=True)
+        if cleanup_errors and not failed_before_cleanup:
+            raise RuntimeError('Match shutdown incomplete; see cleanup errors') from cleanup_errors[0][1]
 
 
 if __name__ == '__main__':

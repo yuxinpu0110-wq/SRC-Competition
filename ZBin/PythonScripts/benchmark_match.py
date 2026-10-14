@@ -117,6 +117,7 @@ def main():
     if args.repeats < 1 or args.seconds <= 0:
         parser.error('repeats and seconds must be positive')
     from match_processes import check_duplicates, process_count
+    print('[BENCH] Checking Client/simulator ownership',flush=True)
     check_duplicates()
     if process_count('Client.exe') != 1 or process_count('grSim.exe') != 1:
         raise RuntimeError('Benchmark requires ONE connected Client and ONE simulator')
@@ -157,6 +158,7 @@ def main():
                                              'ball_control.py', 'competition_rules.py', 'sim_tools.py', 'benchmark_match.py']}, 'trials': []}
     report_path = ROOT/'logs'/'benchmark-report.json'
     from runtime_manifest import manifest
+    print('[BENCH] Recording source/runtime identity',flush=True)
     report['runtime_manifest'] = manifest(args.config)
     report_path.write_text(json.dumps(report, indent=2), encoding='utf-8')
     practice = PracticeReferee()
@@ -185,6 +187,7 @@ def main():
             path = ROOT/f'benchmark-{skill}.json'
             path.write_text(json.dumps(cfg, indent=2), encoding='utf-8')
             p, output = launch(path, skill)
+            print(f'[BENCH] Waiting for new attacker telemetry: pid={p.pid}',flush=True)
             launched_at=time.time()
             report.setdefault('attacker_consoles', []).append(output.name)
             try:
