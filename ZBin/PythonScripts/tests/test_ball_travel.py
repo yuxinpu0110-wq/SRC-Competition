@@ -117,6 +117,11 @@ class OpportunityTests(unittest.TestCase):
         self.model = test_model(range_low=1830)
         self.assertTrue(self.evaluate().reachable)
 
+    def test_crossing_distance_covers_heading_error_bound(self):
+        self.model = test_model(range_low=1821.51)
+        self.model.data['profiles'][0]['angle_error_high_rad'] = .02
+        self.assertEqual(self.evaluate().reason, 'RANGE_UNREACHABLE')
+
     def test_reachable_long_goal_and_fast_flight_allowed(self):
         self.ball = Point(-1500, 0)
         self.plan = KickPlan(0, 'shot', self.ball, Point(4500, 0), 4500, 0, 10., self.model.data['model_id'])
