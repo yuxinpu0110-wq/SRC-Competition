@@ -99,6 +99,8 @@ class BallTravelModel:
                     raise ValueError('Invalid profile bound: '+name)
             if p['min_goal_arrival_speed_mm_s'] <= 0:
                 raise ValueError('Goal arrival speed must have a positive calibrated minimum')
+            if p['angle_error_high_rad'] > .25:
+                raise ValueError('Static shot error bound exceeds supported angular domain')
             for name in ('raw_attempts', 'clean_flights', 'holdout_flights'):
                 if type(p.get(name)) is not int or p[name] < 1:
                     raise ValueError('Missing physical/holdout sample counts: '+name)

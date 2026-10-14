@@ -50,13 +50,19 @@ def evaluate_kick(plan, ball, heading, actual_power, epoch, now, model, config, 
     travel = model.evaluate(plan.robot, actual_power, full_length, 'static', contact=contact)
     if not travel.reachable:
         return travel
-    if travel.arrival_speed_low_mm_s < travel.min_goal_arrival_speed_mm_s:
-        return reject('ARRIVAL_TOO_SLOW')
     aperture = config['goal_width']/2-radius
+    conservative_length = full_length
     for angle in (heading-travel.angle_error_high_rad, heading+travel.angle_error_high_rad):
         if math.cos(angle) <= .05:
             return reject('GOAL_APERTURE_UNSAFE')
         y = ball.y+(goal_x+radius-ball.x)*math.tan(angle)
         if abs(y) >= aperture:
             return reject('GOAL_APERTURE_UNSAFE')
+        conservative_length = max(conservative_length, (goal_x+radius-ball.x)/math.cos(angle))
+    if conservative_length > full_length:
+        travel = model.evaluate(plan.robot, actual_power, conservative_length, 'static', contact=contact)
+        if not travel.reachable:
+            return travel
+    if travel.arrival_speed_low_mm_s < travel.min_goal_arrival_speed_mm_s:
+        return reject('ARRIVAL_TOO_SLOW')
     return travel
