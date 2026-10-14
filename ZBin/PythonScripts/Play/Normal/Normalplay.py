@@ -18,6 +18,7 @@ getTasks() 决定本帧任务，transFunction() 返回下一状态的类名。
 from strategy_contract import uses_verified_control
 from dataclasses import dataclass
 import math
+import os
 import Global
 import CppPackage as C
 from RoleMatch_LuaStyle import State, StateMachine, Task, declare_state_machine
@@ -32,6 +33,7 @@ from competition_rules import ContactGuard, RestartGuard, retreat_target
 from observation import ObservationClock
 from match_events import MatchEvents, KickTransactions
 from keeper_model import KeeperModel
+from ball_flight import BallFlightObserver, FlightIdentity
 
 
 @dataclass
@@ -298,7 +300,10 @@ class NormalPlay(StateMachine):
         super().__init__()
         self.c = config
         self.v21 = uses_verified_control(config)
-        self.transactions = KickTransactions(config)
+        self.transactions = KickTransactions(config, os.environ.get('SRC_MATCH_RUN_ID'))
+        self.flight_observer = BallFlightObserver(config)
+        self.reset_epoch = 0
+        self.in_reset = False
         self.release_until = -math.inf
         # config 来自 match.json。这里只保存配置，不在构造函数里驱动车辆。
         self.tactics = Tactics(config)
@@ -342,6 +347,12 @@ class NormalPlay(StateMachine):
 
     def update_frame(self, now, ball, players, opponents, visible, mode, ball_valid, referee='', cycle=None,
                      opponent_players=None, native_motion=None, observation=None):
+        in_reset = mode not in ('PLAY', 'OUR_RESTART', 'OUR_INDIRECT')
+        if in_reset and not self.in_reset:
+            self.flight_observer.invalidate(now, 'REFEREE_RESET')
+            self.reset_epoch += 1
+            self.transactions.reset_epoch = self.reset_epoch
+        self.in_reset = in_reset
         sample = self.observation_clock.observe(now, cycle)
         if self.v21:
             from observation import Evidence, SampleStatus
@@ -601,7 +612,17 @@ class NormalPlay(StateMachine):
             target=[target.x, target.y], robot=number, heading=Player.direction(number),
             power=power, passing=passing, **backend))
         if self.v21 and self.transactions.active is not None:
-            self.kick_events[-1]["transaction_id"] = self.transactions.active.id
+            tx = self.transactions.active
+            identity = FlightIdentity(self.transactions.run_id, self.reset_epoch,
+                                      f'kick-{tx.id}', '0', tx.id)
+            from dataclasses import asdict
+            self.kick_events[-1].update(asdict(identity))
+            # This audit remains independent when the command transaction is cancelled.
+            possible = dict(self.frame.players)
+            possible.update({('opponent', n): p for n, p in self.frame.opponent_players.items()})
+            camera = self.frame.frame_id[0] if isinstance(self.frame.frame_id, tuple) else None
+            self.flight_observer.arm(identity, self.frame.now, self.frame.capture_time,
+                                     camera, number, ball, target, possible)
         self.kick_events[:] = self.kick_events[-32:]
         sequence = self.events.request_kick(self.frame.now, number, ball, target, passing)
         if passing:

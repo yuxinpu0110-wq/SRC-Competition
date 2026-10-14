@@ -60,30 +60,37 @@ def fit_window(samples, expected_angle):
 def analyze(rows):
     requests,departures={},{}
     raw={}
+    def identity(event, row):
+        return (event.get('run_id', row.get('run_id', 'legacy')),
+                event.get('reset_epoch', row.get('reset_epoch', 0)),
+                event.get('plan_id', 'legacy'), event.get('leg_id', '0'),
+                event.get('transaction_id'))
     for row in rows:
         for e in row.get('physical_events',[]):
-            key=e.get('transaction_id')
+            key=identity(e, row)
             if e.get('kind')=='KICK_REQUESTED':
                 requests[key]=dict(e, power=None)
             elif e.get('kind')=='BALL_DEPARTED':
                 departures[key]=e
         for pulse in row.get('kick_events',[]):
-            key=pulse.get('transaction_id')
+            key=identity(pulse, row)
             if key in requests:
                 requests[key]['power']=pulse.get('power')
         sample=row.get('raw_capture')
         if sample and sample.get('ball') and row.get('observation',{}).get('fresh'):
-            raw[sample['camera'],sample['frame_id']]=sample
+            raw[row.get('run_id','legacy'),row.get('reset_epoch',0),sample['camera'],sample['frame_id']]=sample
     results=[]
     for key,e in requests.items():
         departure=departures.get(key)
-        item=dict(transaction_id=key,robot=e['robot'],power=e['power'],departed=departure is not None,
+        item=dict(run_id=key[0],reset_epoch=key[1],plan_id=key[2],leg_id=key[3],
+                  transaction_id=key[4],robot=e['robot'],power=e['power'],departed=departure is not None,
                   departure_confirmation_delay_s=departure['delay_s'] if departure else None)
         if departure:
             dx=e['target']['x']-e['start_ball']['x']
             dy=e['target']['y']-e['start_ball']['y']
             # 确认离脚后0..0.25s；分离的窗口可能错过真正瞬时初速，明确保留语义。
-            samples=sorted((s for s in raw.values() if departure['now'] <= s['receive_time'] <= departure['now']+.25),
+            samples=sorted((s for identity_key,s in raw.items() if identity_key[:2] == key[:2]
+                           and departure['now'] <= s['receive_time'] <= departure['now']+.25),
                            key=lambda s:s['capture_time'])
             item['flight']=fit_window(samples,math.atan2(dy,dx))
         results.append(item)

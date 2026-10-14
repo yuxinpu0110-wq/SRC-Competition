@@ -13,6 +13,7 @@ import socket
 import sys
 import time
 import traceback
+import uuid
 
 from strategy_contract import normalize_verified_contract, uses_verified_control
 
@@ -106,6 +107,7 @@ def main():
     if args.frames < 0:
         parser.error('frames must be non-negative')
     c = load_config(args.config)
+    os.environ.setdefault('SRC_MATCH_RUN_ID', uuid.uuid4().hex)
     if not args.check:
         from match_processes import check_duplicates
         check_duplicates()
@@ -243,6 +245,9 @@ def main():
                 play.update_frame(now, ball, players, opponents, visible, mode, valid_ball,
                                   referee=message, cycle=cycle, opponent_players=opponent_players,
                                   native_motion=native_motion, observation=evidence)
+                if raw is not None:
+                    play.flight_observer.consume(tuple(raw.captures.values()), now, play.reset_epoch,
+                        halted=mode not in ('PLAY', 'OUR_RESTART', 'OUR_INDIRECT'))
                 play.planTasks()  # 唯一调度入口：官方 State.run → Task.run → Skill。
                 Global.isPlaySwitched = False
                 if play.motion_ids or c.get('complete_frame', True):
@@ -276,7 +281,11 @@ def main():
                            'vision_age_seconds':play.frame.vision_age,
                            'monotonic':now, 'kick_events':list(play.kick_events),
                            'process_id':os.getpid(), 'run_id':os.environ.get('SRC_MATCH_RUN_ID'),
-                           'version':c.get('upgrade_version','v2'),
+                           'version':c.get('strategy_version',c.get('upgrade_version','v2')),
+                           'control_contract_version':c.get('control_contract_version'),
+                           'reset_epoch':play.reset_epoch,
+                           'flight_audit_events':list(play.flight_observer.events),
+                           'flight_audit':play.flight_observer.diagnostics(),
                            'observation':evidence.diagnostics() if evidence else None,
                            'raw_vision_error':raw.error if raw else None,
                            'physical_events':list(play.transactions.events),
@@ -300,6 +309,7 @@ def main():
                     log.write(json.dumps(row)+'\n')
                     log.flush()
                     play.transactions.events.clear()
+                    play.flight_observer.events.clear()
                     play.kick_events.clear()  # 每次请求只记录一次；高频请求保存在两次日志之间。
                     (ROOT/f'heartbeat-{c["team"]}.txt').write_text(str(time.time()), encoding='ascii')
                     last_log = now
