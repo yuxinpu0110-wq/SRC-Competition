@@ -12,6 +12,7 @@ ZBin/PythonScripts/.venv/
 **/__pycache__/
 logs/
 runtime-*.ini
+/zss.ini
 heartbeat-*.txt
 benchmark-*.json
 desktop-test.png

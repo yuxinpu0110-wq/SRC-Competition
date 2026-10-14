@@ -1,2 +1,12 @@
 # Normalize only the new text reports, never the official SDK assets.
+**/empty-goal-fix-*/**/*.json text eol=lf
+**/empty-goal-fix-*/**/*.jsonl text eol=lf
+**/empty-goal-fix-*/**/*.txt text eol=lf
+**/empty-goal-fix-*/**/*.xml text eol=lf
+**/empty-goal-fix-*/*.json text eol=lf
+ZBin/zss_simulator.ini text eol=lf
+**/hzk-v3-integration-20261014/*.json text eol=lf
+**/hzk-v3-integration-20261014/*.jsonl text eol=lf
+**/hzk-v3-integration-20261014/*.txt text eol=lf
+**/hzk-v3-integration-20261014/*.xml text eol=lf
 验收记录/*.json text eol=lf

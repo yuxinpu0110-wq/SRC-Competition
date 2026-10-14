@@ -1,0 +1,16 @@
+{
+  "goalie": "none",
+  "attempts": [
+    {
+      "number": 1,
+      "exit_code": 0,
+      "timed_out": false,
+      "complete": true,
+      "valid_trials": 3,
+      "goals": 0,
+      "error": null,
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-093648\\attempt-01\\report.json"
+    }
+  ],
+  "complete": true
+}

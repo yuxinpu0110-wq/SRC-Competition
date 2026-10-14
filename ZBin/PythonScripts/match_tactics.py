@@ -6,6 +6,7 @@
 """
 from dataclasses import dataclass
 import math
+from pass_planner import evaluate_pass
 
 
 @dataclass(frozen=True)
@@ -57,15 +58,18 @@ class Tactics:
         self.changed = -100.0
         self.target = None
         self.target_time = -100.0
+        self.last_pass_plans = []
+        self.committed_ball = None
 
     def legal(self, p):
         """将进攻车目标限制在场内/禁区外；不保证整段轨迹或所有规则合法。"""
         c = self.c
         x = max(-c['field_length']/2+180, min(p.x, c['field_length']/2-180))
         y = max(-c['field_width']/2+180, min(p.y, c['field_width']/2-180))
-        edge = c['field_length']/2-c['defense_depth']-220
-        # 目标落在禁区附近时，把 X 推回禁区前沿外；220mm 是额外余量。
-        if abs(x) > edge and abs(y) < c['defense_width']/2+220:
+        # 与实体路径检查采用同一120mm膨胀量，额外2mm避免停在矩形边界上。
+        # 旧220mm目标限制会把球前3428mm的接触点3333mm错误推回3280mm。
+        edge = c['field_length']/2-c['defense_depth']-122
+        if abs(x) > edge and abs(y) < c['defense_width']/2+122:
             x = math.copysign(edge, x)
         return Point(x, y)
 
@@ -73,12 +77,52 @@ class Tactics:
         return (abs(p.x) > self.c['field_length']/2-self.c['defense_depth']-120
                 and abs(p.y) < self.c['defense_width']/2+120)
 
+    def segment_legal(self, a, b):
+        """检查机器人实体膨胀后的禁区矩形；目标合法不代表线段合法。"""
+        if not finite(a) or not finite(b):
+            return False
+        if max(abs(a.x), abs(b.x)) > self.c['field_length']/2-120 or max(abs(a.y), abs(b.y)) > self.c['field_width']/2-120:
+            return False
+        edge = self.c['field_length']/2-self.c['defense_depth']-120
+        half = self.c['defense_width']/2+120
+        for low_x, high_x in ((edge, self.c['field_length']/2+120),
+                              (-self.c['field_length']/2-120, -edge)):
+            low_t, high_t = 0., 1.
+            for origin, delta, low, high in ((a.x,b.x-a.x,low_x,high_x), (a.y,b.y-a.y,-half,half)):
+                if abs(delta) < 1e-9:
+                    if not low <= origin <= high:
+                        low_t, high_t = 1., 0.
+                        break
+                else:
+                    t1, t2 = (low-origin)/delta, (high-origin)/delta
+                    low_t, high_t = max(low_t,min(t1,t2)), min(high_t,max(t1,t2))
+            if low_t <= high_t:
+                return False
+        return True
+
+    def safe_waypoint(self, robot, target):
+        """无禁区穿越的下一段；已有非法位置只允许朝禁区外释放。"""
+        if self.in_defense(robot):
+            return self.legal(robot)
+        if self.segment_legal(robot, target):
+            return target
+        edge = self.c['field_length']/2-self.c['defense_depth']-122
+        candidates = [Point(math.copysign(edge, robot.x), robot.y),
+                      Point(0, robot.y), Point(target.x, robot.y)]
+        candidates = [self.legal(p) for p in candidates]
+        candidates = [p for p in candidates if distance(p,robot) > 20 and self.segment_legal(robot,p)]
+        return min(candidates, key=lambda p:distance(robot,p)+distance(p,target)) if candidates else None
+
     def ball_status(self, ball):
         if not finite(ball):
             return 'NO_BALL'
         if abs(ball.x) > self.c['field_length']/2 or abs(ball.y) > self.c['field_width']/2:
             return 'BALL_OUT'
-        return 'WAIT_OUTSIDE_DEFENSE' if self.in_defense(ball) else ''
+        # 球的位置用真实禁区边界，机器人中心才需要按实体半径膨胀。
+        # 否则球在3380..3500的合法前沿就被直接转入永久等待状态。
+        inside = (abs(ball.x) >= self.c['field_length']/2-self.c['defense_depth']
+                  and abs(ball.y) <= self.c['defense_width']/2)
+        return 'WAIT_OUTSIDE_DEFENSE' if inside else ''
 
     def shot(self, ball, obstacles):
         """在门线上选 9 点，优先净空，略惩罚远距离；返回 (点, 分数)。"""
@@ -93,14 +137,28 @@ class Tactics:
         # max(..., key=score) 返回评分最高的点，不是最高的分数本身。
         return best, score(best)
 
-    def receiving_point(self, ball, opponents):
-        """侧翼候选点必须有传球净空，避免把队友派入禁区。"""
+    def receiving_point(self, ball, opponents, receiver=None):
+        """选择队友来得及到达且球能滚到的接应点。
+
+        receiver=None 保留给旧调用和定位球缺少完整观察时的保守几何筛选。
+        评分是启发式，不是传球成功概率；模型参数后续需要仿真标定。
+        """
         # 不带球时依靠真实前传推进；不把队友只派到球侧后方。
         front = self.c['field_length']/2-self.c['defense_depth']-300
         candidates = [self.legal(Point(min(front,ball.x+dx), ball.y+dy))
                       for dx in (650, 1600, 2200, 2800) for dy in (-1500, -1100, -900, -600, 600, 900, 1100, 1500)]
         candidates = [p for p in candidates if 850 < distance(ball, p) < 3000
                       and clearance(ball, p, opponents) > 200]
+        if receiver is not None and self.c.get('enable_reachable_pass', False):
+            plans = [evaluate_pass(ball, receiver, p, opponents,
+                                   initial_speed=self.c.get('pass_ball_speed_mm_s', 3000),
+                                   wait_for_receiver=True)
+                     for p in candidates]
+            plans = [plan for plan in plans if plan is not None]
+            self.last_pass_plans = plans
+            return (max(plans, key=lambda plan: plan.score+1000*self.goal_opening(plan.target)).target
+                    if plans else None)
+        self.last_pass_plans = []
         # 接球时门将早已移动，不能用“现在门将离接应点射线很远”打高分。
         # 优先更近、更正的射门位置：从该点看见的门口角度越大，越容易打两侧。
         return max(candidates, key=lambda p: 1000*self.goal_opening(p)-distance(ball,p)*.025) if candidates else None
@@ -137,11 +195,26 @@ class Tactics:
         aim, _ = self.shot(ball, obstacles)
         old_clearance = clearance(ball, self.target, obstacles) if self.target is not None else -math.inf
         new_clearance = clearance(ball, aim, obstacles)
-        if (self.target is None or (now-self.target_time > .65
+        near_contact = distance(players[self.striker],ball) < 500
+        if not near_contact or (self.committed_ball is not None and distance(ball,self.committed_ball) > 180):
+            self.committed_ball = None
+        if self.c.get('lock_contact_aim',False) and near_contact and self.committed_ball is None:
+            self.committed_ball = ball
+        committed = self.c.get('lock_contact_aim',False) and self.committed_ball is not None
+        expired = self.c.get('upgrade_version') == '2.1' and (
+            (not near_contact and now-self.target_time > self.c.get('target_commit_timeout_s',2.5))
+            or (hasattr(self,'target_ball') and distance(ball,self.target_ball) > 100))
+        # 最后500mm内不能仅因计时器翻转门角。ActionBudget仍限制接近时长；
+        # 真正失败由AbortRelease离球后清空target再选，避免贴球左右重规划。
+        if expired:
+            committed = False
+        if (self.target is None or expired or (not committed and now-self.target_time > .65
                 and (old_clearance < 0 or new_clearance > old_clearance+80))):
             # 短时间保留射门目标，避免视觉小抖动让车头每帧左右摇摆。
             self.target, self.target_time = aim, now
-        offer = self.receiving_point(ball, opponents) if other is not None and self.c.get('enable_pass', False) else None
+            self.target_ball = ball
+        offer = (self.receiving_point(ball, opponents, players[other])
+                 if other is not None and self.c.get('enable_pass', False) else None)
         support = offer or self.legal(Point(ball.x-650, -1100 if ball.y >= 0 else 1100))
         if distance(support, ball) < 800:
             support = self.legal(Point(ball.x-900, support.y))

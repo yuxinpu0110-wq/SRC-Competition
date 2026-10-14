@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\benchmark_match.py", line 406, in <module>
+    main()
+  File "E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\benchmark_match.py", line 185, in main
+    telemetry=wait_for_telemetry(p,c['team'],launched_at)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\benchmark_match.py", line 83, in wait_for_telemetry
+    raise RuntimeError(f'Strategy exited before telemetry: pid={process.pid}, code={code}')
+RuntimeError: Strategy exited before telemetry: pid=47932, code=3221226356

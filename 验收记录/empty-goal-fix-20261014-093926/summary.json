@@ -1,0 +1,26 @@
+{
+  "goalie": "none",
+  "attempts": [
+    {
+      "number": 1,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Strategy exited during reset preflight",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-093926\\attempt-01\\report.json"
+    },
+    {
+      "number": 2,
+      "exit_code": 0,
+      "timed_out": false,
+      "complete": true,
+      "valid_trials": 3,
+      "goals": 2,
+      "error": null,
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-093926\\attempt-02\\report.json"
+    }
+  ],
+  "complete": true
+}

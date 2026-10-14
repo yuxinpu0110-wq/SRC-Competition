@@ -1,0 +1,86 @@
+{
+  "goalie": "official",
+  "attempts": [
+    {
+      "number": 1,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Strategy exited before telemetry: pid=30868, code=3221226356",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094023\\attempt-01\\report.json"
+    },
+    {
+      "number": 2,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Goalkeeper exited during reset preflight; trial INVALID. Inspect goalie console.",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094023\\attempt-02\\report.json"
+    },
+    {
+      "number": 3,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 1,
+      "goals": 0,
+      "error": "Reset not confirmed by vision: PREFLIGHT_CONDITIONS_NOT_MET. Trial INVALID.",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094023\\attempt-03\\report.json"
+    },
+    {
+      "number": 4,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Strategy exited before telemetry: pid=12560, code=3221226356",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094023\\attempt-04\\report.json"
+    },
+    {
+      "number": 5,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "No telemetry from this strategy within 15s; Client vision or native init stalled",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094023\\attempt-05\\report.json"
+    },
+    {
+      "number": 6,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Strategy exited before telemetry: pid=38844, code=1",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094023\\attempt-06\\report.json"
+    },
+    {
+      "number": 7,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Strategy exited before telemetry: pid=42632, code=3221226356",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094023\\attempt-07\\report.json"
+    },
+    {
+      "number": 8,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Goalkeeper exited during reset preflight; trial INVALID. Inspect goalie console.",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094023\\attempt-08\\report.json"
+    }
+  ],
+  "complete": false
+}

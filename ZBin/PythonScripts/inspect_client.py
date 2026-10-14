@@ -8,6 +8,7 @@ from pathlib import Path
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--pid', type=int, required=True)
+    parser.add_argument('--title', default='Client')
     args = parser.parse_args()
     u, g = c.windll.user32, c.windll.gdi32
     u.SetProcessDPIAware()
@@ -18,7 +19,7 @@ def main():
         u.GetWindowThreadProcessId(hwnd, c.byref(pid))
         title = c.create_unicode_buffer(256)
         u.GetWindowTextW(hwnd, title, 256)
-        if pid.value == args.pid and title.value == 'Client':
+        if pid.value == args.pid and title.value == args.title and u.IsWindowVisible(hwnd):
             handles.append(hwnd)
         return True
     u.EnumWindows(callback_type(visit), 0)

@@ -1,0 +1,123 @@
+[MATCH] Python=E:\Yuxin\Projects\Vex Robotics\SRC\Competition\ZBin\PythonScripts\.venv\Scripts\python.exe
+[MATCH] config=E:\Yuxin\Projects\Vex Robotics\SRC\Competition\benchmark-targeted.json
+[MATCH] {'profile': 'qualifier', 'ruleset': 'src2026-v1-no-carry', 'goalie_skill': 'Goalie', 'contact_budget_mm': 300, 'team': 'blue', 'side': 'left', 'attackers': [0, 1], 'goalie': 2, 'shoot_skill': 'targeted', 'shoot_control': 'precision', 'task_dispatch': 'state_machine', 'complete_frame': True, 'enable_pass': False, 'enable_reachable_pass': True, 'enable_keeper_prediction': False, 'enable_feint': False, 'vision_stale_seconds': 0.15, 'pass_ball_speed_mm_s': 3000, 'shot_ball_speed_mm_s': 4500, 'shot_power_floor': 4500, 'goal_margin': 160, 'contact_distance': 100, 'contact_forward_max': 110, 'contact_trim': False, 'settle_on_contact': True, 'lock_contact_aim': True, 'pass_shot_threshold': 230, 'pass_score_gain': 60, 'advance_before_shoot': False, 'field_length': 9000, 'field_width': 6000, 'goal_width': 1000, 'defense_depth': 1000, 'defense_width': 2000, 'power_cap': 6000, 'upgrade_version': '2.1', 'vision_max_age_s': 0.2, 'vision_match_tolerance_mm': 60, 'raw_camera_id': -1, 'raw_capture_clock': 'simulation', 'kick_pulse_seconds': 0.18, 'kick_departure_timeout': 0.45, 'kick_max_attempts': 2, 'flight_observe_seconds': 1.5, 'action_no_progress_s': 0.65, 'action_align_timeout_s': 1.0, 'target_commit_timeout_s': 2.5, 'enable_one_touch': False, 'enable_dynamic_keeper': False, 'log_interval': 0.02, 'raw_vision_port': 10022}
+[MATCH] Waiting for Client processed vision. Start simulator and CONNECT Vision.
+Side : left, Color : blue is running...
+['E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312\\python312.zip', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312\\DLLs', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312\\Lib', 'C:\\Users\\Yuxin\\AppData\\Local\\Programs\\Python\\Python312', 'E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts\\.venv', 'E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts\\.venv\\Lib\\site-packages', 'E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\ZBin\\PythonScripts\\.venv\\Lib\\site-packages']
+启动参数:
+  isSimulation: True
+  isYellow: False
+  isRight: False
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] READY. Official NormalPlay states. HALT -> STOP GAME -> FORCE START.
+[MATCH] native frame=0 mode=WAIT_VISION_STABLE visible=[0, 1] tasks=2
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=WAIT_VISION_STABLE
+[MATCH] native frame=1 mode=WAIT_VISION_STABLE visible=[0, 1] tasks=2
+[MATCH] native frame=2 mode=WAIT_VISION_STABLE visible=[0, 1] tasks=2
+ pm : 0
+Protobuf Protocol: RefereeBox Command : S what : Stop
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=STOP state=Prepare next=Prepare phase=STOP
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+[MATCH] mode=HALT state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=WAIT_VISION_STABLE
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=HALT state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+ pm : 1
+Protobuf Protocol: RefereeBox Command : s what : Start
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_CONTACT
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_SETTLE
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=KICK
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_CONTACT
+[MATCH] mode=PLAY state=WaitOutsideDefense next=WaitOutsideDefense phase=WAIT_OUTSIDE_DEFENSE
+[MATCH] mode=PLAY state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=PLAY state=WaitOutsideDefense next=WaitOutsideDefense phase=WAIT_OUTSIDE_DEFENSE
+[MATCH] mode=PLAY state=Hold next=Hold phase=BALL_OUT
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+ pm : 0
+Protobuf Protocol: RefereeBox Command : S what : Stop
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=STOP state=Prepare next=Prepare phase=STOP
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+[MATCH] mode=HALT state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+ pm : 1
+Protobuf Protocol: RefereeBox Command : s what : Start
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=ACTION_NO_PROGRESS
+[MATCH] mode=PLAY state=AbortRelease next=AbortRelease phase=AbortRelease
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_CONTACT
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_SETTLE
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_NO_NEW_CAPTURE
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=KICK
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_CONTACT
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=WaitOutsideDefense next=WaitOutsideDefense phase=WAIT_OUTSIDE_DEFENSE
+[MATCH] mode=PLAY state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=PLAY state=WaitOutsideDefense next=WaitOutsideDefense phase=WAIT_OUTSIDE_DEFENSE
+[MATCH] mode=PLAY state=WaitOutsideDefense next=Shoot phase=WaitOutsideDefense
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=RELEASE_ALIGN
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+ pm : 0
+Protobuf Protocol: RefereeBox Command : S what : Stop
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+[MATCH] mode=STOP state=Prepare next=Prepare phase=STOP
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+[MATCH] mode=HALT state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=HALT state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+ pm : 1
+Protobuf Protocol: RefereeBox Command : s what : Start
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_CONTACT
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_SETTLE
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_NO_NEW_CAPTURE
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_SETTLE
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=KICK
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=WAIT_CONTACT
+[MATCH] mode=PLAY state=WaitOutsideDefense next=WaitOutsideDefense phase=WAIT_OUTSIDE_DEFENSE
+[MATCH] mode=PLAY state=Hold next=Hold phase=BALL_OUT
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT

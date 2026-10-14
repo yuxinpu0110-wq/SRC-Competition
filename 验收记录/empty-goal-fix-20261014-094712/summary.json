@@ -1,0 +1,36 @@
+{
+  "goalie": "none",
+  "attempts": [
+    {
+      "number": 1,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Strategy exited before telemetry: pid=44596, code=3221226356",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094712\\attempt-01\\report.json"
+    },
+    {
+      "number": 2,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Strategy exited before telemetry: pid=46188, code=3221226356",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094712\\attempt-02\\report.json"
+    },
+    {
+      "number": 3,
+      "exit_code": 0,
+      "timed_out": false,
+      "complete": true,
+      "valid_trials": 3,
+      "goals": 3,
+      "error": null,
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094712\\attempt-03\\report.json"
+    }
+  ],
+  "complete": true
+}

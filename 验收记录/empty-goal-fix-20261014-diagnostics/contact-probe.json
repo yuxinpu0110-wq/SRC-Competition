@@ -1,0 +1,15 @@
+{
+  "description": "Manual isolated LOCAL grSim stationary contact probe; captured tool output, not a win-rate test.",
+  "method": "HALT; zero controlled robots; replace ball at (2.8,0)m, robot0 behind ball with heading0; wait0.35s; send flat kick3m/s with zero movement/spinner for20x0.01s; sample latest raw relay ball; zero robot0.",
+  "results": [
+    {"gap_mm":90,"before_x_mm":2972.626220703125,"after_x_mm":3112.156494140625,"delta_x_mm":139.5302734375},
+    {"gap_mm":100,"before_x_mm":2842.4638671875,"after_x_mm":2866.809326171875,"delta_x_mm":24.345458984375},
+    {"gap_mm":110,"before_x_mm":2800.0,"after_x_mm":3031.0703125,"delta_x_mm":231.0703125},
+    {"gap_mm":120,"before_x_mm":2800.0,"after_x_mm":2800.0,"delta_x_mm":0.0},
+    {"gap_mm":130,"before_x_mm":2800.0,"after_x_mm":2800.0,"delta_x_mm":0.0},
+    {"gap_mm":140,"before_x_mm":2800.0,"after_x_mm":2800.0,"delta_x_mm":0.0},
+    {"gap_mm":150,"before_x_mm":2800.0,"after_x_mm":2800.0,"delta_x_mm":0.0}
+  ],
+  "limitations": "90/100mm placements already overlap and push the ball before kick, so their delta is not kick certification. 110mm static placement leaves ball unchanged before kick and produces clear post-command movement. This is model-specific and not calibrated physical ball speed.",
+  "wire_audit": {"total_packets":3088,"kick_packets":30,"observed_kickspeedx_m_s":6.0,"spinner":false,"command_port_restored":20011}
+}

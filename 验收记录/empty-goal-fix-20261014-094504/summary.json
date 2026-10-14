@@ -1,0 +1,46 @@
+{
+  "goalie": "none",
+  "attempts": [
+    {
+      "number": 1,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "No telemetry from this strategy within 15s; Client vision or native init stalled",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094504\\attempt-01\\report.json"
+    },
+    {
+      "number": 2,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "No telemetry from this strategy within 15s; Client vision or native init stalled",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094504\\attempt-02\\report.json"
+    },
+    {
+      "number": 3,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "No telemetry from this strategy within 15s; Client vision or native init stalled",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094504\\attempt-03\\report.json"
+    },
+    {
+      "number": 4,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "No telemetry from this strategy within 15s; Client vision or native init stalled",
+      "report": "E:\\Yuxin\\Projects\\Vex Robotics\\SRC\\Competition\\验收记录\\empty-goal-fix-20261014-094504\\attempt-04\\report.json"
+    }
+  ],
+  "complete": false
+}
