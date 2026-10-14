@@ -25,7 +25,8 @@ def main():
     args=parser.parse_args()
     if not 1<=args.attempts<=12 or not 2<=args.seconds<=30: parser.error('Bounded attempts/duration required')
     output=ROOT/'验收记录'/('empty-goal-fix-'+time.strftime('%Y%m%d-%H%M%S'))
-    output.mkdir()
+    # 稀疏检出不含历史验收目录；首次测试要能自行创建父目录。
+    output.mkdir(parents=True)
     summary=dict(goalie=args.goalie,attempts=[],complete=False)
     for number in range(1,args.attempts+1):
         # 分流器由测试父进程启动，不挂在稍后会被回收的原生策略子树下。

@@ -4,7 +4,7 @@ import math
 import unittest
 from unittest.mock import patch
 from match_tactics import Point
-from observation import Capture,Evidence,decode_detection,capture_record,capture_from_record
+from observation import Capture,Evidence,MultiCameraGuard,decode_detection,capture_record,capture_from_record
 from raw_contact import RawContactTracker
 from redirect_gate import DynamicContactGate
 from sim_tools import field
@@ -20,6 +20,20 @@ def packet(heading=0.,duplicate=False):
 
 
 class PoseProtocolTests(unittest.TestCase):
+    def test_low_fps_relay_history_is_not_a_capture_clock_reset(self):
+        guard=MultiCameraGuard(.2,60,'simulation')
+        ball=Point(200,0);robot=Point(100,0)
+        first=[Capture(0,n,100+n*.043,10+n*.043,ball,{('blue',0):robot}) for n in range(6)]
+        e,_=guard.evaluate_all(first,10.215,ball,{0:robot},'blue','left')
+        self.assertTrue(e.fresh)
+        second=[Capture(0,n,100+n*.043,10+n*.043,ball,{('blue',0):robot}) for n in range(1,7)]
+        e,_=guard.evaluate_all(second,10.258,ball,{0:robot},'blue','left')
+        self.assertTrue(e.fresh)
+        self.assertNotEqual(e.reason,'CAPTURE_CLOCK_RESET')
+        reset=[Capture(0,0,1.,10.28,ball,{('blue',0):robot})]
+        e,_=guard.evaluate_all(reset,10.28,ball,{0:robot},'blue','left')
+        self.assertEqual(e.reason,'CAPTURE_CLOCK_RESET')
+
     def test_orientation_rad_survives_protocol_and_relay(self):
         capture=list(decode_detection(packet(.37),10.))[0]
         self.assertAlmostEqual(capture.headings['blue',0],.37,places=6)

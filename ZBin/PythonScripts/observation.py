@@ -340,13 +340,18 @@ class MultiCameraGuard:
         from dataclasses import replace
         sign = -1 if side == 'right' else 1
         def normalized(p): return Point(sign*p.x, sign*p.y)
-        if any(c.capture_time < self.camera_times.get(c.camera,-math.inf)-.2 for c in captures):
+        # relay保留每相机6帧。较低帧率时历史跨度可超过200ms；
+        # 不能把正常历史帧与上轮最新帧比较，误当时钟重置而不断停车。
+        latest_times={}
+        for c in captures:
+            latest_times[c.camera]=max(latest_times.get(c.camera,-math.inf),c.capture_time)
+        if any(t < self.camera_times.get(camera,-math.inf)-.2 for camera,t in latest_times.items()):
             self.guards.clear()
             self.robot_offsets.clear()
-            self.camera_times = {c.camera:c.capture_time for c in captures}
+            self.camera_times = latest_times
             self.last_camera = None
             return Evidence(reason='CAPTURE_CLOCK_RESET',trusted_robots=()), None
-        self.camera_times.update({c.camera:c.capture_time for c in captures})
+        self.camera_times.update(latest_times)
         available = [c for c in captures if 0 <= now-c.receive_time <= self.max_age
                      and -.1 <= self._age(c, now) <= self.max_age]
         candidates = [c for c in available if c.ball is not None
