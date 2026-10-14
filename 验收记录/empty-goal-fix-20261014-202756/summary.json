@@ -1,0 +1,26 @@
+{
+  "goalie": "none",
+  "attempts": [
+    {
+      "number": 1,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 2,
+      "goals": 2,
+      "error": "Reset not confirmed by vision: PREFLIGHT_CONDITIONS_NOT_MET. Trial INVALID.",
+      "report": "D:\\桌面\\ZBin\\SRC-Competition-v23\\验收记录\\empty-goal-fix-20261014-202756\\attempt-01\\report.json"
+    },
+    {
+      "number": 2,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 2,
+      "goals": 0,
+      "error": "Reset not confirmed by vision: PREFLIGHT_CONDITIONS_NOT_MET. Trial INVALID.",
+      "report": "D:\\桌面\\ZBin\\SRC-Competition-v23\\验收记录\\empty-goal-fix-20261014-202756\\attempt-02\\report.json"
+    }
+  ],
+  "complete": false
+}

@@ -1,0 +1,239 @@
+{
+  "simulator_context": {
+    "schema_version": 1,
+    "settings_source": "grsim_varxml",
+    "physical_settings_sha256": "682251e4ae03486ddbdb86eda2934b59062cdd0578aecb176a7e449e72a285af",
+    "robot_profile_hashes": {}
+  },
+  "settings_path": "C:\\Users\\hp\\.grsim.xml",
+  "settings_file_sha256": "50aff23d171b265935d77f27d429769b41dc4287093f2e06076d1bc949fcb726",
+  "physical_settings": {
+    "Geometry/Game/Division": {
+      "type": "stringenum",
+      "value": "Division B"
+    },
+    "Geometry/Game/Robots Count": {
+      "type": "int",
+      "value": 8
+    },
+    "Geometry/Field/Division A/Line Thickness": {
+      "type": "double",
+      "value": 0.01
+    },
+    "Geometry/Field/Division A/Length": {
+      "type": "double",
+      "value": 12.0
+    },
+    "Geometry/Field/Division A/Width": {
+      "type": "double",
+      "value": 9.0
+    },
+    "Geometry/Field/Division A/Radius": {
+      "type": "double",
+      "value": 0.5
+    },
+    "Geometry/Field/Division A/Free Kick Distance From Defense Area": {
+      "type": "double",
+      "value": 0.7
+    },
+    "Geometry/Field/Division A/Penalty width": {
+      "type": "double",
+      "value": 2.4
+    },
+    "Geometry/Field/Division A/Penalty depth": {
+      "type": "double",
+      "value": 1.2
+    },
+    "Geometry/Field/Division A/Penalty point": {
+      "type": "double",
+      "value": 1.2
+    },
+    "Geometry/Field/Division A/Margin": {
+      "type": "double",
+      "value": 0.3
+    },
+    "Geometry/Field/Division A/Referee margin": {
+      "type": "double",
+      "value": 0.4
+    },
+    "Geometry/Field/Division A/Wall thickness": {
+      "type": "double",
+      "value": 0.05
+    },
+    "Geometry/Field/Division A/Goal thickness": {
+      "type": "double",
+      "value": 0.02
+    },
+    "Geometry/Field/Division A/Goal depth": {
+      "type": "double",
+      "value": 0.2
+    },
+    "Geometry/Field/Division A/Goal width": {
+      "type": "double",
+      "value": 1.2
+    },
+    "Geometry/Field/Division A/Goal height": {
+      "type": "double",
+      "value": 0.16
+    },
+    "Geometry/Field/Division B/Line Thickness": {
+      "type": "double",
+      "value": 0.01
+    },
+    "Geometry/Field/Division B/Length": {
+      "type": "double",
+      "value": 9.0
+    },
+    "Geometry/Field/Division B/Width": {
+      "type": "double",
+      "value": 6.0
+    },
+    "Geometry/Field/Division B/Radius": {
+      "type": "double",
+      "value": 0.5
+    },
+    "Geometry/Field/Division B/Free Kick Distance From Defense Area": {
+      "type": "double",
+      "value": 0.7
+    },
+    "Geometry/Field/Division B/Penalty width": {
+      "type": "double",
+      "value": 2.0
+    },
+    "Geometry/Field/Division B/Penalty depth": {
+      "type": "double",
+      "value": 1.0
+    },
+    "Geometry/Field/Division B/Penalty point": {
+      "type": "double",
+      "value": 1.0
+    },
+    "Geometry/Field/Division B/Margin": {
+      "type": "double",
+      "value": 0.3
+    },
+    "Geometry/Field/Division B/Referee margin": {
+      "type": "double",
+      "value": 0.4
+    },
+    "Geometry/Field/Division B/Wall thickness": {
+      "type": "double",
+      "value": 0.05
+    },
+    "Geometry/Field/Division B/Goal thickness": {
+      "type": "double",
+      "value": 0.02
+    },
+    "Geometry/Field/Division B/Goal depth": {
+      "type": "double",
+      "value": 0.2
+    },
+    "Geometry/Field/Division B/Goal width": {
+      "type": "double",
+      "value": 1.0
+    },
+    "Geometry/Field/Division B/Goal height": {
+      "type": "double",
+      "value": 0.16
+    },
+    "Geometry/Ball/Radius": {
+      "type": "double",
+      "value": 0.0215
+    },
+    "Geometry/Blue Team": {
+      "type": "stringenum",
+      "value": "Parsian"
+    },
+    "Geometry/Yellow Team": {
+      "type": "stringenum",
+      "value": "Parsian"
+    },
+    "Physics/World/Desired FPS": {
+      "type": "double",
+      "value": 65.0
+    },
+    "Physics/World/Synchronize ODE with OpenGL": {
+      "type": "bool",
+      "value": false
+    },
+    "Physics/World/ODE time step": {
+      "type": "double",
+      "value": 0.016
+    },
+    "Physics/World/Gravity": {
+      "type": "double",
+      "value": 9.8
+    },
+    "Physics/World/Auto reset turn-over": {
+      "type": "bool",
+      "value": true
+    },
+    "Physics/Ball/Ball mass": {
+      "type": "double",
+      "value": 0.043
+    },
+    "Physics/Ball/Ball-ground friction": {
+      "type": "double",
+      "value": 0.05
+    },
+    "Physics/Ball/Ball-ground slip": {
+      "type": "double",
+      "value": 1.0
+    },
+    "Physics/Ball/Ball-ground bounce factor": {
+      "type": "double",
+      "value": 0.5
+    },
+    "Physics/Ball/Ball-ground bounce min velocity": {
+      "type": "double",
+      "value": 0.1
+    },
+    "Physics/Ball/Ball linear damping": {
+      "type": "double",
+      "value": 0.004
+    },
+    "Physics/Ball/Ball angular damping": {
+      "type": "double",
+      "value": 0.004
+    },
+    "Communication/Gaussian noise/Noise": {
+      "type": "bool",
+      "value": false
+    },
+    "Communication/Gaussian noise/Deviation for x values": {
+      "type": "double",
+      "value": 3.0
+    },
+    "Communication/Gaussian noise/Deviation for y values": {
+      "type": "double",
+      "value": 3.0
+    },
+    "Communication/Gaussian noise/Deviation for angle values": {
+      "type": "double",
+      "value": 2.0
+    },
+    "Communication/Gaussian noise/Vanishing": {
+      "type": "bool",
+      "value": false
+    },
+    "Communication/Vanishing probability/Blue team": {
+      "type": "double",
+      "value": 0.0
+    },
+    "Communication/Vanishing probability/Yellow team": {
+      "type": "double",
+      "value": 0.0
+    },
+    "Communication/Vanishing probability/Ball": {
+      "type": "double",
+      "value": 0.0
+    }
+  },
+  "missing_profile_files": [
+    "Parsian.ini"
+  ],
+  "live_settings_verified": false,
+  "limitation": "Saved settings fingerprint only; save and restart simulator before calibration. Live GUI edits cannot be detected until persisted.",
+  "physical_acceptance_passed": false,
+  "usable_for_planning": false
+}

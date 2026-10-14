@@ -1,0 +1,62 @@
+[MATCH] Python=D:\桌面\ZBin\PythonScripts\.venv\Scripts\python.exe
+[MATCH] config=D:\桌面\ZBin\SRC-Competition-v23\benchmark-targeted.json
+[MATCH] {'profile': 'qualifier', 'ruleset': 'src2026-v1-no-carry', 'goalie_skill': 'Goalie', 'contact_budget_mm': 300, 'team': 'blue', 'side': 'left', 'attackers': [0, 1], 'goalie': 2, 'shoot_skill': 'targeted', 'shoot_control': 'precision', 'task_dispatch': 'state_machine', 'complete_frame': True, 'enable_pass': True, 'enable_reachable_pass': False, 'enable_keeper_prediction': False, 'enable_feint': False, 'vision_stale_seconds': 0.15, 'pass_ball_speed_mm_s': 3000, 'shot_ball_speed_mm_s': 4500, 'shot_power_floor': 4500, 'goal_margin': 160, 'contact_distance': 100, 'contact_forward_max': 110, 'contact_trim': False, 'settle_on_contact': True, 'lock_contact_aim': True, 'pass_shot_threshold': 230, 'pass_score_gain': 60, 'advance_before_shoot': False, 'field_length': 9000, 'field_width': 6000, 'goal_width': 1000, 'defense_depth': 1000, 'defense_width': 2000, 'power_cap': 6000, 'vision_max_age_s': 0.2, 'vision_match_tolerance_mm': 60, 'raw_camera_id': -1, 'raw_capture_clock': 'simulation', 'kick_pulse_seconds': 0.18, 'kick_departure_timeout': 0.45, 'kick_max_attempts': 2, 'flight_observe_seconds': 1.5, 'action_no_progress_s': 0.9, 'action_align_timeout_s': 1.5, 'target_commit_timeout_s': 2.5, 'enable_one_touch': False, 'enable_dynamic_keeper': False, 'log_interval': 0.02, 'raw_vision_port': 10022, 'strategy_version': '2.3', 'control_contract_version': 2, 'v22_mode': 'reactive-development', 'ball_radius_mm': 21.5, 'ball_model_path': 'configs/calibration/v2.2-ball-model.json', 'simulator_settings_path': '@user-grsim', 'planned_shot_power_by_robot': {'0': 6000, '1': 6000}, 'reactive_shot_max_mm': 2500, 'reactive_pass_max_mm': 1400, 'reactive_pass_cooldown_s': 0.8, 'reactive_receive_shift_mm': 300, 'reactive_shot_lane_margin_mm': 200, 'reactive_shot_power': 6000, 'reactive_pass_power': 4500, 'pass_setup_timeout': 4, 'pass_kick_timeout': 1.5, 'pass_flight_timeout': 3.2, 'v23_mode': 'development', 'attack_plan_contract_version': 1, 'enable_fast_finish': False, 'v23_advance_pass_max_mm': 2100, 'v23_advance_pass_power': 6000, 'v23_episode_seconds': 10, 'v23_terminal_timeout_s': 4}
+[MATCH] Waiting for Client processed vision. Start simulator and CONNECT Vision.
+Side : left, Color : blue is running...
+['D:\\桌面\\ZBin\\SRC-Competition-v23\\ZBin\\PythonScripts', 'C:\\Users\\hp\\AppData\\Roaming\\uv\\python\\cpython-3.12.10-windows-x86_64-none\\python312.zip', 'C:\\Users\\hp\\AppData\\Roaming\\uv\\python\\cpython-3.12.10-windows-x86_64-none\\DLLs', 'C:\\Users\\hp\\AppData\\Roaming\\uv\\python\\cpython-3.12.10-windows-x86_64-none\\Lib', 'C:\\Users\\hp\\AppData\\Roaming\\uv\\python\\cpython-3.12.10-windows-x86_64-none', 'D:\\桌面\\ZBin\\PythonScripts\\.venv', 'D:\\桌面\\ZBin\\PythonScripts\\.venv\\Lib\\site-packages', 'D:\\桌面\\ZBin\\SRC-Competition-v23\\ZBin\\PythonScripts\\.venv\\Lib\\site-packages']
+启动参数:
+  isSimulation: True
+  isYellow: False
+  isRight: False
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] READY. Official NormalPlay states. HALT -> STOP GAME -> FORCE START.
+[MATCH] native frame=0 mode=WAIT_VISION_STABLE visible=[0, 1] tasks=2
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=WAIT_VISION_STABLE
+[MATCH] native frame=1 mode=WAIT_VISION_STABLE visible=[0, 1] tasks=2
+[MATCH] native frame=2 mode=WAIT_VISION_STABLE visible=[0, 1] tasks=2
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=WAIT_VISION_STABLE
+ pm : 0
+Protobuf Protocol: RefereeBox Command : S what : Stop
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=WAIT_VISION_STABLE
+ pm : 2
+Protobuf Protocol: RefereeBox Command : H what : Halt
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=WAIT_VISION_STABLE
+[MATCH] mode=WAIT_VISION_STABLE state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+[MATCH] mode=HALT state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+[MATCH] mode=HALT state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=HALT state=Hold next=Hold phase=HALT
+ pm : 1
+Protobuf Protocol: RefereeBox Command : s what : Start
+Stage_time_left : 0 Goals for blue : 0 Goals for yellow : 0
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=PassSetup phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=PassSetup next=PassSetup phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=Shoot
+[MATCH] mode=PLAY state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=PassSetup phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=PassSetup next=PassSetup phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=PassSetup next=PassSetup phase=ACTION_NO_PROGRESS
+[MATCH] mode=PLAY state=AbortRelease next=AbortRelease phase=AbortRelease
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=Shoot
+[MATCH] mode=PLAY state=Shoot next=PassSetup phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=Shoot
+[MATCH] mode=PLAY state=Shoot next=PassSetup phase=RELEASE_ALIGN
+[MATCH] mode=PLAY state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold
+[MATCH] mode=PLAY state=Shoot next=Shoot phase=Shoot
+[MATCH] mode=PLAY state=Hold next=Hold phase=VISION_STALE
+[MATCH] mode=PLAY state=Hold next=Shoot phase=Hold

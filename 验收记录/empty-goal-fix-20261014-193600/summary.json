@@ -1,0 +1,26 @@
+{
+  "goalie": "none",
+  "attempts": [
+    {
+      "number": 1,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Strategy exited before telemetry: pid=33240, code=3221226356",
+      "report": "D:\\桌面\\ZBin\\SRC-Competition-v23\\验收记录\\empty-goal-fix-20261014-193600\\attempt-01\\report.json"
+    },
+    {
+      "number": 2,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 2,
+      "goals": 0,
+      "error": "Reset not confirmed by vision: PREFLIGHT_CONDITIONS_NOT_MET. Trial INVALID.",
+      "report": "D:\\桌面\\ZBin\\SRC-Competition-v23\\验收记录\\empty-goal-fix-20261014-193600\\attempt-02\\report.json"
+    }
+  ],
+  "complete": false
+}

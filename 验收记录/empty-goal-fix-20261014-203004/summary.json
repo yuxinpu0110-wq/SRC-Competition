@@ -1,0 +1,26 @@
+{
+  "goalie": "official",
+  "attempts": [
+    {
+      "number": 1,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Strategy exited before telemetry: pid=14796, code=1",
+      "report": "D:\\桌面\\ZBin\\SRC-Competition-v23\\验收记录\\empty-goal-fix-20261014-203004\\attempt-01\\report.json"
+    },
+    {
+      "number": 2,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "No telemetry from this strategy within 15s; Client vision or native init stalled",
+      "report": "D:\\桌面\\ZBin\\SRC-Competition-v23\\验收记录\\empty-goal-fix-20261014-203004\\attempt-02\\report.json"
+    }
+  ],
+  "complete": false
+}

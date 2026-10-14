@@ -1,0 +1,1582 @@
+[
+  {
+    "telemetry_name": "20261014-193701-blue.jsonl",
+    "telemetry_sha256": "83c8554a87c629673470b23dc35c6fc186b53787b354462f553e3af3c8ec3cd3",
+    "rows": 1392,
+    "observation_reasons": {
+      "RAW_ASSOCIATED": 689,
+      "CAPTURE_CLOCK_RESET": 616,
+      "DUPLICATE_CAPTURE": 83,
+      "NO_FRESH_ROBOT_ASSOCIATION": 3,
+      "NO_FRESH_BALL_ASSOCIATION": 1
+    },
+    "raw_contact_reasons": {
+      "INCOMPLETE_SAME_FRAME_POSE": 1016,
+      "CONTROL_ASSOCIATION_REQUIRED": 870,
+      "NO_NEW_RAW_CAPTURE": 148
+    },
+    "phases": {
+      "WAIT_VISION_STABLE": 4,
+      "VISION_STALE": 566,
+      "HALT": 77,
+      "Hold": 66,
+      "RELEASE_ALIGN": 140,
+      "Shoot": 79,
+      "EPISODE_TIMEOUT": 297,
+      "STOP": 8,
+      "NO_BALL": 155
+    },
+    "displacement_from_first_mm": {
+      "0": 1888.9109585390115,
+      "1": 1201.3743329296774
+    },
+    "ready_examples": [],
+    "control_authority": false,
+    "limitation": "Diagnostic readiness is not a measured redirect support profile."
+  },
+  {
+    "telemetry_name": "20261014-201327-blue.jsonl",
+    "telemetry_sha256": "d25e385a674666f9b405e58d9de0c6aa47250765f4b9cd6d7f1cdc3727d774f0",
+    "rows": 337,
+    "observation_reasons": {
+      "RAW_ASSOCIATED": 239,
+      "DUPLICATE_CAPTURE": 37,
+      "NO_FRESH_BALL_ASSOCIATION": 26,
+      "NO_FRESH_ROBOT_ASSOCIATION": 31,
+      "CAMERA_CHANGED": 3,
+      "CAPTURE_NOT_ADVANCING": 1
+    },
+    "raw_contact_reasons": {
+      "INCOMPLETE_SAME_FRAME_POSE": 325,
+      "CONTROL_ASSOCIATION_REQUIRED": 89,
+      "NO_NEW_RAW_CAPTURE": 70,
+      "RAW_TRACK_WARMUP": 11,
+      "RAW_TRACK_GAP_OR_CLOCK_RESET": 33,
+      "CONTINUOUS_SAME_FRAME_RAW_POSE": 31,
+      "CONTACT_SAMPLE_TOO_OLD": 13
+    },
+    "phases": {
+      "WAIT_VISION_STABLE": 9,
+      "VISION_STALE": 61,
+      "HALT": 23,
+      "Hold": 23,
+      "RELEASE_ALIGN": 53,
+      "ROBOT_LOST": 1,
+      "Shoot": 54,
+      "EPISODE_TIMEOUT": 110,
+      "STOP": 2,
+      "ACTION_NO_PROGRESS": 1
+    },
+    "displacement_from_first_mm": {
+      "0": 1930.7770830102836,
+      "1": 1240.5854495940941
+    },
+    "ready_examples": [
+      {
+        "time": 1791980020.8554378,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 2,
+          "frame_id": 5072,
+          "capture_time": 160.466,
+          "receive_time": 907.9572561,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": -985.8262329101562,
+            "y": -686.8723754882812
+          },
+          "heading": 0.06299611926078796,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 0.0,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.02036380000004101,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            2,
+            5072
+          ],
+          "robot_frame_id": [
+            2,
+            5072
+          ],
+          "heading_frame_id": [
+            2,
+            5072
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 2,
+          "frame_id": 5072,
+          "capture_time": 160.466,
+          "receive_time": 907.9572561,
+          "ball": [
+            0.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              -985.8262329101562,
+              -686.8723754882812
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.06299611926078796
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980023.1655743,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 2,
+          "frame_id": 5127,
+          "capture_time": 162.854,
+          "receive_time": 910.4310233,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": -982.5802612304688,
+            "y": -683.7813720703125
+          },
+          "heading": 0.0735006332397461,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 0.0,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.018050799999969058,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            2,
+            5127
+          ],
+          "robot_frame_id": [
+            2,
+            5127
+          ],
+          "heading_frame_id": [
+            2,
+            5127
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 2,
+          "frame_id": 5127,
+          "capture_time": 162.854,
+          "receive_time": 910.4310233,
+          "ball": [
+            0.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              -982.5802612304688,
+              -683.7813720703125
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.0735006332397461
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980023.7853255,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 2,
+          "frame_id": 5140,
+          "capture_time": 163.446,
+          "receive_time": 911.0670294,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": -982.5802612304688,
+            "y": -683.7813720703125
+          },
+          "heading": 0.0735006332397461,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 0.0,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.014834800000016912,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            2,
+            5140
+          ],
+          "robot_frame_id": [
+            2,
+            5140
+          ],
+          "heading_frame_id": [
+            2,
+            5140
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 2,
+          "frame_id": 5140,
+          "capture_time": 163.446,
+          "receive_time": 911.0670294,
+          "ball": [
+            0.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              -982.5802612304688,
+              -683.7813720703125
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.0735006332397461
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980024.0701618,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 2,
+          "frame_id": 5145,
+          "capture_time": 163.656,
+          "receive_time": 911.2332939,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": -982.5802612304688,
+            "y": -683.7813720703125
+          },
+          "heading": 0.0735006332397461,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 0.0,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.011102800000003299,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            2,
+            5145
+          ],
+          "robot_frame_id": [
+            2,
+            5145
+          ],
+          "heading_frame_id": [
+            2,
+            5145
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 2,
+          "frame_id": 5145,
+          "capture_time": 163.656,
+          "receive_time": 911.2332939,
+          "ball": [
+            0.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              -982.5802612304688,
+              -683.7813720703125
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.0735006332397461
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980024.2059147,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 2,
+          "frame_id": 5151,
+          "capture_time": 163.979,
+          "receive_time": 911.4700473,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": -982.5802612304688,
+            "y": -683.7813720703125
+          },
+          "heading": 0.0735006332397461,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 0.0,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.010907699999961551,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            2,
+            5151
+          ],
+          "robot_frame_id": [
+            2,
+            5151
+          ],
+          "heading_frame_id": [
+            2,
+            5151
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 2,
+          "frame_id": 5151,
+          "capture_time": 163.979,
+          "receive_time": 911.4700473,
+          "ball": [
+            0.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              -982.5802612304688,
+              -683.7813720703125
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.0735006332397461
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980024.7944076,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 2,
+          "frame_id": 5164,
+          "capture_time": 164.507,
+          "receive_time": 912.07983,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": -982.5802612304688,
+            "y": -683.7813720703125
+          },
+          "heading": 0.0735006332397461,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 0.0,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.005260499999963031,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            2,
+            5164
+          ],
+          "robot_frame_id": [
+            2,
+            5164
+          ],
+          "heading_frame_id": [
+            2,
+            5164
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 2,
+          "frame_id": 5164,
+          "capture_time": 164.507,
+          "receive_time": 912.07983,
+          "ball": [
+            0.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              -982.5802612304688,
+              -683.7813720703125
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.0735006332397461
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      }
+    ],
+    "control_authority": false,
+    "limitation": "Diagnostic readiness is not a measured redirect support profile."
+  },
+  {
+    "telemetry_name": "20261014-201416-blue.jsonl",
+    "telemetry_sha256": "b3ff327bf2d58be7c44b317f1e282a398c62c2b738cb111060f3c8d827b5d9e9",
+    "rows": 67,
+    "observation_reasons": {
+      "RAW_ASSOCIATED": 38,
+      "DUPLICATE_CAPTURE": 10,
+      "NO_FRESH_ROBOT_ASSOCIATION": 5,
+      "NO_FRESH_BALL_ASSOCIATION": 8,
+      "CAPTURE_NOT_ADVANCING": 1,
+      "CAMERA_CHANGED": 5
+    },
+    "raw_contact_reasons": {
+      "INCOMPLETE_SAME_FRAME_POSE": 45,
+      "CONTROL_ASSOCIATION_REQUIRED": 23,
+      "NO_NEW_RAW_CAPTURE": 7,
+      "CONTACT_SAMPLE_TOO_OLD": 1
+    },
+    "phases": {
+      "WAIT_VISION_STABLE": 11,
+      "VISION_STALE": 19,
+      "HALT": 9,
+      "Hold": 6,
+      "RELEASE_ALIGN": 6,
+      "Shoot": 14,
+      "ACTION_NO_PROGRESS": 1,
+      "AbortRelease": 1
+    },
+    "displacement_from_first_mm": {
+      "0": 33.90998233400781,
+      "1": 99.48053604410099
+    },
+    "ready_examples": [],
+    "control_authority": false,
+    "limitation": "Diagnostic readiness is not a measured redirect support profile."
+  },
+  {
+    "telemetry_name": "20261014-202801-blue.jsonl",
+    "telemetry_sha256": "32d98d277238cc87cf3dbd2cf1280716f7b8c1cf04f78fbce2be6209d49a6ada",
+    "rows": 461,
+    "observation_reasons": {
+      "RAW_ASSOCIATED": 374,
+      "DUPLICATE_CAPTURE": 64,
+      "NO_FRESH_BALL_ASSOCIATION": 17,
+      "CAMERA_CHANGED": 2,
+      "NO_FRESH_ROBOT_ASSOCIATION": 4
+    },
+    "raw_contact_reasons": {
+      "RAW_TRACK_WARMUP": 30,
+      "RAW_TRACK_GAP_OR_CLOCK_RESET": 56,
+      "CONTINUOUS_SAME_FRAME_RAW_POSE": 212,
+      "CONTACT_SAMPLE_TOO_OLD": 38,
+      "NO_NEW_RAW_CAPTURE": 74,
+      "CONTROL_ASSOCIATION_REQUIRED": 10
+    },
+    "phases": {
+      "WAIT_VISION_STABLE": 15,
+      "STOP": 16,
+      "HALT": 131,
+      "VISION_STALE": 18,
+      "Hold": 5,
+      "WAIT_SETTLE": 7,
+      "KICK": 4,
+      "WAIT_CONTACT": 54,
+      "ObserveFlight": 27,
+      "WAIT_OUTSIDE_DEFENSE": 54,
+      "BALL_OUT": 7,
+      "RELEASE_ALIGN": 2,
+      "WAIT_NO_NEW_CAPTURE": 2,
+      "ACTION_NO_PROGRESS": 1,
+      "AbortRelease": 42,
+      "NO_BALL": 76
+    },
+    "displacement_from_first_mm": {
+      "0": 853.1938203939505,
+      "1": 481.74400707822264
+    },
+    "ready_examples": [
+      {
+        "time": 1791980885.8262477,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 0,
+          "frame_id": 23845,
+          "capture_time": 1025.636,
+          "receive_time": 1773.1030864,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 2800.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": 2690.023681640625,
+            "y": 1.600336529961055e-11
+          },
+          "heading": 0.0,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 2.0033020381453987e-11,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.002540599999974802,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            0,
+            23845
+          ],
+          "robot_frame_id": [
+            0,
+            23845
+          ],
+          "heading_frame_id": [
+            0,
+            23845
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 0,
+          "frame_id": 23845,
+          "capture_time": 1025.636,
+          "receive_time": 1773.1030864,
+          "ball": [
+            2800.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2690.023681640625,
+              1.600336529961055e-11
+            ],
+            [
+              "blue",
+              1,
+              1500.271484375,
+              1498.968994140625
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.0
+            ],
+            [
+              "blue",
+              1,
+              -0.004344925284385681
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980885.8262477,
+        "robot_id": "1",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 0,
+          "frame_id": 23845,
+          "capture_time": 1025.636,
+          "receive_time": 1773.1030864,
+          "reset_epoch": 1,
+          "robot_id": 1,
+          "ball": {
+            "x": 2800.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": 1500.271484375,
+            "y": 1498.968994140625
+          },
+          "heading": -0.004344925284385681,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 15.593220577802757,
+          "robot_spin": -0.06389596006451069,
+          "capture_age_s": 0.002540599999974802,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            0,
+            23845
+          ],
+          "robot_frame_id": [
+            0,
+            23845
+          ],
+          "heading_frame_id": [
+            0,
+            23845
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 0,
+          "frame_id": 23845,
+          "capture_time": 1025.636,
+          "receive_time": 1773.1030864,
+          "ball": [
+            2800.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2690.023681640625,
+              1.600336529961055e-11
+            ],
+            [
+              "blue",
+              1,
+              1500.271484375,
+              1498.968994140625
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.0
+            ],
+            [
+              "blue",
+              1,
+              -0.004344925284385681
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980885.9357088,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 0,
+          "frame_id": 23846,
+          "capture_time": 1025.659,
+          "receive_time": 1773.1257525,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 2846.41796875,
+            "y": 7.915587266595428e-14
+          },
+          "robot": {
+            "x": 2690.023681640625,
+            "y": 2.173700455743166e-11
+          },
+          "heading": 0.0,
+          "velocity": {
+            "x": 2018.1725543356956,
+            "y": 3.441559681107761e-12
+          },
+          "robot_speed": 2.492886633820282e-10,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.021210999999993874,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            0,
+            23846
+          ],
+          "robot_frame_id": [
+            0,
+            23846
+          ],
+          "heading_frame_id": [
+            0,
+            23846
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 0,
+          "frame_id": 23846,
+          "capture_time": 1025.659,
+          "receive_time": 1773.1257525,
+          "ball": [
+            2846.41796875,
+            7.915587266595428e-14
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2690.023681640625,
+              2.173700455743166e-11
+            ],
+            [
+              "blue",
+              1,
+              1500.42431640625,
+              1498.3997802734375
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.0
+            ],
+            [
+              "blue",
+              1,
+              -0.006684466730803251
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980885.9357088,
+        "robot_id": "1",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 0,
+          "frame_id": 23846,
+          "capture_time": 1025.659,
+          "receive_time": 1773.1257525,
+          "reset_epoch": 1,
+          "robot_id": 1,
+          "ball": {
+            "x": 2846.41796875,
+            "y": 7.915587266595428e-14
+          },
+          "robot": {
+            "x": 1500.42431640625,
+            "y": 1498.3997802734375
+          },
+          "heading": -0.006684466730803251,
+          "velocity": {
+            "x": 2018.1725543356956,
+            "y": 3.441559681107761e-12
+          },
+          "robot_speed": 25.624969228452148,
+          "robot_spin": -0.10171919332189165,
+          "capture_age_s": 0.021210999999993874,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            0,
+            23846
+          ],
+          "robot_frame_id": [
+            0,
+            23846
+          ],
+          "heading_frame_id": [
+            0,
+            23846
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 0,
+          "frame_id": 23846,
+          "capture_time": 1025.659,
+          "receive_time": 1773.1257525,
+          "ball": [
+            2846.41796875,
+            7.915587266595428e-14
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2690.023681640625,
+              2.173700455743166e-11
+            ],
+            [
+              "blue",
+              1,
+              1500.42431640625,
+              1498.3997802734375
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.0
+            ],
+            [
+              "blue",
+              1,
+              -0.006684466730803251
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980886.2559562,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 0,
+          "frame_id": 23856,
+          "capture_time": 1026.072,
+          "receive_time": 1773.542932,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 3203.00244140625,
+            "y": 8.505553032722712e-13
+          },
+          "robot": {
+            "x": 2690.830810546875,
+            "y": -4.0980355220376907e-10
+          },
+          "heading": 0.0,
+          "velocity": {
+            "x": 1295.4492187570693,
+            "y": 3.0122779271111242e-12
+          },
+          "robot_speed": 13.203125000072049,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.0208597999999256,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            0,
+            23856
+          ],
+          "robot_frame_id": [
+            0,
+            23856
+          ],
+          "heading_frame_id": [
+            0,
+            23856
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 0,
+          "frame_id": 23856,
+          "capture_time": 1026.072,
+          "receive_time": 1773.542932,
+          "ball": [
+            3203.00244140625,
+            8.505553032722712e-13
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2690.830810546875,
+              -4.0980355220376907e-10
+            ],
+            [
+              "blue",
+              1,
+              1502.29150390625,
+              1492.863037109375
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.0
+            ],
+            [
+              "blue",
+              1,
+              -0.03008328750729561
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980886.2559562,
+        "robot_id": "1",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 0,
+          "frame_id": 23856,
+          "capture_time": 1026.072,
+          "receive_time": 1773.542932,
+          "reset_epoch": 1,
+          "robot_id": 1,
+          "ball": {
+            "x": 3203.00244140625,
+            "y": 8.505553032722712e-13
+          },
+          "robot": {
+            "x": 1502.29150390625,
+            "y": 1492.863037109375
+          },
+          "heading": -0.03008328750729561,
+          "velocity": {
+            "x": 1295.4492187570693,
+            "y": 3.0122779271111242e-12
+          },
+          "robot_speed": 23.434835155434794,
+          "robot_spin": -0.09358204901269482,
+          "capture_age_s": 0.0208597999999256,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            0,
+            23856
+          ],
+          "robot_frame_id": [
+            0,
+            23856
+          ],
+          "heading_frame_id": [
+            0,
+            23856
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 0,
+          "frame_id": 23856,
+          "capture_time": 1026.072,
+          "receive_time": 1773.542932,
+          "ball": [
+            3203.00244140625,
+            8.505553032722712e-13
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2690.830810546875,
+              -4.0980355220376907e-10
+            ],
+            [
+              "blue",
+              1,
+              1502.29150390625,
+              1492.863037109375
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              0.0
+            ],
+            [
+              "blue",
+              1,
+              -0.03008328750729561
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      }
+    ],
+    "control_authority": false,
+    "limitation": "Diagnostic readiness is not a measured redirect support profile."
+  },
+  {
+    "telemetry_name": "20261014-202843-blue.jsonl",
+    "telemetry_sha256": "c4ef93afb39e73b0683bc2e1cc6289e21e01abc3ffbf06de5c2c3f3e43a17022",
+    "rows": 741,
+    "observation_reasons": {
+      "RAW_ASSOCIATED": 674,
+      "DUPLICATE_CAPTURE": 44,
+      "NO_FRESH_BALL_ASSOCIATION": 15,
+      "NO_FRESH_ROBOT_ASSOCIATION": 6,
+      "CAMERA_CHANGED": 2
+    },
+    "raw_contact_reasons": {
+      "CONTACT_SAMPLE_TOO_OLD": 18,
+      "INCOMPLETE_SAME_FRAME_POSE": 298,
+      "RAW_TRACK_WARMUP": 20,
+      "RAW_TRACK_GAP_OR_CLOCK_RESET": 110,
+      "CONTINUOUS_SAME_FRAME_RAW_POSE": 538,
+      "NO_NEW_RAW_CAPTURE": 34
+    },
+    "phases": {
+      "WAIT_VISION_STABLE": 14,
+      "NO_BALL": 48,
+      "STOP": 11,
+      "HALT": 139,
+      "VISION_STALE": 20,
+      "Hold": 2,
+      "RELEASE_ALIGN": 34,
+      "ACTION_NO_PROGRESS": 7,
+      "AbortRelease": 286,
+      "WAIT_CONTACT": 123,
+      "EPISODE_TIMEOUT": 57
+    },
+    "displacement_from_first_mm": {
+      "0": 1754.163962343811,
+      "1": 573.0250098794855
+    },
+    "ready_examples": [
+      {
+        "time": 1791980926.8586917,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 1,
+          "frame_id": 24886,
+          "capture_time": 1066.655,
+          "receive_time": 1814.1450669,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 2800.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": 2686.501708984375,
+            "y": -8.094787631307554e-07
+          },
+          "heading": 0.0,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 25.83644701097075,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.01977319999991778,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            1,
+            24886
+          ],
+          "robot_frame_id": [
+            1,
+            24886
+          ],
+          "heading_frame_id": [
+            1,
+            24886
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 1,
+          "frame_id": 24886,
+          "capture_time": 1066.655,
+          "receive_time": 1814.1450669,
+          "ball": [
+            2800.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2686.501708984375,
+              -8.094787631307554e-07
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              -0.0
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980927.2049496,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 1,
+          "frame_id": 24892,
+          "capture_time": 1066.888,
+          "receive_time": 1814.3768435,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 2800.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": 2682.935791015625,
+            "y": -7.673762638660264e-07
+          },
+          "heading": 0.0,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 24.765014648436562,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.013818900000160284,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            1,
+            24892
+          ],
+          "robot_frame_id": [
+            1,
+            24892
+          ],
+          "heading_frame_id": [
+            1,
+            24892
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 1,
+          "frame_id": 24892,
+          "capture_time": 1066.888,
+          "receive_time": 1814.3768435,
+          "ball": [
+            2800.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2682.935791015625,
+              -7.673762638660264e-07
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              -0.0
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980927.2310703,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 1,
+          "frame_id": 24894,
+          "capture_time": 1066.936,
+          "receive_time": 1814.5124339,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 2800.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": 2681.747314453125,
+            "y": -7.625372404618247e-07
+          },
+          "heading": 0.0,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 24.75992838541573,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.013374100000191902,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            1,
+            24894
+          ],
+          "robot_frame_id": [
+            1,
+            24894
+          ],
+          "heading_frame_id": [
+            1,
+            24894
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 1,
+          "frame_id": 24894,
+          "capture_time": 1066.936,
+          "receive_time": 1814.5124339,
+          "ball": [
+            2800.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2681.747314453125,
+              -7.625372404618247e-07
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              -0.0
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980927.5527635,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 1,
+          "frame_id": 24900,
+          "capture_time": 1067.255,
+          "receive_time": 1814.7441415,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 2800.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": 2678.181640625,
+            "y": -7.453730290762905e-07
+          },
+          "heading": 0.0,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 24.75992838529844,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.011360499999909734,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            1,
+            24900
+          ],
+          "robot_frame_id": [
+            1,
+            24900
+          ],
+          "heading_frame_id": [
+            1,
+            24900
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 1,
+          "frame_id": 24900,
+          "capture_time": 1067.255,
+          "receive_time": 1814.7441415,
+          "ball": [
+            2800.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2678.181640625,
+              -7.453730290762905e-07
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              -0.0
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980927.5695457,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 1,
+          "frame_id": 24901,
+          "capture_time": 1067.279,
+          "receive_time": 1814.8565414,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 2800.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": 2677.58740234375,
+            "y": -7.425135777339165e-07
+          },
+          "heading": 0.0,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 24.759928385533016,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.01869000000010601,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            1,
+            24901
+          ],
+          "robot_frame_id": [
+            1,
+            24901
+          ],
+          "heading_frame_id": [
+            1,
+            24901
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 1,
+          "frame_id": 24901,
+          "capture_time": 1067.279,
+          "receive_time": 1814.8565414,
+          "ball": [
+            2800.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2677.58740234375,
+              -7.425135777339165e-07
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              -0.0
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      },
+      {
+        "time": 1791980927.6151395,
+        "robot_id": "0",
+        "diagnostic": {
+          "ready": true,
+          "reason": "CONTINUOUS_SAME_FRAME_RAW_POSE",
+          "camera": 1,
+          "frame_id": 24903,
+          "capture_time": 1067.415,
+          "receive_time": 1814.9033245,
+          "reset_epoch": 1,
+          "robot_id": 0,
+          "ball": {
+            "x": 2800.0,
+            "y": 0.0
+          },
+          "robot": {
+            "x": 2676.398681640625,
+            "y": -7.368070100710611e-07
+          },
+          "heading": 0.0,
+          "velocity": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "robot_speed": 22.855318509556223,
+          "robot_spin": 0.0,
+          "capture_age_s": 0.009199399999943125,
+          "age_basis": "receive_age_only_simulation",
+          "fresh": true,
+          "new_capture": true,
+          "control_authority": false,
+          "ball_frame_id": [
+            1,
+            24903
+          ],
+          "robot_frame_id": [
+            1,
+            24903
+          ],
+          "heading_frame_id": [
+            1,
+            24903
+          ],
+          "velocity_semantics": "same_camera_capture_time_difference"
+        },
+        "raw_capture": {
+          "camera": 1,
+          "frame_id": 24903,
+          "capture_time": 1067.415,
+          "receive_time": 1814.9033245,
+          "ball": [
+            2800.0,
+            0.0
+          ],
+          "robots": [
+            [
+              "blue",
+              0,
+              2676.398681640625,
+              -7.368070100710611e-07
+            ]
+          ],
+          "robot_headings": [
+            [
+              "blue",
+              0,
+              -0.0
+            ]
+          ],
+          "ambiguous_robots": []
+        }
+      }
+    ],
+    "control_authority": false,
+    "limitation": "Diagnostic readiness is not a measured redirect support profile."
+  }
+]

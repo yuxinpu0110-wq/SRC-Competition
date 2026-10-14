@@ -1,0 +1,12 @@
+[BENCH] Checking Client/simulator ownership
+[BENCH] Recording source/runtime identity
+[BENCH] Waiting for new attacker telemetry: pid=14796
+Traceback (most recent call last):
+  File "D:\桌面\ZBin\SRC-Competition-v23\ZBin\PythonScripts\benchmark_match.py", line 440, in <module>
+    main()
+  File "D:\桌面\ZBin\SRC-Competition-v23\ZBin\PythonScripts\benchmark_match.py", line 194, in main
+    telemetry=wait_for_telemetry(p,c['team'],launched_at)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\桌面\ZBin\SRC-Competition-v23\ZBin\PythonScripts\benchmark_match.py", line 84, in wait_for_telemetry
+    raise RuntimeError(f'Strategy exited before telemetry: pid={process.pid}, code={code}')
+RuntimeError: Strategy exited before telemetry: pid=14796, code=1

@@ -1,0 +1,26 @@
+{
+  "goalie": "none",
+  "attempts": [
+    {
+      "number": 1,
+      "exit_code": 1,
+      "timed_out": true,
+      "complete": false,
+      "valid_trials": 1,
+      "goals": 0,
+      "error": null,
+      "report": "D:\\桌面\\ZBin\\SRC-Competition-v23\\验收记录\\empty-goal-fix-20261014-201209\\attempt-01\\report.json"
+    },
+    {
+      "number": 2,
+      "exit_code": 1,
+      "timed_out": false,
+      "complete": false,
+      "valid_trials": 0,
+      "goals": 0,
+      "error": "Vision arrives but robots do not move: check Client simulation command forwarding. Trial INVALID.",
+      "report": "D:\\桌面\\ZBin\\SRC-Competition-v23\\验收记录\\empty-goal-fix-20261014-201209\\attempt-02\\report.json"
+    }
+  ],
+  "complete": false
+}

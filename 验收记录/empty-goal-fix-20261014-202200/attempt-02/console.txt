@@ -1,0 +1,9 @@
+[BENCH] Checking Client/simulator ownership
+[BENCH] Recording source/runtime identity
+[BENCH] Waiting for new attacker telemetry: pid=28860
+Traceback (most recent call last):
+  File "D:\桌面\ZBin\SRC-Competition-v23\ZBin\PythonScripts\benchmark_match.py", line 440, in <module>
+    main()
+  File "D:\桌面\ZBin\SRC-Competition-v23\ZBin\PythonScripts\benchmark_match.py", line 268, in main
+    raise RuntimeError('Reset not confirmed by vision: '+result['reset_error']+'. Trial INVALID.')
+RuntimeError: Reset not confirmed by vision: PREFLIGHT_CONDITIONS_NOT_MET. Trial INVALID.

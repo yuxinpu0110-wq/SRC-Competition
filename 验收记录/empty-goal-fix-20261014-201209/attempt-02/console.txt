@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "D:\桌面\ZBin\SRC-Competition-v23\ZBin\PythonScripts\benchmark_match.py", line 437, in <module>
+    main()
+  File "D:\桌面\ZBin\SRC-Competition-v23\ZBin\PythonScripts\benchmark_match.py", line 357, in main
+    raise RuntimeError('Vision arrives but robots do not move: check Client simulation command forwarding. Trial INVALID.')
+RuntimeError: Vision arrives but robots do not move: check Client simulation command forwarding. Trial INVALID.
