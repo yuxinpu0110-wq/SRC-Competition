@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "D:\桌面\ZBin\PythonScripts\benchmark_match.py", line 377, in <module>
+    main()
+  File "D:\桌面\ZBin\PythonScripts\benchmark_match.py", line 166, in main
+    raise RuntimeError('No telemetry: connect Client Vision first')
+RuntimeError: No telemetry: connect Client Vision first

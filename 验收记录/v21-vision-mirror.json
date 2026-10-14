@@ -1,0 +1,8 @@
+{
+  "packets": 0,
+  "duration_s": 180.1082875999855,
+  "input_port": 10021,
+  "output_port": 10020,
+  "payload_modified": false,
+  "robot_commands_sent": false
+}

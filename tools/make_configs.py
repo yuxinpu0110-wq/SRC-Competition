@@ -4,7 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 c = json.loads((ROOT/'match.json').read_text(encoding='utf-8'))
-c.update(upgrade_version='2.1', vision_max_age_s=.2, vision_match_tolerance_mm=60, raw_camera_id=-1,
+c.update(upgrade_version='2.1', vision_max_age_s=.2, vision_match_tolerance_mm=60, raw_camera_id=-1,raw_capture_clock='relative',
     kick_pulse_seconds=.18, kick_departure_timeout=.45, kick_max_attempts=2, flight_observe_seconds=1.5,
     action_no_progress_s=.65, action_align_timeout_s=1., target_commit_timeout_s=2.5,
     enable_one_touch=False, enable_dynamic_keeper=False, log_interval=.02)

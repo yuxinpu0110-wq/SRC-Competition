@@ -9,6 +9,8 @@ import hashlib
 import math
 import itertools
 import json
+import os
+import uuid
 from pathlib import Path
 import subprocess
 import sys
@@ -63,9 +65,30 @@ def complete_rows(path):
 
 def launch(config, label):
     f = (ROOT/'logs'/f'benchmark-{label}-{time.time_ns()}-console.txt').open('w', encoding='utf-8')
+    run_id=uuid.uuid4().hex
+    env=dict(os.environ,SRC_MATCH_RUN_ID=run_id)
     p = subprocess.Popen([sys.executable, '-X', 'utf8', '-X', 'faulthandler', '-u', str(ZBIN/'PythonScripts'/'run_match.py'), '--config', str(config)],
-                         cwd=ZBIN, stdout=f, stderr=subprocess.STDOUT)
+                         cwd=ZBIN, stdout=f, stderr=subprocess.STDOUT,env=env)
+    p.run_id=run_id
     return p, f
+
+
+def wait_for_telemetry(process, team, started_at, timeout=15):
+    """等本次子进程真正发布遥测；不以固定2秒或旧日志作为启动成功。"""
+    from match_launcher import latest_complete_row
+    deadline=time.monotonic()+timeout
+    while time.monotonic()<deadline:
+        code=process.poll()
+        if code is not None:
+            raise RuntimeError(f'Strategy exited before telemetry: pid={process.pid}, code={code}')
+        paths=sorted((ROOT/'logs').glob(f'*-{team}.jsonl'),key=lambda p:p.stat().st_mtime,reverse=True)
+        for path in paths:
+            row=latest_complete_row(path)
+            if (row and row.get('run_id')==getattr(process,'run_id',None) and row.get('run_id') is not None and row.get('time',0)>=started_at
+                    and time.time()-row['time']<.5):
+                return path
+        time.sleep(.05)
+    raise RuntimeError(f'No telemetry from this strategy within {timeout}s; Client vision or native init stalled')
 
 
 def main():
@@ -156,15 +179,12 @@ def main():
             path = ROOT/f'benchmark-{skill}.json'
             path.write_text(json.dumps(cfg, indent=2), encoding='utf-8')
             p, output = launch(path, skill)
+            launched_at=time.time()
             report.setdefault('attacker_consoles', []).append(output.name)
             try:
-                time.sleep(2)
+                telemetry=wait_for_telemetry(p,c['team'],launched_at)
                 if p.poll() is not None or (goalie is not None and goalie.poll() is not None):
                     raise RuntimeError('A strategy failed; inspect logs/benchmark-*-console.txt')
-                logs = sorted((ROOT/'logs').glob('*-blue.jsonl'), key=lambda p:p.stat().st_mtime)
-                if not logs:
-                    raise RuntimeError('No telemetry: connect Client Vision first')
-                telemetry = logs[-1]
                 report.setdefault('attacker_telemetries',[]).append(str(telemetry))
                 yellow_logs = sorted((ROOT/'logs').glob('*-yellow.jsonl'), key=lambda p:p.stat().st_mtime)
                 goalie_telemetry = yellow_logs[-1] if yellow_logs and goalie is not None else None

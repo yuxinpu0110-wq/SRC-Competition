@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "D:\桌面\ZBin\PythonScripts\benchmark_match.py", line 397, in <module>
+    main()
+  File "D:\桌面\ZBin\PythonScripts\benchmark_match.py", line 246, in main
+    raise RuntimeError('Reset not confirmed by vision: '+result['reset_error']+'. Trial INVALID.')
+RuntimeError: Reset not confirmed by vision: GOALIE_START_NOT_CONFIRMED. Trial INVALID.

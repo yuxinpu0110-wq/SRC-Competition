@@ -33,6 +33,7 @@
   "vision_max_age_s": 0.2,
   "vision_match_tolerance_mm": 60,
   "raw_camera_id": -1,
+  "raw_capture_clock": "relative",
   "kick_pulse_seconds": 0.18,
   "kick_departure_timeout": 0.45,
   "kick_max_attempts": 1,
@@ -45,5 +46,6 @@
   "log_interval": 0.02,
   "calibration_mode": true,
   "calibration_power": 3500,
-  "calibration_placement_distance_mm": 100
+  "calibration_placement_distance_mm": 100,
+  "raw_vision_port": 10021
 }

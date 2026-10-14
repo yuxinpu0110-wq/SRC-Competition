@@ -56,6 +56,8 @@ def load_config(path):
         if not isinstance(c[name], (int, float)) or not math.isfinite(c[name]) or c[name] <= 0:
             raise ValueError('Invalid field dimension: '+name)
     if c.get('upgrade_version') == '2.1':
+        if c.get('raw_capture_clock','unix') not in ('unix','relative'):
+            raise ValueError('raw_capture_clock must be unix or relative')
         if not c.get('complete_frame', True):
             raise ValueError('V2.1 requires paired native pre/post decisions')
         for name, low, high in [('vision_max_age_s', .05, .5), ('vision_match_tolerance_mm', 5, 100),
@@ -152,7 +154,7 @@ def main():
     worldModel.SPlayFSMSwitchClearAll(True)
     log_dir = ROOT/'logs'
     log_dir.mkdir(exist_ok=True)
-    log_path = log_dir/(time.strftime('%Y%m%d-%H%M%S')+f"-{c['team']}.jsonl")
+    log_path = log_dir/(time.strftime('%Y%m%d-%H%M%S')+f"-{os.getpid()}-{c['team']}.jsonl")
     from runtime_manifest import manifest
     log_path.with_suffix('.manifest.json').write_text(json.dumps(manifest(args.config),indent=2),encoding='utf-8')
     frames, last_label, last_log, armed = 0, None, 0.0, False
@@ -164,8 +166,8 @@ def main():
     if c.get('upgrade_version') == '2.1':
         from observation import RawVision, FreshnessGuard
         from safety_watchdog import DecisionWatchdog
-        raw = RawVision(camera=c['raw_camera_id'])
-        freshness = FreshnessGuard(c['vision_max_age_s'], c['vision_match_tolerance_mm'])
+        raw = RawVision(camera=c['raw_camera_id'],port=c.get('raw_vision_port',10020))
+        freshness = FreshnessGuard(c['vision_max_age_s'], c['vision_match_tolerance_mm'], c.get('raw_capture_clock','unix'))
         watchdog = DecisionWatchdog(c['team'], ids, c['vision_max_age_s'])
         if raw.error:
             print('[MATCH] Raw vision unavailable; V2.1 will hold safely: '+raw.error, flush=True)
@@ -234,6 +236,8 @@ def main():
                     last_label = label
                 if now-last_log >= c.get('log_interval', .1):
                     row = {'time':time.time(), 'frame':frames, 'mode':mode, 'phase':play.phase,
+                           'process_id':os.getpid(),
+                           'run_id':os.environ.get('SRC_MATCH_RUN_ID'),
                            'state':play.executed_state, 'next_state':play.current_state.state_name,
                            'strategy_phase':play.strategy_phase, 'pass_state':play.pass_state,
                            'pass_attempts':play.pass_attempts, 'pass_completed':play.pass_completed,
@@ -256,7 +260,7 @@ def main():
                                 if associated else None,
                            'physical_events':list(play.transactions.events),
                            'kick_transaction':play.transactions.diagnostics(),
-                           'aim':[play.choice.aim.x, play.choice.aim.y] if play.choice.aim is not None else None,
+                           'aim':[play.choice.aim.x, play.choice.aim.y] if play.choice is not None and play.choice.aim is not None else None,
                            'shot_gate':{str(n):g.diagnostics for n,g in play.shot_gates.items()},
                            'angles':{str(n):Player.direction(n) for n in visible},
                            'opponents':[[p.x,p.y] for p in opponents],

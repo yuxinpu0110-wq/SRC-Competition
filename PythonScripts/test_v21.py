@@ -38,6 +38,23 @@ class ObservationTests(unittest.TestCase):
     def test_loop_cycle_is_not_evidence(self):
         self.assertFalse(self.evaluate(None).fresh)
 
+    def test_simulator_relative_clock_is_not_compared_to_unix(self):
+        guard=FreshnessGuard(.2,60,capture_clock='relative')
+        c=Capture(0,1,227.82,1000.,self.ball,{('blue',0):self.players[0]})
+        e=guard.evaluate(c,1000.01,self.ball,self.players,'blue','left')
+        self.assertTrue(e.fresh)
+        self.assertTrue(e.new_capture)
+        self.assertEqual(e.capture_clock,'relative')
+        duplicate=Capture(0,1,227.82,1000.3,self.ball,c.robots)
+        self.assertFalse(guard.evaluate(duplicate,1000.3,self.ball,self.players,'blue','left').fresh)
+
+    def test_relative_clock_delayed_new_packet_cannot_refresh_offset(self):
+        guard=FreshnessGuard(.2,60,capture_clock='relative')
+        c=Capture(0,1,100.,1000.,self.ball,{('blue',0):self.players[0]})
+        guard.evaluate(c,1000.,self.ball,self.players,'blue','left')
+        delayed=Capture(0,2,100.02,1000.5,self.ball,c.robots)
+        self.assertFalse(guard.evaluate(delayed,1000.5,self.ball,self.players,'blue','left').fresh)
+
     def test_multi_camera_and_out_of_order_rejected(self):
         self.evaluate(self.capture())
         self.assertEqual(self.evaluate(self.capture(2,.02,1.02,1),1.02).reason,'CAMERA_CHANGED')
@@ -172,6 +189,16 @@ class ActionTests(unittest.TestCase):
 
 
 class CalibrationTests(unittest.TestCase):
+    def test_startup_wait_rejects_stale_or_other_process_logs(self):
+        import benchmark_match
+        from types import SimpleNamespace
+        process=SimpleNamespace(pid=12,poll=lambda:None)
+        with patch('benchmark_match.time.monotonic',side_effect=[0,0,.1,1]), patch('benchmark_match.time.sleep'), \
+                patch('benchmark_match.ROOT') as root, patch('match_launcher.latest_complete_row',return_value=dict(process_id=99,time=10)):
+            root.__truediv__.return_value.glob.return_value=[SimpleNamespace(stat=lambda:SimpleNamespace(st_mtime=10))]
+            with self.assertRaises(RuntimeError):
+                benchmark_match.wait_for_telemetry(process,'blue',0,timeout=.5)
+
     def test_operator_panel_does_not_call_a_request_a_departure(self):
         from match_launcher import v21_status
         row=dict(observation=dict(fresh=True),kick_transaction=dict(active=dict(state='REQUESTED',pulse_count=50)))

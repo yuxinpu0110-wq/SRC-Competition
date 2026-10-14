@@ -32,6 +32,8 @@ class Evidence:
     frame_id: tuple | None = None
     sdk_cycle: int | None = None
     source: str = 'raw_associated_fused_timestamp_unknown'
+    capture_clock: str = 'unix'
+    capture_age_s: float | None = None
 
     def diagnostics(self):
         return asdict(self)
@@ -60,25 +62,40 @@ def decode_detection(packet, received):
 
 
 class FreshnessGuard:
-    def __init__(self, max_age=.2, tolerance=60):
+    def __init__(self, max_age=.2, tolerance=60, capture_clock='unix'):
+        if capture_clock not in ('unix','relative'):
+            raise ValueError('Unknown raw capture clock domain')
         self.max_age, self.tolerance = max_age, tolerance
+        self.capture_clock = capture_clock
         self.last_key = None
         self.last_capture = None
         self.last_advance = None
         self.camera_times = {}
+        self.clock_offsets = {}
 
     def evaluate(self, capture, now, ball, players, team, side, sdk_cycle=None):
+        age = None
         def result(reason, fresh=False, new=False):
             return Evidence(new, fresh, reason,
                             capture.capture_time if capture else None,
                             capture.receive_time if capture else None,
-                            (capture.camera, capture.frame_id) if capture else None, sdk_cycle)
+                            (capture.camera, capture.frame_id) if capture else None, sdk_cycle,
+                            capture_clock=self.capture_clock, capture_age_s=age)
         if capture is None:
             return result('NO_CAPTURE_EVIDENCE')
         if not 0 <= now-capture.receive_time <= self.max_age:
             return result('STALE_RECEIVE')
-        # t_capture 是 Unix 秒；旧包重发不能用新的接收时间洗掉捕获年龄。
-        age = time.time()-capture.capture_time
+        if self.capture_clock == 'unix':
+            age = time.time()-capture.capture_time
+        else:
+            # 本机已测 grSim 使用启动后的相对秒数。按相机建立单调时钟关联，
+            # 最小接收偏移只向较小值更新；重复/滞后包不能重设锚点来洗掉年龄。
+            if not math.isfinite(capture.capture_time) or capture.capture_time < 0:
+                return result('INVALID_CAPTURE_TIME')
+            offset = capture.receive_time-capture.capture_time
+            previous_offset = self.clock_offsets.get(capture.camera)
+            self.clock_offsets[capture.camera] = offset if previous_offset is None else min(offset,previous_offset)
+            age = now-(capture.capture_time+self.clock_offsets[capture.camera])
         if not -.1 <= age <= self.max_age:
             return result('STALE_CAPTURE')
         if capture.ball is None or not players:
@@ -139,6 +156,9 @@ class RawVision:
             try:
                 packet, _ = self.socket.recvfrom(65535)
                 for capture in decode_detection(packet, time.perf_counter()):
+                    previous=self.captures.get(capture.camera)
+                    if previous is not None and capture.capture_time <= previous.capture_time:
+                        continue  # 重发/乱序不覆盖最新帧的接收时间。
                     self.captures[capture.camera] = capture
                     if capture.camera == self.camera or self.camera == -1:
                         self.latest = capture

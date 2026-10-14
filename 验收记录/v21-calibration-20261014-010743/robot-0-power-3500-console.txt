@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "D:\桌面\ZBin\PythonScripts\benchmark_match.py", line 392, in <module>
+    main()
+  File "D:\桌面\ZBin\PythonScripts\benchmark_match.py", line 180, in main
+    telemetry=wait_for_telemetry(p,c['team'],launched_at)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\桌面\ZBin\PythonScripts\benchmark_match.py", line 78, in wait_for_telemetry
+    raise RuntimeError(f'Strategy exited before telemetry: pid={process.pid}, code={code}')
+RuntimeError: Strategy exited before telemetry: pid=79692, code=1

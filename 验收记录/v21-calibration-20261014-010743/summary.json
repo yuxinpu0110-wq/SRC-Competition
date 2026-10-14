@@ -1,0 +1,16 @@
+{
+  "complete": false,
+  "stage": "static_open_goal",
+  "attempts": [
+    {
+      "robot": 0,
+      "power": 3500,
+      "config": "D:\\\u684c\u9762\\ZBin\\\u9a8c\u6536\u8bb0\u5f55\\v21-calibration-20261014-010743\\robot-0-power-3500.json",
+      "console": "D:\\\u684c\u9762\\ZBin\\\u9a8c\u6536\u8bb0\u5f55\\v21-calibration-20261014-010743\\robot-0-power-3500-console.txt",
+      "exit_code": 1,
+      "benchmark_complete": false,
+      "valid_trials": 0
+    }
+  ],
+  "physical_acceptance_passed": false
+}
