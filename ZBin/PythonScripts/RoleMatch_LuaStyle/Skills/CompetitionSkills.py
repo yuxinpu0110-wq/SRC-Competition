@@ -2,6 +2,7 @@
 
 执行链仍是State→Task→Skill.RushTo/kickStatus，不绕过SDK直接遥控仿真。
 """
+from strategy_contract import uses_verified_control
 import math
 import CppPackage as C
 from RoleMatch_LuaStyle.Skills import Skill
@@ -54,7 +55,7 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
             return
         dest,angle,aligned,held,phase = control.plan(now,robot,heading,ball,target,
             contact=geometry.c.get('contact_distance',85),trim=geometry.c.get('contact_trim',False))
-        if geometry.c.get('upgrade_version') == '2.1':
+        if uses_verified_control(geometry.c):
             if control.budget is None:
                 control.budget = ActionBudget()
             failure = control.budget.update(now, robot, heading, ball, target, geometry.c)
@@ -67,7 +68,7 @@ def TargetedKick(target, ball, power, geometry, *, carry=False, can_kick=True,
                     report_phase(failure)
                 return
         dest = geometry.legal(dest)
-        if geometry.c.get('upgrade_version') == '2.1':
+        if uses_verified_control(geometry.c):
             dest = geometry.safe_waypoint(robot, dest)
             if dest is None:
                 skill = Skill.Stop()

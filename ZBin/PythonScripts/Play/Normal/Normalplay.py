@@ -15,6 +15,7 @@ getTasks() 决定本帧任务，transFunction() 返回下一状态的类名。
 这是按当前本地 SDK 编写的 Normalplay，最终提交路径/接口仍需正式模板确认。
 不包含正式点球、间接任意球或实车验收；不宣称修复 Client 原生崩溃。
 """
+from strategy_contract import uses_verified_control
 from dataclasses import dataclass
 import math
 import Global
@@ -296,7 +297,7 @@ class NormalPlay(StateMachine):
     def __init__(self, config):
         super().__init__()
         self.c = config
-        self.v21 = config.get("upgrade_version") == "2.1"
+        self.v21 = uses_verified_control(config)
         self.transactions = KickTransactions(config)
         self.release_until = -math.inf
         # config 来自 match.json。这里只保存配置，不在构造函数里驱动车辆。

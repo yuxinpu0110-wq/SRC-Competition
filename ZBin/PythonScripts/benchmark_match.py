@@ -4,6 +4,7 @@ Requires one connected Client + one grSim. Stops only the child strategy it star
 Starts official Goalie (NOT Goalie2022) via run_match --config opponent.json.
 Logs no-carry guards and filtered SDK ball speed; none replaces the official referee.
 """
+from strategy_contract import uses_verified_control
 import argparse
 import hashlib
 import math
@@ -236,7 +237,7 @@ def main():
                             and not scene_error(goalie_start,(-ball[0],-ball[1]),{c['goalie']:(-4.2,0,0)},150)
                             and opponents_match(goalie_start,[[-p[0]*1000,-p[1]*1000] for p in expected_poses.values()])))
                         if (last and time.time()-last['time'] < .3 and not scene_error(last,ball,expected_poses)
-                                and (c.get('upgrade_version') != '2.1' or (last.get('observation') or {}).get('fresh'))
+                                and (not uses_verified_control(c) or (last.get('observation') or {}).get('fresh'))
                                 and (not last.get('opponents') if args.goalie == 'none' else opponents_match(last,[[4200,0]]))
                                 and (not c.get('calibration_mode') or math.dist(last['ball'],[ball[0]*1000,ball[1]*1000]) <= 8)
                                 and goalie_ready):
@@ -345,7 +346,7 @@ def main():
                                     max_robot_drift = max(max_robot_drift, math.hypot(pos[0]-old[0], pos[1]-old[1]))
                             if args.starts == 'approach' and time.monotonic()-start > 6 and max_robot_drift < 20:
                                 raise RuntimeError('Vision arrives but robots do not move: check Client simulation command forwarding. Trial INVALID.')
-                            if c.get('upgrade_version') == '2.1':
+                            if uses_verified_control(c):
                                 if not (row.get('observation') or {}).get('fresh'):
                                     stale_samples += 1
                                     if stale_since is None: stale_since = row['monotonic']
@@ -390,7 +391,7 @@ def main():
                         result['moving_goalie_observed'] = len(poses) >= 10 and result['goalie_max_displacement_mm'] > 20
                     if samples < 10:
                         raise RuntimeError('Insufficient telemetry: trial is INVALID, not a failed shot')
-                    if c.get('upgrade_version') == '2.1' and len(fresh_capture_ids) < 10:
+                    if uses_verified_control(c) and len(fresh_capture_ids) < 10:
                         raise RuntimeError('Insufficient distinct captures; trial INVALID')
                     result['valid'] = True
                     (ROOT/'logs'/'benchmark-report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
