@@ -4,6 +4,9 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'ZBin/PythonScripts'))
+from rolling_diagnostic import assess
 
 
 def digest(path):
@@ -18,7 +21,7 @@ def summarize(folder):
     for attempt in batch['attempts']:
         item=dict(robot=attempt['robot'],sdk_power=attempt['power'],exit_code=attempt['exit_code'],
                   timed_out=attempt.get('timed_out',False),benchmark_complete=attempt.get('benchmark_complete',False))
-        path=folder/f"robot-{attempt['robot']}-power-{attempt['power']}-report.json"
+        path=Path(attempt['report_path']) if attempt.get('report_path') else folder/f"robot-{attempt['robot']}-power-{attempt['power']}-report.json"
         if path.is_file():
             report=json.loads(path.read_text(encoding='utf8'))
             manifest=report['runtime_manifest']
@@ -37,9 +40,12 @@ def summarize(folder):
                 if (t['physical_departures'] or 0)>1:
                     t['range_rejection_reason']='MULTIPLE_KICKS_IN_ONE_SCENE'
                 if trial.get('raw_capture_log'):
-                    raw=folder/Path(trial['raw_capture_log']).name
+                    raw=path.parent/Path(trial['raw_capture_log']).name
                     if raw.is_file():
                         t['raw_evidence']=dict(path=raw.name,sha256=digest(raw),bytes=raw.stat().st_size)
+                        rows=[json.loads(line) for line in raw.read_text(encoding='utf8').splitlines()]
+                        if trial.get('verified_start'):
+                            t['rolling_diagnostic']=assess(rows,trial['verified_start']['ball'],t['physical_departures'])
                 if t['last_ball_mm'] and trial.get('verified_start'):
                     t['telemetry_end_displacement_mm']=math.dist(trial['verified_start']['ball'],t['last_ball_mm'])
                     t['end_displacement_is_certified_range']=False
