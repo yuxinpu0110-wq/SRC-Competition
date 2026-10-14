@@ -1,4 +1,5 @@
 """Small local operator panel. No global process killing, no auto-start on load."""
+from strategy_contract import uses_verified_control
 import json
 import argparse
 import math
@@ -292,7 +293,7 @@ class App:
                     useful = [s for s in lines[-30:] if '[MATCH]' in s or 'Error' in s]
                     if useful:
                         self.status.set(useful[-1])
-                    if self.c.get('upgrade_version') == '2.1':
+                    if uses_verified_control(self.c):
                         candidates=sorted((ROOT/'logs').glob(f'*-{self.c["team"]}.jsonl'),key=lambda p:p.stat().st_mtime,reverse=True)
                         for telemetry in candidates[:3]:
                             row=latest_complete_row(telemetry)

@@ -14,13 +14,15 @@ import sys
 import time
 import traceback
 
+from strategy_contract import normalize_verified_contract, uses_verified_control
+
 ROOT = Path(__file__).resolve().parents[2]
 ZBIN = ROOT/'ZBin'
 
 
 def load_config(path):
     """配置不合法就拒绝启动；旧 direct 调度已移除，不允许静默回退。"""
-    c = json.loads(Path(path).read_text(encoding='utf-8-sig'))
+    c = normalize_verified_contract(json.loads(Path(path).read_text(encoding='utf-8-sig')))
     if c['profile'] not in ('qualifier', 'full', 'goalie'):
         raise ValueError('profile must be qualifier, full or goalie')
     if c['team'] not in ('blue', 'yellow') or c['side'] not in ('left', 'right'):
@@ -63,7 +65,7 @@ def load_config(path):
     for name in ('field_length', 'field_width', 'goal_width', 'defense_depth', 'defense_width'):
         if not isinstance(c[name], (int, float)) or not math.isfinite(c[name]) or c[name] <= 0:
             raise ValueError('Invalid field dimension: '+name)
-    if c.get('upgrade_version') == '2.1':
+    if uses_verified_control(c):
         if c.get('raw_capture_clock','unix') not in ('unix','relative','simulation'):
             raise ValueError('raw_capture_clock must be unix, relative or simulation')
         if not c.get('complete_frame', True):
@@ -107,7 +109,7 @@ def main():
     if not args.check:
         from match_processes import check_duplicates
         check_duplicates()
-        if c.get('upgrade_version') == '2.1':
+        if uses_verified_control(c):
             from vision_relay import ensure_relay
             ensure_relay()  # 必须早于 SDK 等待 Client 视觉，避免启动依赖环。
     os.chdir(ZBIN)
@@ -174,7 +176,7 @@ def main():
     def xy(point):
         return Point(point.x(), point.y())
     raw = watchdog = None
-    if c.get('upgrade_version') == '2.1':
+    if uses_verified_control(c):
         from observation import RelayVision, MultiCameraGuard
         from safety_watchdog import DecisionWatchdog
         from vision_relay import ensure_relay
