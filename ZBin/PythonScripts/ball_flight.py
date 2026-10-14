@@ -79,7 +79,8 @@ class BallFlightObserver:
         own_camera = [c for c in ordered if c.camera == tx['camera']]
         for capture in own_camera:
             key = (capture.camera, capture.frame_id, capture.capture_time)
-            if key in self.seen or capture.capture_time <= tx['capture_time']:
+            if (key in self.seen or capture.capture_time <= tx['capture_time']
+                    or capture.receive_time < tx['now']):
                 continue
             self.seen.append(key)
             if not 0 <= now-capture.receive_time <= self.c.get('vision_max_age_s', .2):

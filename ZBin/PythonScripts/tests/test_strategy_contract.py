@@ -23,6 +23,7 @@ class ContractTests(unittest.TestCase):
         for config in ({'upgrade_version': '2.2'}, {'strategy_version': '2.2'},
                        {'upgrade_version': '2.3'}, {'strategy_version': 2.2},
                        {'control_contract_version': True}, {'control_contract_version': '2'},
+                       {'upgrade_version': '2.2', 'strategy_version': '2.1', 'control_contract_version': 2},
                        {'control_contract_version': None}, {'control_contract_version': 3}):
             with self.subTest(config=config), self.assertRaises(ValueError):
                 normalize_verified_contract(config)

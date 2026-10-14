@@ -15,7 +15,7 @@ getTasks() 决定本帧任务，transFunction() 返回下一状态的类名。
 这是按当前本地 SDK 编写的 Normalplay，最终提交路径/接口仍需正式模板确认。
 不包含正式点球、间接任意球或实车验收；不宣称修复 Client 原生崩溃。
 """
-from strategy_contract import uses_verified_control
+from strategy_contract import uses_verified_control, uses_range_gate
 from dataclasses import dataclass
 import math
 import os
@@ -34,6 +34,8 @@ from observation import ObservationClock
 from match_events import MatchEvents, KickTransactions
 from keeper_model import KeeperModel
 from ball_flight import BallFlightObserver, FlightIdentity
+from ball_travel import load_ball_model
+from shot_opportunity import KickPlan, evaluate_kick
 
 
 @dataclass
@@ -300,6 +302,12 @@ class NormalPlay(StateMachine):
         super().__init__()
         self.c = config
         self.v21 = uses_verified_control(config)
+        self.range_gate = uses_range_gate(config)
+        self.travel_model = None
+        self.shot_opportunities = {}
+        if self.range_gate:
+            from runtime_paths import ROOT, SOURCE_ZBIN
+            self.travel_model = load_ball_model(ROOT/config['ball_model_path'], SOURCE_ZBIN, config)
         self.transactions = KickTransactions(config, os.environ.get('SRC_MATCH_RUN_ID'))
         self.flight_observer = BallFlightObserver(config)
         self.reset_epoch = 0
@@ -611,6 +619,8 @@ class NormalPlay(StateMachine):
         self.kick_events.append(dict(now=self.frame.now, frame_ball=[ball.x, ball.y],
             target=[target.x, target.y], robot=number, heading=Player.direction(number),
             power=power, passing=passing, **backend))
+        if self.range_gate and number in self.shot_opportunities:
+            self.shot_opportunities[number]['actual_setKick_power'] = power
         if self.v21 and self.transactions.active is not None:
             tx = self.transactions.active
             identity = FlightIdentity(self.transactions.run_id, self.reset_epoch,
@@ -645,6 +655,22 @@ class NormalPlay(StateMachine):
         angle = math.atan2(s.target.y-s.origin.y, s.target.x-s.origin.x)
         point = s.target if ball is None else ball
         return self.tactics.legal(Point(point.x+105*math.cos(angle), point.y+105*math.sin(angle)))
+
+    def validate_kick_plan(self, plan, number, actual_power, robot, heading):
+        f = self.frame
+        if (number != plan.robot or not self.can_attack or not f.new_capture
+                or self.contact_guard.blocked(number) or self.restart_guard.blocked(number)):
+            self.shot_opportunities[number] = {'reachable': False, 'reason': 'RULE_OR_STALE'}
+            return False
+        dx, dy = f.ball.x-robot.x, f.ball.y-robot.y
+        contact = (dx*math.cos(heading)+dy*math.sin(heading),
+                   abs(-dx*math.sin(heading)+dy*math.cos(heading)))
+        result = evaluate_kick(plan, f.ball, heading, actual_power, self.reset_epoch, f.now,
+                               self.travel_model, self.c, contact=contact)
+        self.shot_opportunities[number] = dict(result.diagnostics(), planned_power=plan.power,
+                                               actual_setKick_power=None,
+                                               clamped_power=actual_power, keeper_evaluation='NOT_IMPLEMENTED')
+        return result.reachable
 
     def receiver_ready(self):
         s = self.session
@@ -773,6 +799,11 @@ class NormalPlay(StateMachine):
                     power = min(self.c['power_cap'],max(power,self.c.get('shot_power_floor',0)))
                 if self.c.get("calibration_mode"):
                     power = self.c["calibration_power"]
+                kick_plan = None
+                if self.range_gate:
+                    power = self.c['planned_shot_power_by_robot'][str(number)]
+                    kick_plan = KickPlan(number, 'pass' if action == 'pass' else 'shot',
+                        f.ball, target, power, self.reset_epoch, f.now, self.travel_model.data.get('model_id'))
                 # 使用统一力度映射，不能把这个参数直接当作物理球速。
                 skill = CompetitionSkills.TargetedKick(target, f.ball, power, self.tactics,
                         can_kick=action != 'aim', enable_dss=self.c.get('enable_dss', True),
@@ -780,6 +811,7 @@ class NormalPlay(StateMachine):
                         report_phase=lambda phase: setattr(self, 'phase', phase),
                         gate=self.shot_gates[number],
                         now=f.now, shooting=action != 'pass', control=self.ball_controls[number],
+                        validate_plan=(lambda n,p,r,h,plan=kick_plan: self.validate_kick_plan(plan,n,p,r,h)) if kick_plan else None,
                         authorize_kick=lambda n,t=target,p=action=='pass': self.authorize_kick(n,t,p))
                 self.motion_ids.add(number)
             task = Task(skill, fixedNumber=number, description=action)

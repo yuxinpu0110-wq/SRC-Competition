@@ -55,6 +55,12 @@ class FlightTests(unittest.TestCase):
         self.consume(self.sample(.03, 2820), self.sample(.06, 2940), now=10.5)
         self.assertNotIn('BALL_DEPARTED', self.kinds())
 
+    def test_cached_before_request_cannot_prove_departure(self):
+        captures=[Capture(0, 1, 100.03, 9.98, Point(2820, 0), {}),
+                  Capture(0, 2, 100.06, 9.99, Point(2940, 0), {})]
+        self.consume(*captures, now=10.06)
+        self.assertNotIn('BALL_DEPARTED', self.kinds())
+
     def test_ambiguous_gap_and_other_camera_are_unknown(self):
         for captures in ((self.sample(.03, 2820, ball=False),),
                          (self.sample(.2, 2820),),
